@@ -1,0 +1,49 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://padeknian:padeknian@127.0.0.1:5432/padeknian_e2e
+      NEXTAUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: padeknian
+          POSTGRES_PASSWORD: padeknian
+          POSTGRES_DB: padeknian_e2e
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U padeknian" --health-interval 5s --health-timeout 5s --health-retries 10
+      minio:
+        image: bitnamilegacy/minio:2025.7.23-debian-12-r3
+        env:
+          MINIO_ROOT_USER: minioadmin
+          MINIO_ROOT_PASSWORD: minioadmin
+        ports: ["9000:9000"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run test
+      - name: E2E (Chromium)
+        run: |
+          npx playwright install --with-deps chromium
+          E2E_CHANNEL=chromium npx playwright test
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-traces
+          path: test-results
