@@ -4,6 +4,7 @@ import { handle, requireRole } from "@/lib/rbac";
 import { clientIp, parseBody } from "@/lib/request";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60; // di Vercel, pembuatan rekap berjalan di `after` dengan batas ini
 
 // Memulai pembuatan rekap secara asinkron (202). Pantau status lewat GET /api/rekap/:periodeId.
 export const POST = handle(async (req: Request) => {

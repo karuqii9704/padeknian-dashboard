@@ -49,7 +49,18 @@ export function bossWeb() {
   return g.__bossWeb;
 }
 
+/**
+ * Di Vercel tidak ada proses worker. Job dijalankan langsung setelah respons terkirim (`after`),
+ * sehingga antrean pg-boss tidak dipakai. Tempat lain tetap memakai worker (`npm run worker`).
+ */
+const inline = () => !!process.env.VERCEL;
+
 export async function kirimJobRekap(rekapId: string) {
+  if (inline()) {
+    const [{ after }, { prosesRekap }] = await Promise.all([import("next/server"), import("@/lib/rekap-proses")]);
+    after(() => prosesRekap(rekapId));
+    return "inline";
+  }
   const boss = await bossWeb();
   const id = await boss.send(QUEUE_REKAP, { rekapId } satisfies JobRekap);
   if (!id) throw new Error("Gagal mengantrekan job rekap.");
@@ -58,6 +69,11 @@ export async function kirimJobRekap(rekapId: string) {
 
 /** Antrekan pembuatan XLSX batch; satu job per batch (singletonKey) walau banyak rekap selesai bersamaan. */
 export async function kirimJobXlsx(batchId: string) {
+  if (inline()) {
+    const [{ after }, { prosesXlsxBatch }] = await Promise.all([import("next/server"), import("@/lib/rekap-xlsx-proses")]);
+    after(() => prosesXlsxBatch(batchId));
+    return "inline";
+  }
   const boss = await bossWeb();
   return boss.send(QUEUE_REKAP_XLSX, { batchId } satisfies JobXlsx, { singletonKey: batchId });
 }
