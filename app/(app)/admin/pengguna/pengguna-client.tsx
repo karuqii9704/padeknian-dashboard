@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PageHeader } from "../../../ui/primitives";
 
 type Role = "PEGAWAI" | "KETUA_TIM" | "PIMPINAN" | "ADMIN";
 type Pengguna = {
@@ -117,12 +118,16 @@ export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pen
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="hero-judul">Kelola Pengguna</h1>
-        <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">
-          + Tambah pengguna
-        </button>
-      </header>
+      <PageHeader
+        eyebrow="Data induk"
+        judul="Kelola Pengguna"
+        keterangan="Akun pegawai, ketua tim, pimpinan, dan admin."
+        aksi={
+          <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">
+            + Tambah pengguna
+          </button>
+        }
+      />
 
       <div className="mb-3 flex flex-wrap gap-2">
         <input
@@ -150,19 +155,19 @@ export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pen
       <div className="overflow-x-auto">
         <div className="overflow-x-auto rounded border"><table className="w-full text-left text-sm">
           <thead className="border-b">
-            <tr><th className="p-2">NIP</th><th className="p-2">Nama</th><th className="p-2">Peran</th><th className="p-2">Status</th><th className="p-2">Aksi</th></tr>
+            <tr><th className="px-4 py-3">NIP</th><th className="px-4 py-3">Nama</th><th className="px-4 py-3">Peran</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Aksi</th></tr>
           </thead>
           <tbody>
             {rows.map((u) => (
               <tr key={u.id} className="border-b">
-                <td className="p-2 font-mono">{u.nip}</td>
-                <td className="p-2">{u.nama}<div className="text-xs text-gray-500">{u.email ?? "-"}</div></td>
-                <td className="p-2">{ROLE_LABEL[u.role]}</td>
-                <td className="p-2">
+                <td className="px-4 py-3 font-mono">{u.nip}</td>
+                <td className="px-4 py-3">{u.nama}<div className="text-xs text-gray-500">{u.email ?? "-"}</div></td>
+                <td className="px-4 py-3">{ROLE_LABEL[u.role]}</td>
+                <td className="px-4 py-3">
                   {u.isActive ? "Aktif" : "Nonaktif"}
                   {u.mustChangePassword && <div className="text-xs text-amber-700">Wajib ganti password</div>}
                 </td>
-                <td className="flex flex-wrap gap-2 p-2">
+                <td className="flex flex-wrap gap-2 px-4 py-3">
                   <button onClick={() => setEditing(u)} className={btn}>Ubah</button>
                   <button onClick={() => reset(u)} className={btn}>Reset password</button>
                   {u.id !== meId && (

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PageHeader } from "../../../ui/primitives";
 
 type Periode = { id: string; tahun: number; bulan: number; jumlahHariKerja: number; status: "DRAFT" | "AKTIF" | "DIKUNCI" };
 type Libur = { id: string; tanggal: string; keterangan: string; jenis: string };
@@ -98,7 +99,9 @@ export function PeriodeClient({ awal }: { awal: { periodes: Periode[]; libur: Li
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
       <section>
-        <h1 className="hero-judul mb-4">Periode Bulanan</h1>
+        <div className="mb-5">
+          <PageHeader eyebrow="Data induk" judul="Periode Bulanan" keterangan="Buat, aktifkan, dan kunci periode kerja bulanan beserta hari liburnya." />
+        </div>
         {error && <p role="alert" className="mb-3 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900">{error}</p>}
         {info && <p role="status" className="mb-3 rounded-xl border border-green-200 bg-green-50 px-3.5 py-2.5 text-sm text-green-900">{info}</p>}
         <form onSubmit={tambahPeriode} className="mb-4 flex flex-wrap items-end gap-2">
@@ -111,14 +114,14 @@ export function PeriodeClient({ awal }: { awal: { periodes: Periode[]; libur: Li
           <button className="min-h-11 rounded bg-blue-700 px-4 text-white">+ Buat periode</button>
         </form>
         <div className="overflow-x-auto rounded border"><table className="w-full text-left text-sm">
-          <thead className="border-b"><tr><th className="p-2">Periode</th><th className="p-2">Hari kerja</th><th className="p-2">Status</th><th className="p-2">Aksi</th></tr></thead>
+          <thead className="border-b"><tr><th className="px-4 py-3">Periode</th><th className="px-4 py-3">Hari kerja</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Aksi</th></tr></thead>
           <tbody>
             {periodes.map((p) => (
               <tr key={p.id} className="border-b">
-                <td className="p-2">{BULAN[p.bulan - 1]} {p.tahun}</td>
-                <td className="p-2">{p.jumlahHariKerja}</td>
-                <td className="p-2">{p.status}</td>
-                <td className="flex gap-2 p-2">
+                <td className="px-4 py-3">{BULAN[p.bulan - 1]} {p.tahun}</td>
+                <td className="px-4 py-3">{p.jumlahHariKerja}</td>
+                <td className="px-4 py-3">{p.status}</td>
+                <td className="flex gap-2 px-4 py-3">
                   {p.status === "DRAFT" && <button onClick={() => aktifkan(p)} className={btn}>Aktifkan</button>}
                   {p.status !== "DIKUNCI" && <button onClick={() => kunci(p)} aria-label={`Kunci ${BULAN[p.bulan - 1]} ${p.tahun}`} className={btn}>Kunci</button>}
                 </td>

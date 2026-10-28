@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PageHeader } from "../../../ui/primitives";
 
 type Tim = { id: string; nama: string; tahun: number; isActive: boolean; ketua: { id: string; nama: string; nip: string } };
 type Periode = { id: string; tahun: number; bulan: number; status: "DRAFT" | "AKTIF" | "DIKUNCI" };
@@ -79,20 +80,22 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="hero-judul">Tim Kerja</h1>
-        <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">+ Tambah tim</button>
-      </header>
+      <PageHeader
+        eyebrow="Data induk"
+        judul="Tim Kerja"
+        keterangan="Tim kerja per tahun beserta ketua dan anggotanya."
+        aksi={<button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">+ Tambah tim</button>}
+      />
       {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900">{error}</p>}
 
       <div className="overflow-x-auto rounded border"><table className="w-full text-left text-sm">
-        <thead className="border-b"><tr><th className="p-2">Nama tim</th><th className="p-2">Tahun</th><th className="p-2">Ketua</th><th className="p-2">Status</th><th className="p-2">Aksi</th></tr></thead>
+        <thead className="border-b"><tr><th className="px-4 py-3">Nama tim</th><th className="px-4 py-3">Tahun</th><th className="px-4 py-3">Ketua</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Aksi</th></tr></thead>
         <tbody>
           {tims.map((t) => (
             <tr key={t.id} className="border-b">
-              <td className="p-2">{t.nama}</td><td className="p-2">{t.tahun}</td><td className="p-2">{t.ketua.nama}</td>
-              <td className="p-2">{t.isActive ? "Aktif" : "Nonaktif"}</td>
-              <td className="flex gap-2 p-2">
+              <td className="px-4 py-3">{t.nama}</td><td className="px-4 py-3">{t.tahun}</td><td className="px-4 py-3">{t.ketua.nama}</td>
+              <td className="px-4 py-3">{t.isActive ? "Aktif" : "Nonaktif"}</td>
+              <td className="flex gap-2 px-4 py-3">
                 <button onClick={() => setEditing(t)} className={btn}>Ubah</button>
                 <button onClick={() => setPanel(t)} className={btn}>Anggota</button>
               </td>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { PageHeader } from "../../../ui/primitives";
 
 type Kegiatan = { id: string; kode: string | null; uraian: string; satuanDefault: string | null; isActive: boolean };
 const btn = "min-h-11 rounded border px-3 text-sm";
@@ -58,12 +59,16 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
   const edit = editing && editing !== "baru" ? editing : null;
   return (
     <main className="mx-auto max-w-4xl space-y-6 px-4 py-6 sm:px-6">
-      <header className="flex flex-wrap items-end justify-between gap-3">
-        <h1 className="hero-judul">Master Kegiatan</h1>
-        <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">
-          + Tambah kegiatan
-        </button>
-      </header>
+      <PageHeader
+        eyebrow="Data induk"
+        judul="Master Kegiatan"
+        keterangan="Daftar kegiatan yang dapat dialokasikan ke pegawai."
+        aksi={
+          <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">
+            + Tambah kegiatan
+          </button>
+        }
+      />
       {error && (
         <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900">
           {error}
@@ -72,21 +77,21 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
       <div className="overflow-x-auto rounded border"><table className="w-full text-left text-sm">
         <thead className="border-b">
           <tr>
-            <th className="p-2">Kode</th>
-            <th className="p-2">Uraian</th>
-            <th className="p-2">Satuan</th>
-            <th className="p-2">Status</th>
-            <th className="p-2">Aksi</th>
+            <th className="px-4 py-3">Kode</th>
+            <th className="px-4 py-3">Uraian</th>
+            <th className="px-4 py-3">Satuan</th>
+            <th className="px-4 py-3">Status</th>
+            <th className="px-4 py-3">Aksi</th>
           </tr>
         </thead>
         <tbody>
           {rows.map((k) => (
             <tr key={k.id} className={`border-b ${k.isActive ? "" : "text-gray-500"}`}>
-              <td className="p-2 font-mono">{k.kode ?? "-"}</td>
-              <td className="p-2">{k.uraian}</td>
-              <td className="p-2">{k.satuanDefault ?? "-"}</td>
-              <td className="p-2">{k.isActive ? "Aktif" : "Nonaktif"}</td>
-              <td className="flex gap-2 p-2">
+              <td className="px-4 py-3 font-mono">{k.kode ?? "-"}</td>
+              <td className="px-4 py-3">{k.uraian}</td>
+              <td className="px-4 py-3">{k.satuanDefault ?? "-"}</td>
+              <td className="px-4 py-3">{k.isActive ? "Aktif" : "Nonaktif"}</td>
+              <td className="flex gap-2 px-4 py-3">
                 <button onClick={() => setEditing(k)} className={btn}>Ubah</button>
                 <button onClick={() => toggle(k)} className={btn}>{k.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
               </td>
