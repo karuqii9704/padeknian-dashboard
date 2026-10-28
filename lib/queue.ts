@@ -50,10 +50,10 @@ export function bossWeb() {
 }
 
 /**
- * Di Vercel tidak ada proses worker. Job dijalankan langsung setelah respons terkirim (`after`),
- * sehingga antrean pg-boss tidak dipakai. Tempat lain tetap memakai worker (`npm run worker`).
+ * Tanpa proses worker (Vercel, atau Render dengan JOBS_INLINE=1), job dijalankan langsung setelah respons
+ * terkirim (`after`), sehingga antrean pg-boss tidak dipakai. Tempat lain tetap memakai worker (`npm run worker`).
  */
-const inline = () => !!process.env.VERCEL;
+const inline = () => !!process.env.VERCEL || process.env.JOBS_INLINE === "1";
 
 export async function kirimJobRekap(rekapId: string) {
   if (inline()) {

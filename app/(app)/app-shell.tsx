@@ -2,14 +2,15 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { LogOutIcon, MoonIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, SunIcon } from "lucide-react";
 import { Lambang } from "../brand";
+import { useTema } from "../theme";
 import {
   IkonAlokasi,
   IkonDashboard,
   IkonHariIni,
   IkonKalender,
   IkonKegiatan,
-  IkonKeluar,
   IkonPengguna,
   IkonPeriode,
   IkonRekap,
@@ -19,6 +20,31 @@ import {
 } from "../ui/icons";
 import { inisial } from "../ui/inisial";
 import { NotifikasiBell } from "./notifikasi-bell";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarGroupLabel,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuBadge,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  SidebarProvider,
+  SidebarTrigger,
+  useSidebar,
+} from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
 type Item = { href: string; label: string; ikon: (p: { className?: string }) => React.ReactElement; badge?: number; warna?: "merah" | "emas" };
 type Grup = { judul: string; item: Item[] };
@@ -58,14 +84,115 @@ function menu(role: string, revisi: number, verifikasi: number): Grup[] {
   return [{ judul: "Pemantauan", item: [dashboard, alokasi] }, { judul: "Laporan", item: [rekap] }];
 }
 
+const aktifUntuk = (pathname: string, href: string) => pathname === href || pathname.startsWith(`${href}/`);
+
+// Gaya tombol menu mengikuti Bionis: item aktif menjadi "kartu" putih dengan bayangan halus.
+const tombolMenu = cn(
+  "h-11 gap-2.5 rounded-xl border border-transparent px-3 text-[15px] tracking-tight text-muted-foreground transition-colors",
+  "data-[active=true]:border-border data-[active=true]:bg-background data-[active=true]:font-medium data-[active=true]:text-sidebar-accent-foreground data-[active=true]:shadow-[1px_2px_12px_rgba(158,158,158,0.08)]",
+  "dark:data-[active=true]:border-transparent dark:data-[active=true]:bg-sidebar-accent",
+  "hover:bg-sidebar-accent hover:text-sidebar-accent-foreground [&_svg]:size-5!",
+  "group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&>span]:hidden",
+);
+
+function ItemMenu({ m }: { m: Item }) {
+  const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar();
+  const aktif = aktifUntuk(pathname, m.href);
+  const Ikon = m.ikon;
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton asChild isActive={aktif} tooltip={m.label} className={tombolMenu}>
+        <Link href={m.href} aria-current={aktif ? "page" : undefined} onClick={() => isMobile && setOpenMobile(false)}>
+          <Ikon />
+          <span>{m.label}</span>
+        </Link>
+      </SidebarMenuButton>
+      {!!m.badge && (
+        <SidebarMenuBadge
+          aria-label={m.warna === "emas" ? `${m.badge} menunggu verifikasi` : `${m.badge} perlu revisi`}
+          className={cn(
+            "top-1/2 -translate-y-1/2 rounded-md px-1.5 text-xs font-medium tabular-nums",
+            m.warna === "emas" ? "bg-gold-100 text-gold-700" : "bg-red-100 text-red-700",
+          )}
+        >
+          {m.badge}
+        </SidebarMenuBadge>
+      )}
+    </SidebarMenuItem>
+  );
+}
+
+function KepalaSidebar() {
+  const { state, toggleSidebar, isMobile } = useSidebar();
+  const ciut = state === "collapsed" && !isMobile;
+  return (
+    <SidebarHeader className={cn("h-16 flex-row items-center border-b border-sidebar-border md:h-20", ciut ? "justify-center px-2" : "justify-between gap-3 px-4")}>
+      {!ciut && (
+        <Link href="/" aria-label="Beranda" className="flex min-w-0 items-center gap-2.5">
+          <Lambang ukuran={22} className="shrink-0" />
+          <span className="truncate text-lg font-semibold tracking-tight">BPS Kerinci</span>
+        </Link>
+      )}
+      {!isMobile && (
+        <button
+          type="button"
+          onClick={toggleSidebar}
+          aria-label={ciut ? "Lebarkan menu" : "Ciutkan menu"}
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
+        >
+          {ciut ? <PanelLeftOpenIcon className="size-5" /> : <PanelLeftCloseIcon className="size-5" />}
+        </button>
+      )}
+    </SidebarHeader>
+  );
+}
+
+function ItemTema() {
+  const { tema, gantiTema } = useTema();
+  const gelap = tema === "dark";
+  const label = gelap ? "Mode terang" : "Mode gelap";
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton tooltip={label} onClick={gantiTema} className={tombolMenu}>
+        {gelap ? <SunIcon /> : <MoonIcon />}
+        <span>{label}</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+function ItemKeluar({ onKeluar }: { onKeluar: () => void }) {
+  return (
+    <SidebarMenuItem>
+      <SidebarMenuButton tooltip="Keluar" onClick={onKeluar} className={tombolMenu}>
+        <LogOutIcon />
+        <span>Keluar</span>
+      </SidebarMenuButton>
+    </SidebarMenuItem>
+  );
+}
+
+function JudulHalaman({ grup }: { grup: Grup[] }) {
+  const pathname = usePathname();
+  const item = grup.flatMap((g) => g.item).find((m) => aktifUntuk(pathname, m.href));
+  if (!item) return <p className="truncate text-lg font-medium">BPS Kerinci</p>;
+  const Ikon = item.ikon;
+  return (
+    <div className="flex min-w-0 items-center gap-3">
+      <Ikon className="hidden size-5 shrink-0 md:block" />
+      <p className="truncate text-lg font-medium">{item.label}</p>
+    </div>
+  );
+}
+
 /**
- * Kerangka aplikasi (liquid glass). Satu elemen navigasi "Menu utama" yang tampil sebagai dok kaca di kiri
- * pada desktop (lg) dan sebagai dok mengambang di bawah pada HP/tablet, sehingga badge revisi/verifikasi
- * selalu terlihat tanpa membuka menu.
+ * Kerangka aplikasi bergaya Bionis: sidebar (ciut ke ikon di desktop, laci geser di HP) dan topbar berisi
+ * judul halaman, lonceng notifikasi, serta menu profil. Badge revisi/verifikasi tampil di item menu.
  */
 export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: string; role: string; revisi: number; verifikasi: number; children: React.ReactNode }) {
-  const pathname = usePathname();
   const router = useRouter();
+  const grup = menu(role, revisi, verifikasi);
 
   async function keluar() {
     await fetch("/api/auth/logout", { method: "POST" });
@@ -73,98 +200,74 @@ export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: s
     router.refresh();
   }
 
-  const grup = menu(role, revisi, verifikasi);
-
   return (
-    <div className="min-h-[100dvh] pb-[calc(6rem+env(safe-area-inset-bottom))] lg:pb-8 lg:pl-[7.25rem]">
-      <nav
-        aria-label="Menu utama"
-        className="nav-scroll fixed inset-x-2 bottom-[calc(0.5rem+env(safe-area-inset-bottom))] z-40 flex animate-[riseIn_0.7s_var(--e-out)_0.05s_both] overflow-x-auto rounded-[1.375rem] border border-glass bg-[linear-gradient(180deg,rgb(255_255_255/0.2),rgb(255_255_255/0.13))] shadow-[inset_0_1px_0_rgb(255_255_255/0.18),0_12px_32px_-12px_rgb(0_0_0/0.6)] backdrop-blur-[18px] backdrop-saturate-[1.15] lg:inset-x-auto lg:bottom-[0.45rem] lg:left-4 lg:top-3.5 lg:w-[4.5rem] lg:animate-[slideL_0.92s_var(--e-out)_0.05s_both] lg:flex-col lg:items-center lg:overflow-y-auto lg:rounded-[1.625rem] lg:px-2 lg:pb-5 lg:pt-5 lg:[background:linear-gradient(180deg,rgb(255_255_255/0.125)_0%,rgb(255_255_255/0.135)_13%,rgb(255_255_255/0.098)_34%,rgb(255_255_255/0.092)_100%)]"
-      >
-        <Link href="/" aria-label="Beranda" className="hidden shrink-0 animate-[popIn_0.7s_var(--e-out)_0.26s_both] rounded-xl lg:block">
-          <Lambang ukuran={40} />
-        </Link>
+    <SidebarProvider defaultOpen style={{ "--sidebar-width": "16.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
+      <Sidebar collapsible="icon" className="border-none">
+        <KepalaSidebar />
+        <SidebarContent className="gap-4 px-3 py-4">
+          <nav aria-label="Menu utama" className="flex flex-col gap-4">
+            {grup.map((g) => (
+              <SidebarGroup key={g.judul} className="gap-1.5 p-0">
+                <SidebarGroupLabel className="h-auto px-3 py-1 text-sm font-normal tracking-tight text-muted-foreground">{g.judul}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu className="gap-1.5">
+                    {g.item.map((m) => (
+                      <ItemMenu key={m.href} m={m} />
+                    ))}
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            ))}
+          </nav>
+        </SidebarContent>
+        <SidebarFooter className="border-t border-sidebar-border px-3 py-3">
+          <SidebarMenu className="gap-1.5">
+            <ItemTema />
+            <ItemKeluar onKeluar={keluar} />
+          </SidebarMenu>
+        </SidebarFooter>
+      </Sidebar>
 
-        <div className="flex flex-1 items-stretch lg:mt-6 lg:w-full lg:flex-none lg:flex-col lg:gap-1">
-          {grup.map((g, gi) => (
-            <ul key={g.judul} aria-label={g.judul} className={`flex flex-1 items-stretch lg:flex-none lg:flex-col lg:gap-1 ${gi > 0 ? "lg:mt-2 lg:border-t lg:border-white/15 lg:pt-3" : ""}`}>
-              {g.item.map((m, mi) => {
-                const aktif = pathname === m.href || pathname.startsWith(`${m.href}/`);
-                const Ikon = m.ikon;
-                return (
-                  <li key={m.href} className="flex min-w-[4.5rem] flex-1 lg:min-w-0 lg:flex-none" style={{ animation: `riseIn 0.6s var(--e-out) ${0.36 + (gi * 3 + mi) * 0.05}s both` }}>
-                    <Link
-                      href={m.href}
-                      aria-current={aktif ? "page" : undefined}
-                      className={`group relative flex min-h-14 w-full flex-col items-center justify-center gap-1 rounded-2xl px-1 py-2 text-[10.5px] leading-none tracking-tight transition-[opacity,transform,background-color] duration-200 hover:-translate-y-px hover:opacity-100 ${
-                        aktif ? "bg-white/15 font-semibold text-white opacity-100" : "text-white opacity-80 hover:bg-white/10"
-                      }`}
-                    >
-                      {aktif && <span aria-hidden className="nav-item-aktif-pip absolute inset-x-5 top-0 h-[3px] rounded-b bg-white shadow-[0_0_10px_rgb(255_255_255/0.55)] lg:inset-x-auto lg:inset-y-3.5 lg:-left-[10px] lg:h-auto lg:w-[5px] lg:rounded-b-none lg:rounded-r-[3px]" />}
-                      <span className="relative">
-                        <Ikon className="h-[22px] w-[22px] lg:h-[23px] lg:w-[23px]" />
-                        {!!m.badge && (
-                          <span
-                            aria-label={m.warna === "emas" ? `${m.badge} menunggu verifikasi` : `${m.badge} perlu revisi`}
-                            className={`absolute -right-2.5 -top-1.5 min-w-[1.15rem] rounded-full px-1 text-center text-[10px] font-semibold leading-[1.15rem] tabular-nums ${
-                              m.warna === "emas" ? "bg-gold-400 text-brand-950" : "bg-red-600 text-white"
-                            }`}
-                          >
-                            {m.badge}
-                          </span>
-                        )}
-                      </span>
-                      <span className="whitespace-nowrap">{m.label}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          ))}
-        </div>
-
-        <button
-          type="button"
-          onClick={keluar}
-          title="Keluar"
-          className="hidden size-12 shrink-0 animate-[riseIn_0.6s_var(--e-out)_0.7s_both] items-center justify-center rounded-2xl text-white opacity-80 transition-[opacity,background-color] hover:bg-white/10 hover:opacity-100 lg:mt-auto lg:flex"
-        >
-          <IkonKeluar className="h-[23px] w-[23px]" />
-          <span className="sr-only">Keluar</span>
-        </button>
-      </nav>
-
-      <header className="relative z-30 flex items-center gap-3 px-4 pb-1 pt-3 sm:px-6 lg:mb-6 lg:h-[4.75rem] lg:px-9 lg:pb-0 lg:pt-[1.375rem]">
-        <Link href="/" aria-label="Beranda" className="flex items-center gap-2.5 lg:hidden">
-          <Lambang ukuran={36} />
-          <span className="leading-tight">
-            <span className="block text-sm font-semibold">BPS Kerinci</span>
-            <span className="block text-[11px] text-ink-muted">{ROLE_LABEL[role]}</span>
-          </span>
-        </Link>
-        <p className="hidden leading-none lg:block">
-          <span className="block animate-[riseIn_0.7s_var(--e-out)_0.14s_both] text-base text-white/90">Selamat datang</span>
-          <span className="mt-[0.8125rem] block animate-[riseIn_0.8s_var(--e-out)_0.22s_both] text-[1.2rem] font-bold tracking-[-0.02em]">{nama}</span>
-        </p>
-        <div className="ml-auto flex items-center gap-2 lg:gap-4">
-          <span className="animate-[popIn_0.58s_var(--e-out)_0.3s_both]">
+      <div className="flex min-h-svh min-w-0 flex-1 flex-col">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center justify-between gap-3 border-b bg-background/90 px-4 backdrop-blur md:h-20 md:pl-6 md:pr-8">
+          <div className="flex min-w-0 flex-1 items-center gap-2">
+            <SidebarTrigger className="size-11 shrink-0 md:hidden [&_svg]:size-5!" aria-label="Buka menu" />
+            <JudulHalaman grup={grup} />
+          </div>
+          <div className="flex shrink-0 items-center gap-2 md:gap-3">
             <NotifikasiBell />
-          </span>
-          <span
-            aria-hidden
-            title={`${nama} · ${ROLE_LABEL[role]}`}
-            className="hidden size-11 animate-[popIn_0.58s_var(--e-out)_0.43s_both] items-center justify-center rounded-full border border-glass bg-white/15 text-sm font-semibold backdrop-blur-xl sm:flex lg:size-[3.25rem]"
-          >
-            {inisial(nama)}
-          </span>
-          <button type="button" onClick={keluar} title="Keluar" className="tool lg:hidden">
-            <IkonKeluar className="h-5 w-5" />
-            <span className="sr-only">Keluar</span>
-          </button>
-        </div>
-      </header>
-
-      {children}
-    </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger className="flex items-center gap-2.5 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring" aria-label="Menu profil">
+                <span aria-hidden className="flex size-11 items-center justify-center rounded-lg bg-muted text-sm font-semibold">
+                  {inisial(nama)}
+                </span>
+                <span className="hidden flex-col items-start gap-1 text-left md:flex">
+                  <span className="text-[15px] font-medium leading-none">{nama}</span>
+                  <span className="flex items-center gap-1.5 text-sm leading-none text-muted-foreground">
+                    {ROLE_LABEL[role]}
+                    <span aria-hidden className="block size-1.5 rounded-full bg-live" />
+                  </span>
+                </span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-60">
+                <DropdownMenuLabel className="font-normal">
+                  <p className="truncate text-sm font-medium text-foreground">{nama}</p>
+                  <p className="text-xs text-muted-foreground">{ROLE_LABEL[role]}</p>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/ganti-password">Ganti password</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem variant="destructive" onSelect={keluar}>
+                  <LogOutIcon />
+                  Keluar
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </header>
+        <div className="flex-1">{children}</div>
+      </div>
+    </SidebarProvider>
   );
 }

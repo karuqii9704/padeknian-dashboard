@@ -25,18 +25,17 @@ npm run dev                    # terminal 1
 npm run worker                 # terminal 2 (wajib agar rekap selesai)
 ```
 
-## Tampilan (liquid glass)
+## Tampilan
 
-Tema selalu gelap: latar badai (`public/assets/storm-background.jpg`, cadangan `storm.svg`), panel kaca dengan `backdrop-filter`, font Inter + Inter Tight. Token ada di `app/globals.css`; ganti foto latar dengan menimpa `storm-background.jpg`. Responsif: dok navigasi kaca di kiri (desktop ≥1024px) dan dok mengambang di bawah (HP/tablet). Animasi masuk dimatikan otomatis bila perangkat memakai `prefers-reduced-motion`.
+UI berbasis shadcn/ui dengan gaya "Bionis": sidebar yang bisa diciutkan ke ikon (laci geser di HP), topbar berisi judul halaman, notifikasi, dan menu profil, kartu abu-abu lembut, font Geist. Mode terang default; mode gelap lewat tombol di sidebar (disimpan di `localStorage`). Token ada di `app/globals.css`; token lama (`brand-*`, `ink-*`, `panel`, dst.) dipetakan ke token shadcn sehingga berlaku di kedua mode. Komponen shadcn ada di `components/ui/`.
 
-## Deploy ke Vercel
+## Deploy (Render + Neon + Cloudflare R2)
 
-Vercel hanya menjalankan aplikasi web (`npm run build` otomatis menjalankan `prisma generate` lewat `postinstall`). Layanan lain harus tersedia di luar Vercel:
-
-- PostgreSQL terkelola (Neon, Supabase, dst.) → `DATABASE_URL`; jalankan `npx prisma migrate deploy` dan `npm run seed` sekali dari komputer lokal terhadap database itu.
-- Penyimpanan S3-kompatibel (Cloudflare R2, S3, dst.) → `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT`, `S3_KEY`, `S3_SECRET`, `S3_BUCKET`.
+- **Database**: Neon (PostgreSQL 16, region Singapura) → `DATABASE_URL`. Jalankan `npx prisma migrate deploy` dan `npm run seed` sekali dari komputer lokal terhadap database itu.
+- **Aplikasi**: Render web service (runtime Node, region Singapura). Build `npm ci && npm run build`, start `npm start`. Set `JOBS_INLINE=1` agar job rekap dijalankan di proses web (tanpa worker terpisah).
+- **Penyimpanan bukti**: Cloudflare R2 (S3-kompatibel) → `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT` (keduanya `https://<account-id>.r2.cloudflarestorage.com`), `S3_REGION=auto`, `S3_KEY`, `S3_SECRET`, `S3_BUCKET`.
 - `NEXTAUTH_SECRET` (acak ≥32 karakter) dan `NEXTAUTH_URL` (alamat produksi).
-- Pekerja rekap (`npm run worker`, pg-boss) berjalan terus-menerus sehingga **tidak bisa** di Vercel; jalankan di host terpisah (mis. Railway/Render/VPS) dengan `DATABASE_URL` yang sama.
+- Paket gratis Render tertidur setelah 15 menit tanpa trafik; permintaan pertama sesudahnya butuh sekitar satu menit.
 
 ## Pengujian
 

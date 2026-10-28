@@ -92,11 +92,11 @@ export function NotifikasiBell() {
         aria-label={belumDibaca > 0 ? `Notifikasi, ${belumDibaca} belum dibaca` : "Notifikasi, tidak ada yang baru"}
         aria-expanded={buka}
         aria-haspopup="true"
-        className={`tool relative ${buka ? "!bg-white/25" : ""}`}
+        className={`tool relative ${buka ? "bg-accent" : ""}`}
       >
         <IkonLonceng />
         {belumDibaca > 0 && (
-          <span data-testid="jumlah-notifikasi" className="absolute -right-0.5 -top-0.5 min-w-[1.15rem] rounded-full bg-gold-400 px-1 text-center text-[10px] font-semibold leading-[1.15rem] text-brand-950 ring-2 ring-solid">
+          <span data-testid="jumlah-notifikasi" className="absolute -right-1 -top-1 min-w-[1.15rem] rounded-full bg-destructive px-1 text-center text-[10px] font-semibold leading-[1.15rem] text-white ring-2 ring-background">
             {belumDibaca > 99 ? "99+" : belumDibaca}
           </span>
         )}
@@ -106,9 +106,9 @@ export function NotifikasiBell() {
         <section
           role="region"
           aria-label="Daftar notifikasi"
-          className="fixed inset-x-2 top-16 z-50 max-h-[70vh] overflow-y-auto rounded-2xl border border-line bg-solid text-ink shadow-[0_24px_48px_-12px_rgb(8_47_33/0.25)] animate-masuk sm:absolute sm:inset-x-auto sm:right-0 sm:top-12 sm:w-96"
+          className="fixed inset-x-2 top-16 z-50 max-h-[70vh] overflow-y-auto rounded-xl border bg-popover text-popover-foreground shadow-lg animate-masuk sm:absolute sm:inset-x-auto sm:right-0 sm:top-13 sm:w-96"
         >
-          <div className="sticky top-0 flex items-center justify-between border-b border-line bg-surface/95 px-4 py-2 backdrop-blur">
+          <div className="sticky top-0 flex items-center justify-between border-b bg-popover px-4 py-2">
             <h2 className="text-sm font-semibold">Notifikasi</h2>
             <button type="button" onClick={tandaiSemua} disabled={belumDibaca === 0} className="min-h-11 px-2 text-xs text-blue-800 underline disabled:text-gray-400 disabled:no-underline">
               Tandai semua dibaca

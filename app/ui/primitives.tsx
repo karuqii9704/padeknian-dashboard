@@ -5,13 +5,9 @@ export function PageHeader({ judul, keterangan, eyebrow, aksi }: { judul: string
   return (
     <header className="flex flex-wrap items-end justify-between gap-x-4 gap-y-3">
       <div className="min-w-0">
-        {eyebrow && <p className="chip hero-chip mb-3">{eyebrow}</p>}
-        <h1 className="hero-judul">
-          <span className="ln">
-            <span>{judul}</span>
-          </span>
-        </h1>
-        {keterangan && <div className="hero-blurb mt-2 max-w-[65ch] text-[15px] font-medium leading-6 text-ink-soft">{keterangan}</div>}
+        {eyebrow && <p className="mb-1.5 text-sm text-muted-foreground">{eyebrow}</p>}
+        <h1 className="hero-judul">{judul}</h1>
+        {keterangan && <div className="mt-1.5 max-w-[65ch] text-sm leading-6 text-muted-foreground">{keterangan}</div>}
       </div>
       {aksi && <div className="flex flex-wrap items-center gap-2">{aksi}</div>}
     </header>

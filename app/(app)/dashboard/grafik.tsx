@@ -40,16 +40,16 @@ function Gelombang({ nilai }: { nilai: number[] }) {
   }
   const isi = `${d} L${titik[titik.length - 1][0]},${H} L${titik[0][0]},${H} Z`;
   return (
-    <svg aria-hidden viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="pointer-events-none absolute inset-y-0 right-0 left-7 h-full w-[calc(100%-1.75rem)] overflow-visible wdraw">
+    <svg aria-hidden viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="pointer-events-none absolute inset-y-0 right-0 left-7 h-full w-[calc(100%-1.75rem)] overflow-visible text-brand-500 wdraw">
       <defs>
         <linearGradient id="gel-isi" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="#fff" stopOpacity="0.28" />
-          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+          <stop offset="0" stopColor="currentColor" stopOpacity="0.28" />
+          <stop offset="1" stopColor="currentColor" stopOpacity="0" />
         </linearGradient>
       </defs>
       <path d={isi} fill="url(#gel-isi)" />
-      <path d={d} fill="none" stroke="#fff" strokeOpacity="0.17" strokeWidth="6.2" vectorEffect="non-scaling-stroke"  />
-      <path d={d} fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round" vectorEffect="non-scaling-stroke"  />
+      <path d={d} fill="none" stroke="currentColor" strokeOpacity="0.15" strokeWidth="6.2" vectorEffect="non-scaling-stroke"  />
+      <path d={d} fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" vectorEffect="non-scaling-stroke"  />
     </svg>
   );
 }
@@ -81,8 +81,8 @@ export function TrenHarian({ tren, totalPegawai }: { tren: Analitik["tren"]; tot
               {/* Tooltip */}
               <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-40 -translate-x-1/2 rounded-lg bg-brand-950 px-3 py-2 text-[11px] text-white shadow-lg group-hover:block">
                 <p className="font-semibold">{hariDari(t.tanggal)}, {tgl(t.tanggal)}</p>
-                <p className="mt-0.5 text-side-200">{t.entri} entri · {t.pegawai}/{totalPegawai} pegawai</p>
-                <p className="text-side-200">{t.disetujui} disetujui · {t.menunggu} menunggu · {t.revisi} revisi</p>
+                <p className="mt-0.5 text-white/70">{t.entri} entri · {t.pegawai}/{totalPegawai} pegawai</p>
+                <p className="text-white/70">{t.disetujui} disetujui · {t.menunggu} menunggu · {t.revisi} revisi</p>
               </div>
             </div>
           );

@@ -86,18 +86,17 @@ export default async function ProfilPegawaiPage({ params, searchParams }: { para
 
       {/* Identitas */}
       <section className="panel overflow-hidden">
-        <div className="relative flex flex-wrap items-center gap-4 bg-black/20 px-5 py-5 text-white sm:px-6">
-          <div aria-hidden className="pointer-events-none absolute inset-0 bg-[radial-gradient(80%_120%_at_100%_0%,rgb(214_176_67/0.18),transparent_60%)]" />
-          <span aria-hidden className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl bg-gold-400/15 text-lg font-semibold text-gold-300 ring-1 ring-gold-400/40">
+        <div className="relative flex flex-wrap items-center gap-4 bg-muted px-5 py-5 sm:px-6">
+          <span aria-hidden className="relative flex size-14 shrink-0 items-center justify-center rounded-2xl bg-background text-lg font-semibold ring-1 ring-border">
             {inisial(p.pegawai.nama)}
           </span>
           <div className="relative min-w-0 flex-1">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-gold-300">Profil pegawai</p>
-            <h1 className="truncate text-xl font-semibold !text-white sm:text-2xl">{p.pegawai.nama}</h1>
-            <p className="mt-0.5 text-xs text-side-200">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Profil pegawai</p>
+            <h1 className="truncate text-xl font-medium sm:text-2xl">{p.pegawai.nama}</h1>
+            <p className="mt-0.5 text-xs text-muted-foreground">
               NIP {p.pegawai.nip}
               {p.pegawai.jabatan && <> · {p.pegawai.jabatan}</>}
-              {!p.pegawai.isActive && <> · <span className="text-red-300">nonaktif</span></>}
+              {!p.pegawai.isActive && <> · <span className="text-red-700">nonaktif</span></>}
             </p>
             <p className="mt-1 text-xs text-side-200">{p.tim.join(", ")}</p>
           </div>
