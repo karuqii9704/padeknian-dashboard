@@ -14,17 +14,18 @@
  * agar markup lama tetap memakai palet merek. Tema selalu gelap (latar foto badai); tidak ada mode terang.
  */
 @theme {
-  --color-brand-50: rgb(134 201 166 / 0.1);
-  --color-brand-100: rgb(134 201 166 / 0.16);
-  --color-brand-200: rgb(134 201 166 / 0.26);
-  --color-brand-300: #8ab8a0;
-  --color-brand-400: #56957a;
-  --color-brand-500: #2f9a72;
-  --color-brand-600: #1f8260;
-  --color-brand-700: #86c9a6;
-  --color-brand-800: #a9dcc3;
-  --color-brand-900: #d3efe0;
-  --color-brand-950: #05241a;
+  /* Palet merek: #8AD6D1 (terang) · #359FA0 (teal) · #FFF0C5 (krem) · #FF8C52 (oranye) */
+  --color-brand-50: rgb(138 214 209 / 0.1);
+  --color-brand-100: rgb(138 214 209 / 0.16);
+  --color-brand-200: rgb(138 214 209 / 0.26);
+  --color-brand-300: #5fb3b4;
+  --color-brand-400: #4aa7a8;
+  --color-brand-500: #359fa0;
+  --color-brand-600: #2a8587;
+  --color-brand-700: #8ad6d1;
+  --color-brand-800: #aee4e0;
+  --color-brand-900: #d2f1ee;
+  --color-brand-950: #0a2a2b;
 
   --color-blue-50: var(--color-brand-50);
   --color-blue-100: var(--color-brand-100);
@@ -50,14 +51,14 @@
   --color-gray-800: #e4ece7;
   --color-gray-900: #f4f8f5;
 
-  --color-side-100: #daeadf;
-  --color-side-200: #b6d5c1;
-  --color-side-300: #8ab8a0;
+  --color-side-100: #fff0c5;
+  --color-side-200: #e6d4a2;
+  --color-side-300: #b9a878;
 
   --color-surface: rgb(255 255 255 / 0.13);
   --color-surface-muted: rgb(255 255 255 / 0.07);
-  --color-solid: #112229;
-  --color-canvas: #04121b;
+  --color-solid: #112f33;
+  --color-canvas: #0a2427;
   --color-ink: #ffffff;
   --color-ink-soft: rgb(255 255 255 / 0.9);
   --color-ink-muted: rgb(255 255 255 / 0.72);
@@ -65,18 +66,18 @@
   --color-line-strong: rgb(255 255 255 / 0.3);
   --color-glass: rgb(255 255 255 / 0.2);
 
-  --color-green-600: #23a06b;
-  --color-green-700: #6fd197;
-  --color-green-800: #98e0b4;
+  --color-green-600: #359fa0;
+  --color-green-700: #8ad6d1;
+  --color-green-800: #b6e8e4;
 
-  --color-gold-50: rgb(214 176 67 / 0.12);
-  --color-gold-100: rgb(214 176 67 / 0.2);
-  --color-gold-200: rgb(214 176 67 / 0.32);
-  --color-gold-300: #e2c668;
-  --color-gold-400: #d6b043;
-  --color-gold-500: #c49a2a;
-  --color-gold-600: #a07c1f;
-  --color-gold-700: #e2c668;
+  --color-gold-50: rgb(255 140 82 / 0.12);
+  --color-gold-100: rgb(255 140 82 / 0.2);
+  --color-gold-200: rgb(255 140 82 / 0.32);
+  --color-gold-300: #ffb089;
+  --color-gold-400: #ff8c52;
+  --color-gold-500: #e87a3e;
+  --color-gold-600: #b85c2a;
+  --color-gold-700: #ffb089;
 
   --color-red-50: rgb(248 113 113 / 0.13);
   --color-red-100: rgb(248 113 113 / 0.2);
@@ -86,19 +87,19 @@
   --color-red-900: #f9cccc;
   --color-red-950: #fde0e0;
 
-  --color-amber-50: rgb(245 180 60 / 0.13);
-  --color-amber-100: rgb(245 180 60 / 0.2);
-  --color-amber-200: rgb(245 180 60 / 0.34);
-  --color-amber-700: #e5b95c;
-  --color-amber-800: #edc97a;
-  --color-amber-900: #f3d9a0;
-  --color-amber-950: #f8e6bf;
+  --color-amber-50: rgb(255 240 197 / 0.12);
+  --color-amber-100: rgb(255 240 197 / 0.2);
+  --color-amber-200: rgb(255 240 197 / 0.32);
+  --color-amber-700: #ffe7a6;
+  --color-amber-800: #fff0c5;
+  --color-amber-900: #fff6de;
+  --color-amber-950: #fffaee;
 
-  --color-green-50: rgb(80 200 130 / 0.13);
-  --color-green-100: rgb(80 200 130 / 0.2);
-  --color-green-200: rgb(80 200 130 / 0.34);
-  --color-green-900: #bdecd1;
-  --color-green-950: #d9f5e5;
+  --color-green-50: rgb(138 214 209 / 0.13);
+  --color-green-100: rgb(138 214 209 / 0.2);
+  --color-green-200: rgb(138 214 209 / 0.34);
+  --color-green-900: #c9efeb;
+  --color-green-950: #e2f8f6;
 
   --font-sans: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --font-display: var(--font-inter-tight), var(--font-inter), sans-serif;
@@ -141,8 +142,8 @@
   --e-out: cubic-bezier(0.16, 1, 0.3, 1);
   --e-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
   --e-pen: cubic-bezier(0.37, 0.01, 0.2, 1);
-  --btn-primary: #1d7a57;
-  --btn-primary-hover: #25916a;
+  --btn-primary: #2a8587;
+  --btn-primary-hover: #359fa0;
   --ring-offset: transparent;
   color-scheme: dark;
 }
@@ -162,13 +163,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Latar badai: foto opsional di public/assets/storm-background.jpg menutupi ilustrasi SVG bawaan. */
+/* Latar statistik: grid, histogram, dan garis tren (public/assets/statistik-background.jpg). */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -2;
-  background-image: url("/assets/storm-background.jpg"), url("/assets/storm.svg");
+  background-image: url("/assets/statistik-background.jpg");
   background-size: cover;
   background-position: center 25%;
   background-repeat: no-repeat;
@@ -181,9 +182,9 @@ body::after {
   z-index: -1;
   pointer-events: none;
   background:
-    linear-gradient(105deg, rgb(4 16 24 / 0.5) 0%, rgb(4 16 24 / 0.32) 40%, rgb(4 16 24 / 0.16) 78%, transparent 100%),
-    linear-gradient(180deg, rgb(4 16 24 / 0.18) 0%, transparent 22%),
-    linear-gradient(0deg, rgb(4 16 24 / 0.12), rgb(4 16 24 / 0.12));
+    linear-gradient(105deg, rgb(6 30 33 / 0.5) 0%, rgb(6 30 33 / 0.32) 40%, rgb(6 30 33 / 0.16) 78%, transparent 100%),
+    linear-gradient(180deg, rgb(6 30 33 / 0.18) 0%, transparent 22%),
+    linear-gradient(0deg, rgb(6 30 33 / 0.12), rgb(6 30 33 / 0.12));
 }
 
 h1 {
@@ -194,8 +195,8 @@ h1 {
 }
 
 ::selection {
-  background: rgb(255 255 255 / 0.9);
-  color: #05241a;
+  background: #fff0c5;
+  color: #0a2a2b;
 }
 
 *,
