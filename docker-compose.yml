@@ -1,0 +1,99 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-padeknian}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-padeknian}
+      POSTGRES_DB: ${POSTGRES_DB:-padeknian}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  minio:
+    # MinIO menarik image publiknya (Docker Hub/Quay). Legacy Bitnami di-pin untuk dev; ganti ke S3 lain di produksi.
+    image: bitnamilegacy/minio:2025.7.23-debian-12-r3
+    environment:
+      MINIO_ROOT_USER: ${S3_KEY:-minioadmin}
+      MINIO_ROOT_PASSWORD: ${S3_SECRET:-minioadmin}
+    volumes:
+      - miniodata:/bitnami/minio/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Satu kali jalan: terapkan migrasi database sebelum app/worker naik.
+  migrate:
+    build:
+      context: .
+      target: tools
+    command: ["npx", "prisma", "migrate", "deploy"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-padeknian}:${POSTGRES_PASSWORD:-padeknian}@postgres:5432/${POSTGRES_DB:-padeknian}
+    restart: "no"
+
+  app:
+    build: .
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-padeknian}:${POSTGRES_PASSWORD:-padeknian}@postgres:5432/${POSTGRES_DB:-padeknian}
+      S3_ENDPOINT: http://minio:9000
+      S3_KEY: ${S3_KEY:-minioadmin}
+      S3_SECRET: ${S3_SECRET:-minioadmin}
+      S3_BUCKET: ${S3_BUCKET:-bukti-dukung}
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-ganti-dengan-secret-acak-minimal-32-karakter}
+      NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
+      AUTH_TRUST_HOST: "true"
+      # Alamat storage yang dijangkau BROWSER (menandatangani URL unduhan).
+      S3_PUBLIC_ENDPOINT: ${S3_PUBLIC_ENDPOINT:-http://localhost:9000}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  # Worker pg-boss: membuat rekap (PDF/XLSX). Tanpa ini tombol "Generate rekap" tidak pernah selesai.
+  worker:
+    build:
+      context: .
+      target: tools
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-padeknian}:${POSTGRES_PASSWORD:-padeknian}@postgres:5432/${POSTGRES_DB:-padeknian}
+      S3_ENDPOINT: http://minio:9000
+      S3_KEY: ${S3_KEY:-minioadmin}
+      S3_SECRET: ${S3_SECRET:-minioadmin}
+      S3_BUCKET: ${S3_BUCKET:-bukti-dukung}
+
+volumes:
+  pgdata:
+  miniodata:

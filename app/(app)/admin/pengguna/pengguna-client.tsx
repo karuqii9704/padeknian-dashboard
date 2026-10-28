@@ -1,0 +1,229 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+
+type Role = "PEGAWAI" | "KETUA_TIM" | "PIMPINAN" | "ADMIN";
+type Pengguna = {
+  id: string;
+  nip: string;
+  nama: string;
+  email: string | null;
+  role: Role;
+  jabatan: string | null;
+  isActive: boolean;
+  mustChangePassword: boolean;
+  lastLoginAt: string | null;
+};
+
+const ROLES: Role[] = ["PEGAWAI", "KETUA_TIM", "PIMPINAN", "ADMIN"];
+const ROLE_LABEL: Record<Role, string> = {
+  PEGAWAI: "Pegawai",
+  KETUA_TIM: "Ketua Tim",
+  PIMPINAN: "Pimpinan",
+  ADMIN: "Admin",
+};
+const PAGE_SIZE = 20;
+
+async function api(url: string, init?: RequestInit) {
+  const res = await fetch(url, { ...init, headers: { "content-type": "application/json", ...init?.headers } });
+  const body = await res.json().catch(() => ({}));
+  return { ok: res.ok, body };
+}
+
+export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pengguna[]; total: number } }) {
+  const [rows, setRows] = useState<Pengguna[]>(awal.rows);
+  const [total, setTotal] = useState(awal.total);
+  const pertama = useRef(true); // data awal dirender server
+  const [page, setPage] = useState(1);
+  const [q, setQ] = useState("");
+  const [role, setRole] = useState("");
+  const [aktif, setAktif] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Pengguna | "baru" | null>(null);
+  const [secret, setSecret] = useState<{ nama: string; password: string } | null>(null);
+  const formDialog = useRef<HTMLDialogElement>(null);
+  const secretDialog = useRef<HTMLDialogElement>(null);
+
+  const load = useCallback(async () => {
+    const p = new URLSearchParams({ page: String(page), pageSize: String(PAGE_SIZE) });
+    if (q) p.set("q", q);
+    if (role) p.set("role", role);
+    if (aktif) p.set("aktif", aktif);
+    const { ok, body } = await api(`/api/pengguna?${p}`);
+    if (!ok) return setError(body.pesan ?? "Gagal memuat pengguna.");
+    setError(null);
+    setRows(body.data);
+    setTotal(body.total);
+  }, [page, q, role, aktif]);
+
+  useEffect(() => {
+    if (pertama.current) {
+      pertama.current = false;
+      return;
+    }
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    if (editing) formDialog.current?.showModal();
+    else formDialog.current?.close();
+  }, [editing]);
+  useEffect(() => {
+    if (secret) secretDialog.current?.showModal();
+    else secretDialog.current?.close();
+  }, [secret]);
+
+  async function submitForm(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const f = new FormData(e.currentTarget);
+    const data: Record<string, unknown> = {
+      nama: f.get("nama"),
+      email: f.get("email"),
+      jabatan: f.get("jabatan"),
+      role: f.get("role"),
+    };
+    let r;
+    if (editing === "baru") {
+      r = await api("/api/pengguna", { method: "POST", body: JSON.stringify({ ...data, nip: f.get("nip") }) });
+      if (r.ok) setSecret({ nama: r.body.user.nama, password: r.body.passwordSementara });
+    } else if (editing) {
+      r = await api(`/api/pengguna/${editing.id}`, { method: "PATCH", body: JSON.stringify(data) });
+    }
+    if (r && !r.ok) return setError(r.body.pesan ?? "Gagal menyimpan.");
+    setError(null);
+    setEditing(null);
+    load();
+  }
+
+  async function toggleAktif(u: Pengguna) {
+    const aksi = u.isActive ? "menonaktifkan" : "mengaktifkan";
+    if (!confirm(`Yakin ${aksi} akun ${u.nama}?`)) return;
+    const r = await api(`/api/pengguna/${u.id}`, { method: "PATCH", body: JSON.stringify({ isActive: !u.isActive }) });
+    if (!r.ok) setError(r.body.pesan ?? "Gagal mengubah status akun.");
+    else load();
+  }
+
+  async function reset(u: Pengguna) {
+    if (!confirm(`Reset password ${u.nama}? Password lama langsung tidak berlaku.`)) return;
+    const r = await api(`/api/pengguna/${u.id}/reset-password`, { method: "POST" });
+    if (!r.ok) return setError(r.body.pesan ?? "Gagal reset password.");
+    setSecret({ nama: u.nama, password: r.body.passwordSementara });
+    load();
+  }
+
+  const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const edit = editing && editing !== "baru" ? editing : null;
+  const btn = "min-h-11 rounded border px-3 text-sm";
+
+  return (
+    <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
+      <header className="flex flex-wrap items-end justify-between gap-3">
+        <h1 className="hero-judul">Kelola Pengguna</h1>
+        <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">
+          + Tambah pengguna
+        </button>
+      </header>
+
+      <div className="mb-3 flex flex-wrap gap-2">
+        <input
+          placeholder="Cari nama, NIP, atau email"
+          value={q}
+          onChange={(e) => {
+            setQ(e.target.value);
+            setPage(1);
+          }}
+          className="min-h-11 flex-1 rounded border px-3"
+        />
+        <select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="min-h-11 rounded border px-2" aria-label="Filter peran">
+          <option value="">Semua peran</option>
+          {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+        </select>
+        <select value={aktif} onChange={(e) => { setAktif(e.target.value); setPage(1); }} className="min-h-11 rounded border px-2" aria-label="Filter status">
+          <option value="">Semua status</option>
+          <option value="true">Aktif</option>
+          <option value="false">Nonaktif</option>
+        </select>
+      </div>
+
+      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900">{error}</p>}
+
+      <div className="overflow-x-auto">
+        <div className="overflow-x-auto rounded border"><table className="w-full text-left text-sm">
+          <thead className="border-b">
+            <tr><th className="p-2">NIP</th><th className="p-2">Nama</th><th className="p-2">Peran</th><th className="p-2">Status</th><th className="p-2">Aksi</th></tr>
+          </thead>
+          <tbody>
+            {rows.map((u) => (
+              <tr key={u.id} className="border-b">
+                <td className="p-2 font-mono">{u.nip}</td>
+                <td className="p-2">{u.nama}<div className="text-xs text-gray-500">{u.email ?? "-"}</div></td>
+                <td className="p-2">{ROLE_LABEL[u.role]}</td>
+                <td className="p-2">
+                  {u.isActive ? "Aktif" : "Nonaktif"}
+                  {u.mustChangePassword && <div className="text-xs text-amber-700">Wajib ganti password</div>}
+                </td>
+                <td className="flex flex-wrap gap-2 p-2">
+                  <button onClick={() => setEditing(u)} className={btn}>Ubah</button>
+                  <button onClick={() => reset(u)} className={btn}>Reset password</button>
+                  {u.id !== meId && (
+                    <button onClick={() => toggleAktif(u)} className={btn}>{u.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
+                  )}
+                </td>
+              </tr>
+            ))}
+            {rows.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-gray-500">Tidak ada pengguna.</td></tr>}
+          </tbody>
+        </table></div>
+      </div>
+
+      <nav className="mt-3 flex items-center gap-2 text-sm">
+        <button disabled={page <= 1} onClick={() => setPage(page - 1)} className={btn}>Sebelumnya</button>
+        <span>Halaman {page} dari {pages} ({total} pengguna)</span>
+        <button disabled={page >= pages} onClick={() => setPage(page + 1)} className={btn}>Berikutnya</button>
+      </nav>
+
+      <dialog ref={formDialog} onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
+        {editing && (
+          <form key={edit?.id ?? "baru"} onSubmit={submitForm} className="flex flex-col gap-3">
+            <h2 className="text-lg font-semibold">{edit ? "Ubah pengguna" : "Tambah pengguna"}</h2>
+            {!edit && (
+              <label className="flex flex-col gap-1 text-sm">NIP (8-18 digit)
+                <input name="nip" required pattern="\d{8,18}" className="min-h-11 rounded border px-3" />
+              </label>
+            )}
+            <label className="flex flex-col gap-1 text-sm">Nama
+              <input name="nama" required defaultValue={edit?.nama} className="min-h-11 rounded border px-3" />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">Email (opsional)
+              <input name="email" type="email" defaultValue={edit?.email ?? ""} className="min-h-11 rounded border px-3" />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">Jabatan (opsional)
+              <input name="jabatan" defaultValue={edit?.jabatan ?? ""} className="min-h-11 rounded border px-3" />
+            </label>
+            <label className="flex flex-col gap-1 text-sm">Peran
+              <select name="role" defaultValue={edit?.role ?? "PEGAWAI"} disabled={edit?.id === meId} className="min-h-11 rounded border px-2">
+                {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+              </select>
+            </label>
+            {!edit && <p className="text-xs text-gray-600">Password sementara dibuat otomatis dan wajib diganti saat login pertama.</p>}
+            <div className="flex justify-end gap-2">
+              <button type="button" onClick={() => setEditing(null)} className={btn}>Batal</button>
+              <button className="min-h-11 rounded bg-blue-700 px-4 text-white">Simpan</button>
+            </div>
+          </form>
+        )}
+      </dialog>
+
+      <dialog ref={secretDialog} onClose={() => setSecret(null)} className="m-auto w-full max-w-md rounded p-5">
+        {secret && (
+          <div className="flex flex-col gap-3">
+            <h2 className="text-lg font-semibold">Password sementara</h2>
+            <p className="text-sm">Untuk <b>{secret.nama}</b>. Hanya ditampilkan sekali; sampaikan lewat kanal aman.</p>
+            <code className="select-all rounded bg-gray-100 px-3 py-2 text-center text-lg">{secret.password}</code>
+            <button onClick={() => setSecret(null)} className="min-h-11 rounded bg-blue-700 px-4 text-white">Tutup</button>
+          </div>
+        )}
+      </dialog>
+    </main>
+  );
+}

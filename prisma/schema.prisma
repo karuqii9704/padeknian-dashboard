@@ -1,0 +1,395 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  PEGAWAI
+  KETUA_TIM
+  PIMPINAN
+  ADMIN
+}
+
+model User {
+  id                 String    @id @default(uuid()) @db.Uuid
+  nip                String    @unique @db.VarChar(18)
+  nama               String    @db.VarChar(120)
+  email              String?   @unique @db.VarChar(160)
+  passwordHash       String    @map("password_hash") @db.VarChar(255)
+  role               Role
+  jabatan            String?   @db.VarChar(120)
+  isActive           Boolean   @default(true) @map("is_active")
+  mustChangePassword Boolean   @default(false) @map("must_change_password")
+  lastLoginAt        DateTime? @map("last_login_at") @db.Timestamptz
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+
+  auditLogs       AuditLog[]
+  passwordHistory UserPasswordHistory[]
+  timDipimpin     TimKerja[]            @relation("KetuaTim")
+  keanggotaan     AnggotaTim[]
+  periodeDikunci  Periode[]             @relation("DikunciOleh")
+
+  alokasiDibuat       Alokasi[]          @relation("AlokasiDibuat")
+  penugasan           PenugasanAlokasi[]
+  pekerjaanHarian     PekerjaanHarian[]
+  buktiDiunggah       BuktiDukung[]
+  verifikasiDilakukan Verifikasi[]
+  notifikasi          Notifikasi[]
+  rekapSebagaiPegawai RekapSKP[]         @relation("RekapPegawai")
+  rekapDigenerate     RekapSKP[]         @relation("RekapPembuat")
+
+  @@map("User")
+}
+
+model AuditLog {
+  id        BigInt   @id @default(autoincrement())
+  userId    String?  @map("user_id") @db.Uuid
+  aksi      String   @db.VarChar(80)
+  entitas   String   @db.VarChar(80)
+  entitasId String?  @map("entitas_id") @db.Uuid
+  metadata  Json?
+  ipAddress String?  @map("ip_address") @db.Inet
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([entitas, entitasId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("AuditLog")
+}
+
+// Percobaan login gagal, dipakai rate limit (5 gagal / 15 menit per NIP/email).
+model LoginAttempt {
+  id         BigInt   @id @default(autoincrement())
+  identifier String   @db.VarChar(160)
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  @@index([identifier, createdAt])
+  @@map("LoginAttempt")
+}
+
+// Hash password lama, dipakai menolak pemakaian ulang 3 password terakhir (FR-5).
+model UserPasswordHistory {
+  id           String   @id @default(uuid()) @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("UserPasswordHistory")
+}
+
+enum PeranDalamTim {
+  KETUA
+  ANGGOTA
+}
+
+enum StatusPeriode {
+  DRAFT
+  AKTIF
+  DIKUNCI
+}
+
+enum JenisHariLibur {
+  LIBUR_NASIONAL
+  CUTI_BERSAMA
+  LIBUR_LAIN
+}
+
+model TimKerja {
+  id        String   @id @default(uuid()) @db.Uuid
+  nama      String   @db.VarChar(120)
+  tahun     Int
+  ketuaId   String   @map("ketua_id") @db.Uuid
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  ketua   User         @relation("KetuaTim", fields: [ketuaId], references: [id], onDelete: Restrict)
+  anggota AnggotaTim[]
+  alokasi Alokasi[]
+
+  @@index([ketuaId])
+  @@map("TimKerja")
+}
+
+model Periode {
+  id              String        @id @default(uuid()) @db.Uuid
+  tahun           Int
+  bulan           Int
+  tanggalMulai    DateTime      @map("tanggal_mulai") @db.Date
+  tanggalSelesai  DateTime      @map("tanggal_selesai") @db.Date
+  jumlahHariKerja Int           @default(0) @map("jumlah_hari_kerja")
+  status          StatusPeriode @default(DRAFT)
+  dikunciOlehId   String?       @map("dikunci_oleh") @db.Uuid
+  dikunciAt       DateTime?     @map("dikunci_at") @db.Timestamptz
+  createdAt       DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt       DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  dikunciOleh     User?             @relation("DikunciOleh", fields: [dikunciOlehId], references: [id], onDelete: Restrict)
+  anggota         AnggotaTim[]
+  alokasi         Alokasi[]
+  pekerjaanHarian PekerjaanHarian[]
+  rekap           RekapSKP[]
+
+  @@unique([tahun, bulan])
+  @@map("Periode")
+}
+
+model AnggotaTim {
+  id            String        @id @default(uuid()) @db.Uuid
+  timId         String        @map("tim_id") @db.Uuid
+  userId        String        @map("user_id") @db.Uuid
+  periodeId     String        @map("periode_id") @db.Uuid
+  peranDalamTim PeranDalamTim @default(ANGGOTA) @map("peran_dalam_tim")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz
+
+  tim     TimKerja @relation(fields: [timId], references: [id], onDelete: Restrict)
+  user    User     @relation(fields: [userId], references: [id], onDelete: Restrict)
+  periode Periode  @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+
+  @@unique([timId, userId, periodeId])
+  @@index([userId, periodeId])
+  @@index([periodeId])
+  @@map("AnggotaTim")
+}
+
+model HariLibur {
+  id         String         @id @default(uuid()) @db.Uuid
+  tanggal    DateTime       @unique @db.Date
+  keterangan String         @db.VarChar(160)
+  jenis      JenisHariLibur
+
+  @@map("HariLibur")
+}
+
+model Kegiatan {
+  id            String  @id @default(uuid()) @db.Uuid
+  kode          String? @unique @db.VarChar(40)
+  uraian        String
+  satuanDefault String? @map("satuan_default") @db.VarChar(30)
+  isActive      Boolean @default(true) @map("is_active")
+
+  alokasi Alokasi[]
+
+  @@map("Kegiatan")
+}
+
+enum Prioritas {
+  RENDAH
+  SEDANG
+  TINGGI
+}
+
+enum StatusAlokasi {
+  AKTIF
+  SELESAI
+  DIBATALKAN
+}
+
+model Alokasi {
+  id               String        @id @default(uuid()) @db.Uuid
+  periodeId        String        @map("periode_id") @db.Uuid
+  timId            String        @map("tim_id") @db.Uuid
+  kegiatanId       String?       @map("kegiatan_id") @db.Uuid
+  judul            String        @db.VarChar(200)
+  deskripsi        String
+  tanggalMulai     DateTime      @map("tanggal_mulai") @db.Date
+  tanggalSelesai   DateTime      @map("tanggal_selesai") @db.Date
+  targetVolume     Decimal       @map("target_volume") @db.Decimal(12, 2)
+  satuan           String        @db.VarChar(30)
+  prioritas        Prioritas     @default(SEDANG)
+  status           StatusAlokasi @default(AKTIF)
+  alasanPembatalan String?       @map("alasan_pembatalan")
+  dibuatOlehId     String        @map("dibuat_oleh") @db.Uuid
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+
+  // Agregat tersimpan atas seluruh penugasan (lihat PenugasanAlokasi).
+  realisasi Decimal @default(0) @db.Decimal(14, 2)
+  menunggu  Decimal @default(0) @db.Decimal(14, 2)
+  persen    Decimal @default(0) @db.Decimal(8, 1) // realisasi / SUM(target penugasan) * 100
+
+  periode    Periode            @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  tim        TimKerja           @relation(fields: [timId], references: [id], onDelete: Restrict)
+  kegiatan   Kegiatan?          @relation(fields: [kegiatanId], references: [id], onDelete: Restrict)
+  dibuatOleh User               @relation("AlokasiDibuat", fields: [dibuatOlehId], references: [id], onDelete: Restrict)
+  penugasan  PenugasanAlokasi[]
+
+  @@index([periodeId, timId])
+  @@index([timId])
+  @@map("Alokasi")
+}
+
+model PenugasanAlokasi {
+  id           String   @id @default(uuid()) @db.Uuid
+  alokasiId    String   @map("alokasi_id") @db.Uuid
+  userId       String   @map("user_id") @db.Uuid
+  targetVolume Decimal  @map("target_volume") @db.Decimal(12, 2)
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz
+
+  // Agregat tersimpan; selalu dihitung ulang oleh recalculateProgresAlokasi (lib/progres-alokasi.ts).
+  realisasi Decimal @default(0) @db.Decimal(14, 2) // SUM(volume) entri DISETUJUI
+  menunggu  Decimal @default(0) @db.Decimal(14, 2) // SUM(volume) entri MENUNGGU
+  persen    Decimal @default(0) @db.Decimal(8, 1) // realisasi / targetVolume * 100
+
+  alokasi         Alokasi           @relation(fields: [alokasiId], references: [id], onDelete: Cascade)
+  user            User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  pekerjaanHarian PekerjaanHarian[]
+
+  @@unique([alokasiId, userId])
+  @@index([userId])
+  @@map("PenugasanAlokasi")
+}
+
+enum StatusPekerjaan {
+  BELUM_MULAI
+  PROSES
+  SELESAI
+}
+
+enum StatusVerifikasi {
+  MENUNGGU
+  DISETUJUI
+  MINTA_REVISI
+  DITOLAK
+}
+
+model PekerjaanHarian {
+  id               String           @id @default(uuid()) @db.Uuid
+  periodeId        String           @map("periode_id") @db.Uuid
+  penugasanId      String?          @map("penugasan_id") @db.Uuid
+  userId           String           @map("user_id") @db.Uuid
+  tanggal          DateTime         @db.Date
+  isAdHoc          Boolean          @default(false) @map("is_ad_hoc")
+  judulAdHoc       String?          @map("judul_ad_hoc") @db.VarChar(200)
+  deskripsiCapaian String           @map("deskripsi_capaian")
+  volume           Decimal          @default(1) @db.Decimal(12, 2)
+  satuan           String           @db.VarChar(30)
+  status           StatusPekerjaan  @default(PROSES)
+  kendala          String?
+  isBackfill       Boolean          @default(false) @map("is_backfill")
+  statusVerifikasi StatusVerifikasi @default(MENUNGGU) @map("status_verifikasi")
+  createdAt        DateTime         @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt        DateTime         @updatedAt @map("updated_at") @db.Timestamptz
+
+  periode    Periode           @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  penugasan  PenugasanAlokasi? @relation(fields: [penugasanId], references: [id], onDelete: Restrict)
+  user       User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  bukti      BuktiDukung[]
+  verifikasi Verifikasi[]
+
+  @@index([userId, tanggal])
+  @@index([periodeId, userId, tanggal]) // agregasi dashboard per periode x pegawai x hari
+  @@index([periodeId, statusVerifikasi])
+  @@index([penugasanId, statusVerifikasi])
+  @@map("PekerjaanHarian")
+}
+
+model BuktiDukung {
+  id                String   @id @default(uuid()) @db.Uuid
+  pekerjaanHarianId String   @map("pekerjaan_harian_id") @db.Uuid
+  namaAsli          String   @map("nama_asli") @db.VarChar(255)
+  objectKey         String   @unique @map("object_key") @db.VarChar(500)
+  mimeType          String   @map("mime_type") @db.VarChar(120)
+  ukuranBytes       BigInt   @map("ukuran_bytes")
+  checksumSha256    String   @map("checksum_sha256") @db.Char(64)
+  uploadedById      String   @map("uploaded_by") @db.Uuid
+  uploadedAt        DateTime @default(now()) @map("uploaded_at") @db.Timestamptz
+
+  pekerjaanHarian PekerjaanHarian @relation(fields: [pekerjaanHarianId], references: [id], onDelete: Restrict)
+  uploadedBy      User            @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@unique([pekerjaanHarianId, checksumSha256])
+  @@index([pekerjaanHarianId])
+  @@map("BuktiDukung")
+}
+
+enum AksiVerifikasi {
+  SETUJUI
+  MINTA_REVISI
+  TOLAK
+}
+
+// Riwayat verifikasi append-only (trigger database memblokir UPDATE/DELETE).
+model Verifikasi {
+  id                String         @id @default(uuid()) @db.Uuid
+  pekerjaanHarianId String         @map("pekerjaan_harian_id") @db.Uuid
+  verifikatorId     String         @map("verifikator_id") @db.Uuid
+  aksi              AksiVerifikasi
+  catatan           String?
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  pekerjaanHarian PekerjaanHarian @relation(fields: [pekerjaanHarianId], references: [id], onDelete: Restrict)
+  verifikator     User            @relation(fields: [verifikatorId], references: [id], onDelete: Restrict)
+
+  @@index([pekerjaanHarianId, createdAt])
+  @@index([verifikatorId])
+  @@map("Verifikasi")
+}
+
+enum TipeNotifikasi {
+  ALOKASI_BARU
+  VERIFIKASI
+  REVISI
+  PENGINGAT_HARIAN
+  REKAP_SELESAI
+}
+
+model Notifikasi {
+  id        String         @id @default(uuid()) @db.Uuid
+  userId    String         @map("user_id") @db.Uuid
+  tipe      TipeNotifikasi
+  judul     String         @db.VarChar(200)
+  isi       String
+  link      String?        @db.VarChar(300)
+  isRead    Boolean        @default(false) @map("is_read")
+  createdAt DateTime       @default(now()) @map("created_at") @db.Timestamptz
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt])
+  @@map("Notifikasi")
+}
+
+enum StatusRekap {
+  QUEUED
+  PROSES
+  SELESAI
+  GAGAL
+}
+
+// Arsip rekap bulanan per pegawai; setiap generate ulang menambah `versi` (versi lama tidak ditimpa).
+model RekapSKP {
+  id              String      @id @default(uuid()) @db.Uuid
+  periodeId       String      @map("periode_id") @db.Uuid
+  userId          String      @map("user_id") @db.Uuid
+  versi           Int
+  batchId         String      @map("batch_id") @db.Uuid // satu permintaan generate = satu batch (berbagi satu file XLSX)
+  isFinal         Boolean     @default(false) @map("is_final") // rekap yang dipicu penguncian periode
+  status          StatusRekap @default(QUEUED)
+  ringkasanJson   Json?       @map("ringkasan_json")
+  fileXlsxKey     String?     @map("file_xlsx_key") @db.VarChar(500)
+  filePdfKey      String?     @map("file_pdf_key") @db.VarChar(500)
+  errorMessage    String?     @map("error_message")
+  digeneratOlehId String      @map("digenerate_oleh") @db.Uuid
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz
+  finishedAt      DateTime?   @map("finished_at") @db.Timestamptz
+
+  periode       Periode @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  pegawai       User    @relation("RekapPegawai", fields: [userId], references: [id], onDelete: Restrict)
+  digeneratOleh User    @relation("RekapPembuat", fields: [digeneratOlehId], references: [id], onDelete: Restrict)
+
+  @@unique([periodeId, userId, versi])
+  @@index([periodeId, status])
+  @@index([batchId])
+  @@map("RekapSKP")
+}

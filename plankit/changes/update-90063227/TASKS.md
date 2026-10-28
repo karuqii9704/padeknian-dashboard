@@ -1,0 +1,362 @@
+<!-- plankit project:90063227-09b2-4ca9-ad4b-7eae2e28eca8 | managed file: keep task ids, only edit the [ ] markers and Note lines -->
+
+# Task: Redesign UI/UX Dashboard BPS Kerinci: Design System, Permukaan per Peran, dan Penguatan E2E
+
+Penanda status: `[ ]` belum · `[~]` sedang dikerjakan · `[x]` selesai · `[!]` terblokir.
+
+Aturan untuk agent:
+1. Ambil task paling atas yang belum selesai dan semua "Butuh"-nya sudah `[x]`.
+2. Ganti penandanya jadi `[~]` saat mulai. Centang tiap poin "Selesai jika" (`[x]`) begitu terbukti. Task jadi `[x]` hanya kalau semua poinnya tercentang.
+3. "Keputusan terbuka": kalau belum dijawab, pakai usulannya dan tulis keputusanmu di baris "Catatan".
+4. Kalau terblokir, pakai `[!]` dan tulis alasannya di baris "Catatan".
+5. Jangan ubah id, urutan, atau menghapus task. Rencana lengkap ada di CHANGE.md di folder ini.
+6. Tool MCP plankit (`get_next_task`, `update_task`) opsional. Kalau tidak tersedia, cukup edit file ini: plankit memantaunya setiap detik.
+7. Guardrail `[GR-n]` di CHANGE.md berlaku untuk setiap task. Kalau sebuah task hanya bisa selesai dengan melanggarnya, tandai `[!]` dan jelaskan di "Catatan". Jangan cari jalan pintas.
+
+## Fase 1 · Fondasi token tema dan komponen primitif
+- [ ] t33 · Baseline: jalankan 28 spec Playwright, vitest, build, dan ukur performa awal (M)
+  - Kerjakan: Jalankan `npm run lint`, `npm run build`, `npx playwright test` (28 spec di `e2e/`), dan `npm run test`, lalu catat hasil persisnya di deskripsi PR. Ukur dan catat angka baseline: p95 waktu muat rute utama, skor Lighthouse aksesibilitas awal, ukuran bundle JS klien rute utama, dan total transfer. Verifikasi cepat [DEBT-12]: baca `prisma/migrations/*_verifikasi/migration.sql` dan pastikan trigger append-only `Verifikasi` benar-benar ada. Buat tag git `pre-ui-redesign` pada commit baseline. Task ini tidak mengubah file aplikasi apa pun.
+  - Keputusan terbuka:
+    - Alat ukur p95 dan Lighthouse belum ditentukan dan lingkungan mirip produksi belum tersedia. (usul: Pakai Lighthouse CI headless Chrome lokal plus `performance.getEntriesByType('navigation')` dari Playwright, dijalankan terhadap `npm run build && npm start`; angka dicatat sebagai baseline relatif, bukan angka produksi.)
+    - Kalau ada spec e2e yang sudah merah di baseline, apa yang dilakukan? (usul: Catat sebagai temuan dan lanjutkan kalau jumlah spec merah <9; hentikan plan dan laporkan kalau >=9 (KILL-1). Perbaikannya dikerjakan di f7 tanpa melemahkan asersi.)
+  - Selesai jika:
+    - [ ] 1. Jumlah spec Playwright yang lulus dan gagal tercatat.
+    - [ ] 2. Nama setiap spec yang gagal tercatat satu per satu.
+    - [ ] 3. Angka p95 muat, skor aksesibilitas awal, dan ukuran bundle JS klien rute utama tercatat sebagai baseline.
+    - [ ] 4. Keberadaan trigger append-only `Verifikasi` dikonfirmasi dari `prisma/migrations/**/migration.sql`.
+    - [ ] 5. Tag `pre-ui-redesign` ada pada commit baseline.
+- [ ] t34 · Definisikan token tema @theme di app/globals.css (M)
+  - Butuh: t33
+  - Kerjakan: Edit `app/globals.css` [verify: lokasi tema]: tambahkan blok `@theme` berisi skala warna netral + warna merek, 4 radius, skala spacing, ukuran teks (body minimum 14 px), tinggi kontrol 44 px, dan pasangan warna latar/teks untuk setiap status (StatusVerifikasi, StatusAlokasi, StatusPekerjaan, StatusRekap, StatusPeriode, Prioritas) [CH-1]. Ganti pemakaian warna hardcoded di `app/**` dan `components/**` dengan token baru. Jangan sentuh `postcss.config.mjs` [§5].
+  - Keputusan terbuka:
+    - Pedoman identitas visual resmi BPS belum tersedia, jadi warna merek apa yang dipakai? (usul: Palet netral slate + satu warna merek biru di token `--color-brand-*` supaya gampang ditukar kalau pedoman resmi keluar.)
+    - Konvensi penamaan token belum ditetapkan. (usul: `--color-<peran>-<skala>` (mis. `--color-brand-600`), `--radius-sm|md|lg|xl`, `--spacing-*`, `--text-*`, `--control-height`.)
+  - Selesai jika:
+    - [ ] 1. `app/globals.css` memuat blok `@theme` dengan token warna, radius, spacing, ukuran teks, dan tinggi kontrol 44 px.
+    - [ ] 2. Setiap enum status punya token warna latar dan warna teks.
+    - [ ] 3. Tidak ada nilai hex/rgb hardcoded tersisa di `app/**` di luar `app/globals.css`.
+    - [ ] 4. `npm run build` hijau setelah perubahan.
+- [ ] t35 · Pin dependensi UI dan jalankan spike kompatibilitas Tailwind 4.3.3 (M)
+  - Butuh: t33
+  - Kerjakan: Edit `package.json` + `package-lock.json`: tambahkan `lucide-react`, `clsx`, `tailwind-merge`, `class-variance-authority`, primitif Radix seperlunya (`@radix-ui/react-dialog`, `-dropdown-menu`, `-tabs`, `-tooltip`, `-select`, `-checkbox`), dan `sonner`, semuanya versi exact tanpa `^` [CH-2]. Jangan tambah dependensi di luar daftar itu [GR-2]. Jalankan spike 0,5 hari: render satu `Dialog`, satu `Tabs`, dan satu ikon lucide di halaman sementara untuk memastikan kompatibel dengan Tailwind 4.3.3 + Next 15.5.27 + React 19, ukur tambahan bundle rute utama, lalu hapus halaman sementara itu.
+  - Keputusan terbuka:
+    - Versi exact mana yang dipin untuk tiap paket? (usul: Versi stabil terbaru yang lolos spike, dikunci di `package-lock.json`; jangan pakai RC/beta.)
+    - Apakah kode spike perlu disimpan sebagai contoh? (usul: Tidak, cukup catat hasilnya di deskripsi PR; file spike dihapus sebelum PR.)
+  - Selesai jika:
+    - [ ] 1. `package.json` memuat seluruh dependensi CH-2 dengan versi exact (tanpa `^`/`~`).
+    - [ ] 2. Tidak ada dependensi UI di luar daftar CH-2 di `package.json`.
+    - [ ] 3. Spike Dialog + Tabs + ikon lucide berhasil di-build dan file sementaranya sudah dihapus.
+    - [ ] 4. Tambahan bundle gzip rute utama tercatat angkanya.
+- [ ] t36 · Buat design-system/MASTER.md, lib/status.ts, dan components/ui/StatusBadge.tsx (M)
+  - Butuh: t34, t35
+  - Kerjakan: Buat `design-system/MASTER.md` (baru) berisi daftar token CH-1, aturan pemakaian komponen, konvensi `data-testid` pola `<area>-<elemen>` (mis. `entri-langkah-2`, `tabel-verifikasi-baris`), aturan label aksesibel, dan peta tunggal status ke label Indonesia + varian warna + ikon untuk StatusVerifikasi, StatusAlokasi, StatusPekerjaan, StatusRekap, StatusPeriode, dan Prioritas [CH-4][CH-23]. Buat `lib/status.ts` (baru) sebagai implementasi peta itu dan satu-satunya tempat label & warna status didefinisikan [CH-5]; kalau ternyata sudah ada helper serupa di `lib/`, konsolidasikan ke file itu, jangan duplikasi. Buat `components/ui/StatusBadge.tsx` yang mengonsumsi `lib/status.ts` [CH-3][CH-19].
+  - Keputusan terbuka:
+    - Kalau ternyata sudah ada helper peta status di `lib/` (isi `lib/` belum terlihat), mana yang jadi sumber tunggal? (usul: Konsolidasikan ke helper yang sudah ada dan jadikan `lib/status.ts` sebagai re-export/penamaan barunya; jangan pernah menyimpan dua sumber label status.)
+  - Selesai jika:
+    - [ ] 1. `design-system/MASTER.md` memuat peta status ke label Indonesia untuk keenam enum.
+    - [ ] 2. `design-system/MASTER.md` memuat konvensi `data-testid` pola `<area>-<elemen>`.
+    - [ ] 3. `lib/status.ts` mencakup setiap anggota keenam enum tanpa fallback tanpa label.
+    - [ ] 4. `components/ui/StatusBadge.tsx` merender label Indonesia dan varian warna sesuai `lib/status.ts`.
+- [ ] t37 · Buat primitif form dan layout di components/ui/ (L)
+  - Butuh: t35, t36
+  - Kerjakan: Buat `components/ui/Button.tsx`, `Input.tsx`, `Textarea.tsx`, `Select.tsx`, `Checkbox.tsx`, `Card.tsx`, `Table.tsx`, `Skeleton.tsx`, dan `EmptyState.tsx` (baru). Semua memakai `forwardRef`, mendukung `disabled`/`loading`, punya nama aksesibel, meneruskan `data-testid` dari pemanggil, dan memakai `clsx` + `tailwind-merge` + cva [CH-3]. `Table` menyediakan bagian header/body/row/cell. Ikuti konvensi `data-testid` di `design-system/MASTER.md` [CH-23]. Tidak ada komponen di sini yang boleh menghitung agregat atau aturan bisnis [KEEP-3].
+  - Selesai jika:
+    - [ ] 1. Sembilan file komponen ada di `components/ui/` dan lolos `npm run build`.
+    - [ ] 2. Setiap komponen meneruskan `data-testid` yang diberikan pemanggil ke elemen DOM.
+    - [ ] 3. `Button` dengan `disabled` atau `loading` tidak bisa diklik dan punya atribut aksesibel yang sesuai.
+    - [ ] 4. `Table` mengekspor bagian header, body, row, dan cell.
+- [ ] t38 · Buat primitif overlay Dialog, Tabs, Tooltip, dan Toast (M)
+  - Butuh: t35, t36
+  - Kerjakan: Buat `components/ui/Dialog.tsx`, `Tabs.tsx`, `Tooltip.tsx`, dan `Toast.tsx` (baru) di atas Radix yang sudah dipin di t3 dan `sonner` untuk Toast. `Dialog` dan `Tabs` harus bisa dioperasikan penuh dengan keyboard serta mengembalikan fokus ke pemicu saat ditutup; `Tooltip` tidak boleh menjadi satu-satunya sumber informasi. Semua meneruskan `data-testid` dan punya nama aksesibel [CH-3]; audit penuh dikerjakan di [CH-20]. Jangan pakai `Dialog` untuk aksi massal verifikasi [KEEP-2].
+  - Selesai jika:
+    - [ ] 1. Empat file komponen overlay ada di `components/ui/` dan lolos `npm run build`.
+    - [ ] 2. `Dialog` dapat dibuka dan ditutup dengan keyboard saja.
+    - [ ] 3. Setelah `Dialog` ditutup, fokus kembali ke elemen pemicu.
+    - [ ] 4. `Tabs` dapat dinavigasi dengan tombol panah kiri/kanan.
+
+## Fase 1 · App shell, navigasi per peran, dan PWA
+- [ ] t39 · Tulis ulang shell di app/layout.tsx dan components/shell/AppShell+Sidebar+Topbar (M)
+  - Butuh: t34, t37, t38
+  - Kerjakan: Edit `app/layout.tsx` [verify]: pasang shell baru dengan sidebar tetap pada >=1024 px, drawer/bottom-nav pada <1024 px, area konten dengan lebar baca maksimum, breadcrumb, dan skip-link "Lewati ke konten". Buat `components/shell/AppShell.tsx`, `Sidebar.tsx`, dan `Topbar.tsx` (baru). Font tetap `geist` 1.7.2: jangan ganti font dan jangan tambah font baru [§5]. Metadata PWA dikerjakan terpisah di t10.
+  - Selesai jika:
+    - [ ] 1. `app/layout.tsx` merender skip-link "Lewati ke konten" sebagai elemen pertama yang bisa difokus.
+    - [ ] 2. Sidebar tampil tetap pada >=1024 px dan berubah menjadi drawer/bottom-nav pada <1024 px.
+    - [ ] 3. Tidak ada aturan `@font-face` atau import font baru; font tetap `geist`.
+    - [ ] 4. `npm run build` hijau.
+- [ ] t40 · Buat lib/navigasi.ts, RoleNav, dan UserMenu per peran (M)
+  - Butuh: t39
+  - Kerjakan: Buat `lib/navigasi.ts` (baru) yang memetakan `Role` dari `types/next-auth.d.ts` (PEGAWAI, KETUA_TIM, PIMPINAN, ADMIN) ke daftar menu, lalu `components/shell/RoleNav.tsx` dan `components/shell/UserMenu.tsx`. Menu yang tidak relevan untuk peran **tidak dirender**, bukan di-disable [CH-7]. Ini kosmetik saja: otorisasi tetap di `middleware.ts` + `auth.config.ts`, jangan menulis ulang aturan otorisasi di komponen klien [KEEP-5][§5]. Seluruh label menu berbahasa Indonesia [KEEP-9].
+  - Keputusan terbuka:
+    - Peran PIMPINAN dan KETUA_TIM perlu item menu bersama (mis. tabel verifikasi) atau benar-benar terpisah? (usul: Definisikan daftar menu eksplisit per peran di `lib/navigasi.ts`, dengan item bersama sebagai konstanta yang direferensikan dua peran, bukan dua definisi terpisah.)
+  - Selesai jika:
+    - [ ] 1. `lib/navigasi.ts` mendefinisikan daftar menu untuk keempat `Role`.
+    - [ ] 2. Untuk setiap peran, menu peran lain tidak ada di DOM (bukan sekadar `disabled`).
+    - [ ] 3. Tidak ada aturan otorisasi baru di `components/shell/**`.
+    - [ ] 4. Seluruh label menu berbahasa Indonesia.
+- [ ] t41 · Pastikan density dan target sentuh aman pada 360 px (S)
+  - Butuh: t39
+  - Kerjakan: Setel breakpoint dan density di `app/globals.css` dan `components/shell/**`: pada 360 px tidak boleh ada scroll horizontal, tidak ada tombol terpotong, dan setiap elemen interaktif minimal 44x44 px [CH-8]. Cek juga 768/1024/1440 px. Perubahan hanya di CSS/kelas shell, bukan di halaman fitur.
+  - Keputusan terbuka:
+    - Untuk <1024 px dipakai bottom-nav atau drawer? (usul: Bottom-nav maksimal 4 item untuk peran PEGAWAI, drawer untuk peran lain; kalau item menu peran melebihi 4, pakai drawer secara konsisten.)
+  - Selesai jika:
+    - [ ] 1. Pada viewport 360 px tidak ada scroll horizontal di shell (drawer + topbar).
+    - [ ] 2. Setiap tombol dan tautan di shell punya area sentuh >=44x44 px pada 360 px.
+    - [ ] 3. Tidak ada teks terpotong pada 360/768/1024/1440 px.
+- [ ] t42 · Tambahkan PWA: manifest, ikon 192/512/maskable, dan metadata (S)
+  - Butuh: t39
+  - Kerjakan: Buat `public/manifest.webmanifest` plus ikon 192 px, 512 px, dan satu maskable, lalu pasang `manifest`, `theme-color`, dan `apple-touch-icon` di metadata `app/layout.tsx` [CH-9]. Sesuaikan `next.config.ts` hanya kalau manifest/metadata memang butuh penyesuaian [verify]. Ini juga menutup [DEBT-7].
+  - Keputusan terbuka:
+    - Nilai `display` dan `start_url` manifest? (usul: `display: "standalone"`, `start_url: "/"`, dan `theme_color` diambil dari token merek CH-1.)
+  - Selesai jika:
+    - [ ] 1. `public/manifest.webmanifest` valid (name, short_name, start_url, display, icons).
+    - [ ] 2. Ikon 192 px, 512 px, dan satu maskable tersedia di `public/`.
+    - [ ] 3. `app/layout.tsx` mereferensikan manifest, `theme-color`, dan `apple-touch-icon`.
+    - [ ] 4. Tidak ada 404 asset PWA di console saat halaman dimuat.
+- [ ] t43 · Gate Fase 1: cek exit criteria (S)
+  - Butuh: t40, t41, t42
+  - Kerjakan: Periksa setiap exit criteria Fase 1 di Rencana Rilis. Jalankan tes, lengkapi yang belum terpenuhi, lalu catat hasilnya. Task fase berikutnya menunggu gate ini.
+  - Selesai jika:
+    - [ ] 1. [EC-1.1] Hasil baseline terdokumentasi di deskripsi PR: 28 spec (jumlah lulus/gagal + nama yang gagal), hasil vitest, p95 muat, skor aksesibilitas awal, ukuran bundle.
+    - [ ] 2. [EC-1.2] [KILL-1] dievaluasi dan tidak terpicu, atau plan dihentikan dengan catatan.
+    - [ ] 3. [EC-1.3] `npm run lint` dan `npm run build` hijau.
+    - [ ] 4. [EC-1.4] Shell benar pada 360/768/1024/1440 px; tidak ada scroll horizontal dan tidak ada kontrol <44×44 px pada 360 px.
+    - [ ] 5. [EC-1.5] Navigasi benar untuk keempat `Role` menggunakan akun dari `prisma/seed.ts` dan `scripts/seed-demo.ts`; menu peran lain tidak dirender.
+    - [ ] 6. [EC-1.6] [KEEP-5] diverifikasi manual: menyembunyikan menu tidak mencabut otorisasi — akses URL langsung sebagai peran tanpa hak tetap ditolak.
+    - [ ] 7. [EC-1.7] [KILL-2] dicek: tambahan bundle rute utama ≤150 KB gzip dan p95 muat ≤2,0 detik.
+    - [ ] 8. [EC-1.8] Manifest PWA valid dan ikon tampil saat dipasang [verify: butuh perangkat uji].
+    - [ ] 9. Audit dependensi dan secret scan tidak menemukan temuan high/critical, atau setiap temuan dicatat sebagai [SEC-n] beserta keputusannya
+    - [ ] 10. Go/No-Go: kriteria [KILL-n] yang jatuh tempo sudah dicek, dan keputusan lanjut atau berhenti ditulis di Catatan
+
+## Fase 2 · Selector e2e stabil dan perbaikan 28 spec
+- [ ] t44 · Audit selector 28 spec e2e dan e2e/support, tetapkan pemetaan ke getByRole/getByTestId (M)
+  - Butuh: t43, t36, t37, t38
+  - Kerjakan: Baca seluruh `e2e/*.spec.ts` dan `e2e/support/{api,auth,data,data-besar}.ts`, inventarisasi setiap selector (teks mentah, kelas CSS, XPath) yang rapuh terhadap markup. Hasilnya: daftar selector ke pengganti `getByRole`/`getByTestId` beserta daftar `data-testid` baru yang perlu ditambahkan ke komponen dengan pola `<area>-<elemen>`. Asersi tidak boleh dilonggarkan dan spec tidak boleh dinonaktifkan [GR-4]. Tidak ada file spec yang diubah di task ini.
+  - Keputusan terbuka:
+    - Kalau spec sudah memakai `data-testid` dengan nama berbeda dari konvensi baru, dimigrasikan atau dipertahankan? (usul: Pertahankan testid yang sudah dipakai spec kalau maknanya sama, dan tambahkan alias di komponen supaya tidak ada spec yang perlu diubah hanya karena penamaan.)
+  - Selesai jika:
+    - [ ] 1. Setiap selector di 28 spec dan `e2e/support/**` terinventarisasi bersama penggantinya.
+    - [ ] 2. Daftar `data-testid` baru yang dibutuhkan komponen tercatat dengan pola `<area>-<elemen>`.
+    - [ ] 3. Tidak ada spec yang di-skip, dinonaktifkan, atau asersinya dilemahkan pada task ini.
+- [ ] t45 · Terapkan data-testid di komponen dan migrasikan selector spec ke getByRole/getByTestId (L)
+  - Butuh: t44
+  - Kerjakan: Tambahkan `data-testid` pola `<area>-<elemen>` ke komponen di `components/ui/**`, `components/shell/**`, dan halaman `app/**` sesuai daftar dari t11 [CH-23]. Lalu edit `e2e/support/*.ts` dan 28 spec: ganti selector teks mentah/kelas CSS ke `getByRole` dan `getByTestId` [CH-24]. Jangan menambah `waitForTimeout`, jangan melonggarkan asersi, jangan menonaktifkan spec [GR-4].
+  - Selesai jika:
+    - [ ] 1. Komponen dan halaman yang dipakai spec punya `data-testid` sesuai konvensi.
+    - [ ] 2. Tidak ada `waitForTimeout` baru di `e2e/**`.
+    - [ ] 3. Jumlah spec di `e2e/` tetap >=28.
+    - [ ] 4. Jumlah assertion per spec tidak berkurang dibanding baseline t1.
+- [ ] t46 · Jalankan 28 spec setelah migrasi selector dan catat hasilnya (S)
+  - Butuh: t45
+  - Kerjakan: Jalankan `npx playwright test` untuk seluruh 28 spec di `e2e/`. Spec yang merah karena selector diperbaiki, bukan di-skip. Spec yang merah karena bug lama dicatat sebagai temuan dengan nama spec-nya [CH-25][KEEP-11]. Catat hasilnya di deskripsi PR.
+  - Keputusan terbuka:
+    - Kalau ada spec yang tidak bisa hijau tanpa mengubah markup halaman fitur yang belum dikerjakan di fase ini? (usul: Biarkan merah dengan catatan dan kerjakan setelah halaman fitur di f3/f4/f5 selesai; jangan mengubah atau melemahkan asersinya.)
+  - Selesai jika:
+    - [ ] 1. `npx playwright test` dijalankan ulang dan jumlah lulus/gagal tercatat.
+    - [ ] 2. Setiap spec yang masih merah punya catatan penyebab (selector vs bug lama).
+    - [ ] 3. Tidak ada spec yang di-skip atau dinonaktifkan.
+    - [ ] 4. Jumlah spec tetap >=28.
+
+## Fase 2 · Mode ringkas Pegawai/Mitra
+- [ ] t47 · Buat components/entri/: Stepper, RingkasanAlokasi sticky, FormRealisasi, indikator status simpan (M)
+  - Butuh: t37, t38, t45
+  - Kerjakan: Buat `components/entri/Stepper.tsx`, `RingkasanAlokasi.tsx`, `FormRealisasi.tsx`, dan komponen indikator status simpan (baru). `FormRealisasi` memakai `react-hook-form` + `@hookform/resolvers` + `zod` yang sudah terpasang. `RingkasanAlokasi` bersifat sticky dan menampilkan nama kegiatan serta target alokasi. Stepper menampilkan 3 langkah. Semua punya `data-testid` (`entri-langkah-1` sampai `entri-langkah-3`) [CH-11][CH-23]. Komponen hanya menyusun tampilan: tidak ada perhitungan agregat [KEEP-3].
+  - Selesai jika:
+    - [ ] 1. `components/entri/` memuat Stepper, RingkasanAlokasi, dan FormRealisasi.
+    - [ ] 2. `RingkasanAlokasi` tetap terlihat saat halaman digulir pada viewport 360 px.
+    - [ ] 3. Stepper menampilkan tepat 3 langkah dengan penanda langkah aktif.
+    - [ ] 4. Komponen tidak menghitung `realisasi`, `menunggu`, atau `persen` sendiri.
+- [ ] t48 · Ubah halaman entri harian menjadi wizard 3 langkah (L)
+  - Butuh: t47
+  - Kerjakan: Edit halaman entri harian di `app/**` [verify: path pasti belum terlihat] menjadi wizard: pilih alokasi, isi realisasi + catatan, unggah bukti, kirim. Server action/route handler yang dipanggil **tidak berubah signature maupun payload**; hanya markup dan urutan tampilan langkah yang berubah. Setelah kirim, kembali ke daftar dengan status yang sama seperti sebelumnya [KEEP-1][CH-10]. Jangan mengubah transisi `StatusPekerjaan`, agregat, atau `recalculateProgresAlokasi` [KEEP-3][§5]. URL rute dipertahankan [KEEP-10].
+  - Keputusan terbuka:
+    - Path dan nama file halaman entri harian belum diketahui dari dokumen. (usul: Gunakan route yang sudah ada dan jangan pindahkan URL; pecah komponen per langkah ke `components/entri/` tanpa mengubah URL [KEEP-10].)
+  - Selesai jika:
+    - [ ] 1. Entri harian selesai dalam <=3 langkah dari pendarat peran PEGAWAI pada viewport 360 px.
+    - [ ] 2. Nama dan payload action/route yang dipanggil identik dengan baseline.
+    - [ ] 3. Setelah submit, jumlah `Alokasi.menunggu` naik dan `Alokasi.realisasi` belum berubah.
+    - [ ] 4. Tidak ada scroll horizontal pada 360 px di seluruh langkah.
+- [ ] t49 · Bangun ulang permukaan unggah bukti dukung (L)
+  - Butuh: t48
+  - Kerjakan: Bangun ulang UI unggah bukti di `app/**` dan `components/entri/`: area drag-and-drop, pratinjau gambar dan PDF lewat signed URL yang sudah ada (masa berlaku <=15 menit, ditandatangani dengan `S3_PUBLIC_ENDPOINT`), progress per file, tombol coba lagi saat gagal, dan pesan error dari server ditampilkan apa adanya (bukan pesan generik) [CH-12][KEEP-4]. Validasi `file-type` tetap otoritatif di server; di klien hanya petunjuk awal. Aturan `@@unique([pekerjaanHarianId, checksumSha256])` tetap berlaku dan pesan duplikat tetap bermakna sama [KEEP-8].
+  - Keputusan terbuka:
+    - Batas ukuran dan jumlah file per unggahan tidak disebut dokumen. (usul: Pakai batas yang sudah berlaku di route handler yang ada; kalau tidak ada, tampilkan batas dari konfigurasi server dan jangan menebak angka baru di klien.)
+  - Selesai jika:
+    - [ ] 1. File terpilih tampil sebagai pratinjau dengan progress dan status per file.
+    - [ ] 2. Kegagalan unggah menampilkan pesan dari server apa adanya, bukan pesan generik.
+    - [ ] 3. Pratinjau gambar dan PDF memakai URL bertanda tangan dengan masa berlaku <=15 menit.
+    - [ ] 4. File duplikat dan file dengan ekstensi dipalsukan tetap ditolak server.
+- [ ] t50 · Buat halaman "Tugas Saya" sebagai pendarat PEGAWAI (M)
+  - Butuh: t47, t48
+  - Kerjakan: Buat halaman "Tugas Saya" di `app/**` [CH-13] sebagai pendarat peran PEGAWAI: daftar alokasi aktif dengan dua aksi cepat, "Catat progres" dan "Unggah bukti", plus penanda alokasi yang belum ada entri hari ini. Data dibaca dari agregat `Alokasi`/`PenugasanAlokasi` apa adanya, tidak dihitung ulang di UI [KEEP-3]. Tanggal dan angka memakai helper WIB yang sudah ada, bukan format default browser [KEEP-9].
+  - Keputusan terbuka:
+    - Apakah halaman ini rute baru atau menggantikan halaman pendarat yang sudah ada? (usul: Buat rute baru (mis. `/tugas-saya`) dan jadikan tujuan redirect setelah login untuk PEGAWAI, tanpa menghapus atau memindahkan rute lama [KEEP-10].)
+  - Selesai jika:
+    - [ ] 1. Halaman "Tugas Saya" menjadi pendarat peran PEGAWAI setelah login.
+    - [ ] 2. Setiap baris alokasi punya dua aksi cepat: "Catat progres" dan "Unggah bukti".
+    - [ ] 3. Alokasi tanpa entri hari ini punya penanda yang terlihat tanpa hover.
+    - [ ] 4. Halaman tidak menjalankan perhitungan agregat di klien.
+
+## Fase 2 · Dashboard & tabel kerja untuk Ketua Tim, Pimpinan, dan Admin
+- [ ] t51 · Buat baris KPI periode berjalan untuk PIMPINAN dan KETUA_TIM (M)
+  - Butuh: t37, t38, t45
+  - Kerjakan: Susun baris KPI di atas lipatan pada halaman pendarat PIMPINAN dan KETUA_TIM di `app/**` [CH-14]: realisasi periode berjalan, jumlah pekerjaan `MENUNGGU` verifikasi, jumlah alokasi tanpa entri, dan status periode (`DRAFT`/`AKTIF`/`DIKUNCI`) memakai `StatusBadge` dan label dari `lib/status.ts` [CH-19]. Angka diambil dari data yang sudah ada, tanpa perhitungan baru di UI [KEEP-3]. KPI dan antrean menunggu verifikasi harus terlihat tanpa scroll pada 1366x768.
+  - Keputusan terbuka:
+    - Bagaimana mendefinisikan "alokasi tanpa entri" kalau tidak ada kolom agregatnya? (usul: Hitung lewat query server yang sudah ada (alokasi aktif dibanding pekerjaan pada tanggal berjalan), bukan loop di klien; kalau butuh agregat baru, kembalikan sebagai [DEBT] alih-alih menambah kolom atau mengubah skema.)
+  - Selesai jika:
+    - [ ] 1. Empat KPI tampil pada pendarat PIMPINAN dan KETUA_TIM.
+    - [ ] 2. Baris KPI dan antrean menunggu verifikasi terlihat tanpa scroll pada 1366x768.
+    - [ ] 3. Status periode dirender dengan label dan warna dari `lib/status.ts`.
+    - [ ] 4. Tidak ada agregat yang dihitung di kode UI; nilai hanya dibaca.
+- [ ] t52 · Buat components/tabel/DataTable dengan filter di URL query param (L)
+  - Butuh: t37, t38, t45
+  - Kerjakan: Buat `components/tabel/DataTable.tsx` (baru): filter status verifikasi, filter periode/tim, pengurutan, pagination, header sticky, skeleton saat memuat, dan empty state yang menjelaskan langkah berikutnya [CH-15]. State filter disimpan di URL query param supaya bisa di-bookmark dan bertahan setelah reload. Jangan mengubah URL rute yang ada, hanya menambah query param [KEEP-10]. Semua teks berbahasa Indonesia [KEEP-9].
+  - Keputusan terbuka:
+    - Nama query param untuk filter belum ditetapkan. (usul: `status`, `periode`, `tim`, `urut`, `hal`, dipakai konsisten di semua halaman dan dicatat di `design-system/MASTER.md`.)
+  - Selesai jika:
+    - [ ] 1. `DataTable` menyediakan filter status verifikasi dan filter periode/tim.
+    - [ ] 2. State filter bertahan setelah reload karena tersimpan di URL query param.
+    - [ ] 3. Header tabel tetap terlihat saat body digulir (sticky).
+    - [ ] 4. Empty state menampilkan langkah berikutnya, bukan teks kosong.
+    - [ ] 5. `DataTable` tidak melakukan perhitungan agregat sendiri.
+- [ ] t53 · Terapkan DataTable dan Dialog konfirmasi pada halaman ADMIN (L)
+  - Butuh: t52
+  - Kerjakan: Terapkan `DataTable` dan primitif `components/ui/` pada halaman ADMIN di `app/**`: user, tim kerja, periode, dan hari libur [CH-16]. Setiap aksi destruktif memakai `Dialog` konfirmasi yang menyebut nama objek secara eksplisit. Logika mutasi (server action/route handler) tidak berubah signature maupun payload. Saat `StatusPeriode` bernilai `DIKUNCI`, tidak ada aksi tulis yang tersedia di UI [KEEP-7].
+  - Selesai jika:
+    - [ ] 1. Empat halaman admin (user, tim kerja, periode, hari libur) memakai `DataTable`.
+    - [ ] 2. Setiap aksi destruktif membuka `Dialog` konfirmasi yang menyebut nama objeknya.
+    - [ ] 3. Signature dan payload action mutasi identik dengan baseline.
+    - [ ] 4. Saat periode `DIKUNCI`, aksi tulis tidak tersedia di UI.
+
+## Fase 2 · Permukaan verifikasi Ketua Tim
+- [ ] t54 · Buat antrean verifikasi pekerjaan MENUNGGU (M)
+  - Butuh: t52
+  - Kerjakan: Buat antrean verifikasi pada halaman verifikasi di `app/**` [verify: path pasti belum terlihat] [CH-17]: daftar pekerjaan `MENUNGGU` dengan ringkasan bukti, nama pegawai, kegiatan, dan tanggal. Tanpa aksi massal: verifikasi tetap satu per satu agar `Verifikasi` tetap append-only dan `AksiVerifikasi` tidak berubah [KEEP-2]. Gunakan `DataTable` dari t19 dengan filter periode/status dan `StatusBadge` dari `lib/status.ts`.
+  - Selesai jika:
+    - [ ] 1. Antrean menampilkan pekerjaan `MENUNGGU` beserta nama pegawai, kegiatan, dan tanggal.
+    - [ ] 2. Tidak ada kontrol aksi massal di antrean maupun panel detail.
+    - [ ] 3. Filter periode dan status tersimpan di URL query param seperti DataTable lain.
+    - [ ] 4. Antrean memakai `StatusBadge` dan label dari `lib/status.ts`.
+- [ ] t55 · Buat panel detail verifikasi dengan tiga aksi (L)
+  - Butuh: t54
+  - Kerjakan: Buat panel detail verifikasi di `app/**` [CH-18]: pratinjau bukti dukung lewat signed URL yang sudah ada, riwayat verifikasi ditampilkan read-only, dan form komentar dengan tiga aksi `DISETUJUI`, `MINTA_REVISI`, `DITOLAK` yang memanggil action/route yang sama seperti sekarang. Setelah aksi, tampilkan konfirmasi dan perbarui daftar antrean. Tidak mengubah state machine `StatusVerifikasi` maupun sifat append-only `Verifikasi`, dan tidak menambah aksi massal [KEEP-2][§5].
+  - Selesai jika:
+    - [ ] 1. Panel menampilkan pratinjau bukti dukung untuk gambar dan PDF.
+    - [ ] 2. Riwayat verifikasi tampil read-only tanpa kontrol edit.
+    - [ ] 3. Ketiga aksi memanggil action/route dengan signature dan payload yang sama seperti baseline.
+    - [ ] 4. Setelah aksi berhasil, muncul konfirmasi dan daftar antrean diperbarui.
+    - [ ] 5. Setiap aksi menambah baris baru di `Verifikasi` tanpa meng-update baris lama.
+- [ ] t56 · Samakan seluruh penyajian status dan notifikasi dengan lib/status.ts (S)
+  - Butuh: t36, t55
+  - Kerjakan: Ganti setiap badge dan label status yang tersisa di `app/**` dan `components/**`, termasuk notifikasi hasil verifikasi, agar memakai `StatusBadge` dan peta dari `lib/status.ts` [CH-19]. Tidak boleh ada label status yang ditulis manual per halaman. Notifikasi hasil verifikasi memakai `TipeNotifikasi` yang sudah ada dan tetap berbahasa Indonesia [KEEP-9].
+  - Selesai jika:
+    - [ ] 1. Tidak ada lagi label status yang ditulis manual di luar `lib/status.ts`.
+    - [ ] 2. Notifikasi hasil verifikasi memakai `StatusBadge` yang sama dengan antrean.
+    - [ ] 3. Semua teks notifikasi berbahasa Indonesia.
+
+## Fase 2 · Selector e2e stabil dan perbaikan 28 spec
+- [ ] t57 · Gate Fase 2: cek exit criteria (S)
+  - Butuh: t46, t49, t50, t51, t53, t56
+  - Kerjakan: Periksa setiap exit criteria Fase 2 di Rencana Rilis. Jalankan tes, lengkapi yang belum terpenuhi, lalu catat hasilnya. Task fase berikutnya menunggu gate ini.
+  - Selesai jika:
+    - [ ] 1. [EC-2.1] Seluruh 28 spec e2e hijau; jumlah spec tidak berkurang (≥28).
+    - [ ] 2. [EC-2.2] [KEEP-1] terbukti: entri harian selesai ≤3 langkah pada 360 px, dan efek datanya identik dengan hasil baseline.
+    - [ ] 3. [EC-2.3] [KEEP-2] dan [KEEP-3] terbukti lewat E2E verifikasi + `npm run progres:rebuild`.
+    - [ ] 4. [EC-2.4] [KEEP-6] dan [KEEP-7] terbukti lewat E2E rekap dan kunci periode.
+    - [ ] 5. [EC-2.5] [KEEP-8] terbukti: file duplikat dan file palsu tetap ditolak server.
+    - [ ] 6. [EC-2.6] KPI + antrean menunggu verifikasi terlihat tanpa scroll pada 1366×768 untuk `KETUA_TIM` dan `PIMPINAN`.
+    - [ ] 7. [EC-2.7] Filter tabel bertahan setelah reload (tersimpan di URL query param).
+    - [ ] 8. [EC-2.8] [KILL-3] dicek: tidak ada spec merah tersisa akibat markup, atau Fase 2 di-rollback.
+    - [ ] 9. Audit dependensi dan secret scan tidak menemukan temuan high/critical, atau setiap temuan dicatat sebagai [SEC-n] beserta keputusannya
+    - [ ] 10. Go/No-Go: kriteria [KILL-n] yang jatuh tempo sudah dicek, dan keputusan lanjut atau berhenti ditulis di Catatan
+
+## Fase 3 · Aksesibilitas & responsif
+- [ ] t58 · Audit dan perbaiki kontras token sampai WCAG 2.1 AA (M)
+  - Butuh: t57, t34, t39
+  - Kerjakan: Audit seluruh pasangan warna teks/latar dari token CH-1 di `app/globals.css` dan perbaiki sampai memenuhi WCAG 2.1 AA; pastikan focus ring terlihat di latar terang dan latar gelap [CH-20]. Catat hasil pemeriksaan kontras (rasio per pasangan) di deskripsi PR. Jangan mengubah struktur token, hanya nilainya.
+  - Keputusan terbuka:
+    - Kalau warna merek tidak bisa lolos AA tanpa mengubahnya sama sekali? (usul: Sesuaikan skala token (mis. pakai `brand-700` untuk teks di atas putih) dan pertahankan warna merek hanya untuk elemen non-teks seperti garis aksen.)
+  - Selesai jika:
+    - [ ] 1. Setiap pasangan warna teks/latar yang dipakai UI punya rasio kontras >=4,5:1 untuk teks normal.
+    - [ ] 2. Focus ring terlihat pada latar terang dan latar gelap.
+    - [ ] 3. Hasil pemeriksaan kontras dicatat per pasangan di deskripsi PR.
+- [ ] t59 · Pastikan Dialog, Tabs, dan Tooltip bisa dioperasikan penuh dengan keyboard (M)
+  - Butuh: t57, t38
+  - Kerjakan: Uji dan perbaiki `components/ui/Dialog.tsx`, `Tabs.tsx`, dan `Tooltip.tsx` agar bisa dioperasikan penuh dengan keyboard: fokus terkunci di dalam Dialog, Escape menutup, fokus kembali ke pemicu, Tabs dinavigasi dengan panah, dan Tooltip bisa dipicu lewat fokus serta tidak menyembunyikan informasi penting [CH-20]. Tidak ada perubahan pada alur bisnis di balik dialog.
+  - Selesai jika:
+    - [ ] 1. `Dialog` dapat dibuka, dioperasikan, dan ditutup sepenuhnya dengan keyboard.
+    - [ ] 2. Setelah `Dialog` ditutup, fokus kembali ke elemen pemicu.
+    - [ ] 3. `Tabs` dapat dinavigasi dengan tombol panah tanpa mouse.
+    - [ ] 4. `Tooltip` dapat dipicu lewat fokus keyboard, bukan hanya hover.
+- [ ] t60 · Audit layout pada 360/768/1024/1440 px dan zoom 200% (M)
+  - Butuh: t57, t48, t50, t53, t55
+  - Kerjakan: Audit setiap halaman utama (pendarat tiap peran, entri harian, verifikasi, tabel admin) pada 360, 768, 1024, dan 1440 px serta zoom 200% [CH-21]: tidak ada scroll horizontal, teks tidak terpotong, layout tetap terbaca. Perbaikan hanya lewat kelas dan token di `app/globals.css` serta komponen, bukan mengubah struktur data atau action.
+  - Selesai jika:
+    - [ ] 1. Tidak ada scroll horizontal pada 360/768/1024/1440 px di setiap halaman utama.
+    - [ ] 2. Tidak ada teks terpotong pada 360 px.
+    - [ ] 3. Layout tetap terbaca pada zoom 200% tanpa kehilangan aksi utama.
+- [ ] t61 · Tambahkan spec @axe-core/playwright untuk 5 rute utama (M)
+  - Butuh: t57, t48, t50, t51, t53, t54
+  - Kerjakan: Tambahkan dependensi `@axe-core/playwright` ke `package.json` dengan alasan tertulis di PR [CH-22], lalu buat spec a11y di `e2e/` yang menjalankan axe pada 5 rute utama: pendarat PEGAWAI ("Tugas Saya"), entri harian, antrean verifikasi, dashboard KETUA_TIM/PIMPINAN, dan satu halaman admin. Spec gagal kalau ada violation tingkat serious/critical. Dependensi ini satu-satunya tambahan di luar daftar CH-2 [GR-2].
+  - Selesai jika:
+    - [ ] 1. `@axe-core/playwright` tercantum di `package.json` dengan versi exact.
+    - [ ] 2. Spec a11y mencakup 5 rute utama.
+    - [ ] 3. Spec gagal bila ada violation tingkat serious/critical pada rute tersebut.
+    - [ ] 4. Jumlah spec di `e2e/` bertambah, tidak berkurang dari 28.
+- [ ] t62 · Gate Fase 3: cek exit criteria (S)
+  - Butuh: t58, t59, t60, t61
+  - Kerjakan: Periksa setiap exit criteria Fase 3 di Rencana Rilis. Jalankan tes, lengkapi yang belum terpenuhi, lalu catat hasilnya. Task fase berikutnya menunggu gate ini.
+  - Selesai jika:
+    - [ ] 1. [EC-3.1] Lighthouse aksesibilitas ≥95 pada 5 rute utama.
+    - [ ] 2. [EC-3.2] Spec `@axe-core/playwright` lolos dengan 0 violation serious/critical pada 5 rute utama.
+    - [ ] 3. [EC-3.3] Seluruh pasangan warna token memenuhi WCAG 2.1 AA; hasil pemeriksaan kontras dicatat di PR.
+    - [ ] 4. [EC-3.4] [DEBT-12] hasil verifikasi trigger append-only `Verifikasi` dilaporkan; kalau trigger tidak ada, hentikan Change 5 dan angkat sebagai temuan blocking.
+    - [ ] 5. [EC-3.5] p95 muat ≤2,0 detik pada rute utama (PRD §9) [verify: lingkungan ukur].
+    - [ ] 6. [EC-3.6] [KILL-4] dicek: waktu median entri harian turun ≥25% dibanding baseline; kalau tidak, Fase 4 dipotong dan Change 4/5 di-rescope.
+    - [ ] 7. [EC-3.7] 28 spec e2e + seluruh spec baru tetap hijau.
+    - [ ] 8. Audit dependensi dan secret scan tidak menemukan temuan high/critical, atau setiap temuan dicatat sebagai [SEC-n] beserta keputusannya
+    - [ ] 9. Go/No-Go: kriteria [KILL-n] yang jatuh tempo sudah dicek, dan keputusan lanjut atau berhenti ditulis di Catatan
+
+## Fase 4 · Cleanup dan unit test pertama
+- [ ] t63 · Hapus 5 aset starter Next.js dari public/ (S)
+  - Butuh: t62, t42
+  - Kerjakan: Pastikan tidak ada referensi ke `file.svg`, `globe.svg`, `next.svg`, `vercel.svg`, dan `window.svg` di `app/**` dan `components/**`, lalu hapus kelimanya dari `public/` [CH-26]. Ini menutup sisa [DEBT-7] setelah ikon PWA dari t10 terpasang.
+  - Selesai jika:
+    - [ ] 1. Kelima file SVG starter tidak ada lagi di `public/`.
+    - [ ] 2. Tidak ada referensi ke kelima nama file itu di `app/**` atau `components/**`.
+    - [ ] 3. `npm run build` hijau tanpa aset tersebut.
+- [ ] t64 · Perbaiki .gitignore dan untrack artefak build (S)
+  - Butuh: t62
+  - Kerjakan: Periksa apakah `tsconfig.tsbuildinfo` dan `test-results/.last-run.json` benar-benar ter-track dengan `git ls-files`, lalu tambahkan polanya ke `.gitignore` dan keluarkan dari tracking dengan `git rm --cached` [CH-27]. Kalau ternyata memang tidak ter-track, catat [DEBT-8] sebagai selesai tanpa perubahan.
+  - Selesai jika:
+    - [ ] 1. Status tracking `tsconfig.tsbuildinfo` dan `test-results/.last-run.json` dipastikan lewat `git ls-files`.
+    - [ ] 2. `.gitignore` memuat pola untuk kedua artefak itu, atau [DEBT-8] dicatat selesai bila memang tidak ter-track.
+    - [ ] 3. Tidak ada file sumber yang ikut ter-untrack.
+- [ ] t65 · Tulis unit test lib/status.test.ts untuk seluruh enum status (S)
+  - Butuh: t62, t36
+  - Kerjakan: Buat `lib/status.test.ts` (baru) yang menguji setiap anggota `StatusVerifikasi`, `StatusAlokasi`, `StatusPekerjaan`, `StatusRekap`, `StatusPeriode`, dan `Prioritas` punya label Indonesia dan varian warna, dan tidak ada status yang jatuh ke fallback tanpa label [CH-28]. Pakai `vitest` yang sudah terpasang dan pastikan `npm run test` benar-benar menjalankan file ini.
+  - Selesai jika:
+    - [ ] 1. `lib/status.test.ts` mengiterasi setiap anggota keenam enum status.
+    - [ ] 2. Tes gagal kalau ada status tanpa label Indonesia.
+    - [ ] 3. Tes gagal kalau ada status tanpa varian warna.
+    - [ ] 4. `npm run test` menjalankan file ini dan hasilnya hijau.
+- [ ] t66 · Render test minimal 3 komponen components/ui dan pastikan npm run test menjalankan tes nyata (M)
+  - Butuh: t62, t37, t38
+  - Kerjakan: Buat render test untuk minimal 3 komponen `components/ui/` (mis. `Button`, `StatusBadge`, `DataTable`) yang memastikan `data-testid` diteruskan, nama aksesibel terbentuk, dan state `disabled`/`loading` tidak bisa diklik [CH-28]. Pastikan `npm run test` melaporkan jumlah tes lebih dari nol, bukan lulus dengan nol tes.
+  - Keputusan terbuka:
+    - Lingkungan render test React 19 belum ada dan `@testing-library/react` + `jsdom` tidak masuk daftar dependensi CH-2 (GR-2). (usul: Tambahkan `jsdom` + `@testing-library/react` sebagai devDependency dengan alasan di PR; kalau kebijakan dependensi menolak, ganti ke render statis via `react-dom/server` supaya tidak menambah dependensi baru.)
+  - Selesai jika:
+    - [ ] 1. Minimal 3 komponen `components/ui/` punya render test.
+    - [ ] 2. Tes memverifikasi `data-testid` diteruskan ke elemen DOM.
+    - [ ] 3. Tes memverifikasi `Button` dengan `disabled` atau `loading` tidak bisa diklik.
+    - [ ] 4. `npm run test` melaporkan jumlah tes lebih dari nol.
+- [ ] t67 · Gate Fase 4: cek exit criteria (S)
+  - Butuh: t63, t64, t65, t66
+  - Kerjakan: Periksa setiap exit criteria Fase 4 di Rencana Rilis. Jalankan tes, lengkapi yang belum terpenuhi, lalu catat hasilnya. Task fase berikutnya menunggu gate ini.
+  - Selesai jika:
+    - [ ] 1. [EC-4.1] `npm run test` menjalankan minimal 5 tes unit dan semuanya hijau (bukan nol tes).
+    - [ ] 2. [EC-4.2] `public/` tidak lagi berisi aset starter Next.js; tidak ada referensi yang rusak.
+    - [ ] 3. [EC-4.3] `tsconfig.tsbuildinfo` dan `test-results/.last-run.json` tidak lagi ter-track, atau dicatat sebagai [DEBT-8] kalau terbukti memang tidak ter-track.
+    - [ ] 4. [EC-4.4] Seluruh 28 spec e2e + spec baru hijau, dan hasilnya terlampir di PR terakhir.
+    - [ ] 5. [EC-4.5] Seluruh `[DEBT-n]` yang belum dibayar tercatat dengan pemilik dan plan lanjutannya, tanpa ada yang hilang.
+    - [ ] 6. Audit dependensi dan secret scan tidak menemukan temuan high/critical, atau setiap temuan dicatat sebagai [SEC-n] beserta keputusannya
+    - [ ] 7. Go/No-Go: kriteria [KILL-n] yang jatuh tempo sudah dicek, dan keputusan lanjut atau berhenti ditulis di Catatan
