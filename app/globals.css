@@ -578,7 +578,9 @@
   background-color: var(--background);
   border-color: var(--border);
 }
+/* relative: elemen absolut di dalamnya (mis. label sr-only) ikut terpotong wadah scroll, bukan melebarkan halaman. */
 .overflow-x-auto.rounded.border {
+  position: relative;
   border-radius: calc(var(--radius) * 1.8);
   background-color: var(--card);
   border-color: transparent;

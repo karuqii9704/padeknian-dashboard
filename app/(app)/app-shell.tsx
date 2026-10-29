@@ -37,7 +37,6 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
-  SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarProvider,
@@ -95,6 +94,9 @@ const tombolMenu = cn(
   "group-data-[collapsible=icon]:size-11! group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:[&>span]:hidden",
 );
 
+const labelBadge = (m: Item) => (m.warna === "emas" ? `${m.badge} menunggu verifikasi` : `${m.badge} perlu revisi`);
+const warnaBadge = (m: Item) => (m.warna === "emas" ? "bg-gold-100 text-gold-700" : "bg-red-100 text-red-700");
+
 function ItemMenu({ m }: { m: Item }) {
   const pathname = usePathname();
   const { isMobile, setOpenMobile } = useSidebar();
@@ -106,20 +108,57 @@ function ItemMenu({ m }: { m: Item }) {
         <Link href={m.href} aria-current={aktif ? "page" : undefined} onClick={() => isMobile && setOpenMobile(false)}>
           <Ikon />
           <span>{m.label}</span>
+          {!!m.badge && (
+            <span aria-label={labelBadge(m)} className={cn("ml-auto rounded-md px-1.5 py-0.5 text-xs font-medium tabular-nums", warnaBadge(m))}>
+              {m.badge}
+            </span>
+          )}
         </Link>
       </SidebarMenuButton>
-      {!!m.badge && (
-        <SidebarMenuBadge
-          aria-label={m.warna === "emas" ? `${m.badge} menunggu verifikasi` : `${m.badge} perlu revisi`}
-          className={cn(
-            "top-1/2 -translate-y-1/2 rounded-md px-1.5 text-xs font-medium tabular-nums",
-            m.warna === "emas" ? "bg-gold-100 text-gold-700" : "bg-red-100 text-red-700",
-          )}
-        >
-          {m.badge}
-        </SidebarMenuBadge>
-      )}
     </SidebarMenuItem>
+  );
+}
+
+/** Tab bar bawah untuk HP: semua menu dan badge-nya tetap terlihat tanpa membuka laci. */
+function TabBawah({ grup }: { grup: Grup[] }) {
+  const pathname = usePathname();
+  return (
+    <nav
+      aria-label="Menu utama"
+      className="no-scrollbar fixed inset-x-0 bottom-0 z-40 flex overflow-x-auto border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur md:hidden"
+    >
+      {grup
+        .flatMap((g) => g.item)
+        .map((m) => {
+          const aktif = aktifUntuk(pathname, m.href);
+          const Ikon = m.ikon;
+          return (
+            <Link
+              key={m.href}
+              href={m.href}
+              aria-current={aktif ? "page" : undefined}
+              className={cn(
+                "relative flex min-h-15 min-w-[4.5rem] flex-1 flex-col items-center justify-center gap-1 px-1 text-[11px] tracking-tight",
+                aktif ? "font-medium text-foreground" : "text-muted-foreground",
+              )}
+            >
+              {aktif && <span aria-hidden className="absolute inset-x-5 top-0 h-0.5 rounded-b bg-foreground" />}
+              <span className="relative">
+                <Ikon className="size-5" />
+                {!!m.badge && (
+                  <span
+                    aria-label={labelBadge(m)}
+                    className={cn("absolute -right-3 -top-1.5 min-w-[1.1rem] rounded-full px-1 text-center text-[10px] font-semibold leading-[1.1rem] tabular-nums ring-2 ring-background", warnaBadge(m))}
+                  >
+                    {m.badge}
+                  </span>
+                )}
+              </span>
+              <span className="whitespace-nowrap">{m.label}</span>
+            </Link>
+          );
+        })}
+    </nav>
   );
 }
 
@@ -266,8 +305,9 @@ export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: s
             </DropdownMenu>
           </div>
         </header>
-        <div className="flex-1">{children}</div>
+        <div className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
       </div>
+      <TabBawah grup={grup} />
     </SidebarProvider>
   );
 }
