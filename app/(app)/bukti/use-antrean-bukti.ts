@@ -4,6 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MAKS_FILE_PER_ENTRI } from "@/lib/bukti-batas";
 import { kompresGambar, periksaFileLokal, unggahDenganProgres } from "@/lib/bukti-klien";
 
+export type OpsiAntrean = {
+  /** Alamat unggah per id objek induk; bawaan: bukti entri pekerjaan harian. */
+  urlUnggah?: (id: string) => string;
+  /** Nama objek induk pada pesan batas jumlah file, mis. "event". */
+  objek?: string;
+};
+
 export type ItemBukti = {
   key: string;
   file: File;
@@ -17,7 +24,7 @@ export type ItemBukti = {
  * Antrean bukti di sisi klien: pilih -> (kompres) -> unggah satu per satu dengan progres.
  * Aman diulang: file yang sudah terunggah dilewati, dan server menganggap file kembar sebagai sukses.
  */
-export function useAntreanBukti(jumlahSudahAda = 0) {
+export function useAntreanBukti(jumlahSudahAda = 0, { urlUnggah, objek }: OpsiAntrean = {}) {
   const [items, setItems] = useState<ItemBukti[]>([]);
   const [galat, setGalat] = useState<string | null>(null);
   const ref = useRef<ItemBukti[]>([]);
@@ -41,7 +48,7 @@ export function useAntreanBukti(jumlahSudahAda = 0) {
       const pesanGalat: string[] = [];
       for (const asli of Array.from(daftar)) {
         const sudah = jumlahSudahAda + ref.current.length + baru.length;
-        const g = periksaFileLokal(asli, sudah);
+        const g = periksaFileLokal(asli, sudah, objek);
         if (g) {
           pesanGalat.push(`${asli.name}: ${g}`);
           continue;
@@ -62,7 +69,7 @@ export function useAntreanBukti(jumlahSudahAda = 0) {
       if (baru.length) setItems((prev) => [...prev, ...baru]);
       if (pesanGalat.length) setGalat(pesanGalat.join(" "));
     },
-    [jumlahSudahAda],
+    [jumlahSudahAda, objek],
   );
 
   const hapus = useCallback((key: string) => {
@@ -80,7 +87,7 @@ export function useAntreanBukti(jumlahSudahAda = 0) {
       for (const item of ref.current) {
         if (item.status === "selesai") continue;
         ubah(item.key, { status: "mengunggah", progress: 0, pesan: undefined });
-        const r = await unggahDenganProgres(entriId, item.file, (p) => ubah(item.key, { progress: p }));
+        const r = await unggahDenganProgres(entriId, item.file, (p) => ubah(item.key, { progress: p }), urlUnggah);
         if (r.ok) ubah(item.key, { status: "selesai", progress: 100 });
         else {
           semuaOk = false;
@@ -89,7 +96,7 @@ export function useAntreanBukti(jumlahSudahAda = 0) {
       }
       return semuaOk;
     },
-    [ubah],
+    [ubah, urlUnggah],
   );
 
   return {

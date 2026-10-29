@@ -153,3 +153,15 @@ export const IkonGrafik = (p: P) => (
     <path d="M7 15l4-4 3 3 6-7" />
   </Svg>
 );
+
+export const IkonBeranda = (p: P) => (
+  <Svg {...p}>
+    <path d="M3 11.5 12 4l9 7.5" />
+    <path d="M5.5 10v9.5a1 1 0 0 0 1 1H10v-5.5h4v5.5h3.5a1 1 0 0 0 1-1V10" />
+  </Svg>
+);
+export const IkonEvent = (p: P) => (
+  <Svg {...p}>
+    <path d="M12 3.5l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8L12 3.5z" />
+  </Svg>
+);

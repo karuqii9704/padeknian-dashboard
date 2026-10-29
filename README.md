@@ -46,6 +46,24 @@ DATABASE_URL=postgresql://padeknian:padeknian@127.0.0.1:15432/padeknian_e2e npm 
 
 Database E2E wajib bernama `*e2e*` (di-reset otomatis). Playwright memakai Edge; ganti dengan `E2E_CHANNEL=chromium`.
 
+## Layer pengguna: Beranda dan Lapor Event
+
+- `/beranda` (pegawai dan ketua tim, halaman pertama setelah login): sapaan, status pencatatan hari ini, kartu aksi cepat (Catat pekerjaan hari ini → `/hari-ini?catat=1`, Lapor event → `/event?baru=1`, Lihat revisi, Kalender, Verifikasi untuk ketua), ringkasan angka, progres alokasi, dan aktivitas terbaru.
+- `/event`: laporan kegiatan (jenis rapat/pelatihan/survei lapangan/lainnya, tanggal mulai-selesai, lokasi, peran, uraian hasil, dan hingga 10 lampiran dokumentasi di storage S3). Event dicatat per pegawai, **tidak diverifikasi dan tidak masuk rekap SKP**. Ketua tim membaca event anggotanya di tab "Event tim" (sesuai keanggotaan per periode); pimpinan dan admin tidak memiliki akses. Ubah/hapus hanya oleh pemilik selama periode belum dikunci. Event butuh periode yang memuat tanggal mulainya dan tidak boleh bertanggal masa depan.
+- API: `GET|POST /api/event`, `GET|PATCH|DELETE /api/event/:id`, `POST /api/event/:id/lampiran`, `DELETE /api/event-lampiran/:id`, `GET /api/event-lampiran/:id/download`.
+
+## Akun dummy untuk uji coba
+
+`npm run seed:dummy` membuat 2 ketua tim dan 4 pegawai (tanpa tim, agar admin bisa mencoba membuat tim sendiri) dan mengaktifkan periode bulan berjalan bila belum ada periode aktif. Bawaannya dry-run; tidak ada password bawaan.
+
+```bash
+DUMMY_PASSWORD='<password>' npx tsx scripts/seed-pengguna-dummy.ts          # dry-run
+DUMMY_PASSWORD='<password>' npx tsx scripts/seed-pengguna-dummy.ts --ya     # tulis
+npx tsx scripts/seed-pengguna-dummy.ts --nonaktifkan --ya                    # nonaktifkan akun dummy setelah uji
+```
+
+Skrip menolak database bernama `*e2e*`, melewati NIP yang sudah ada (idempoten), dan tidak mengubah periode yang DIKUNCI atau mengganti periode aktif lain. Keanggotaan tim berlaku per periode: tambahkan anggota untuk periode aktif agar ketua melihat event dan catatan mereka.
+
 ## Dashboard & profil pegawai
 
 - `/dashboard` (Ketua Tim, Pimpinan): KPI, tren pengisian harian, sebaran status verifikasi, kepatuhan per tim, peta kepatuhan (pegawai × hari kerja), dan ringkasan per pegawai. Data awal dirender di server.

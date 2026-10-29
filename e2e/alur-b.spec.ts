@@ -31,7 +31,7 @@ test("setup: ketua membuat 3 alokasi untuk Tari dan menyiapkan riwayat kalender"
   const ctx = await browser.newContext();
   const page = await ctx.newPage();
   await login(page, USERS.ketua.nip);
-  await page.waitForURL("**/hari-ini");
+  await page.waitForURL("**/beranda");
   const periode = ((await (await page.request.get("/api/periode")).json()).data as { id: string; status: string }[]).find((p) => p.status === "AKTIF")!;
   const tim = (await (await page.request.get("/api/tim")).json()).data[0] as { id: string };
   const anggota = (await (await page.request.get(`/api/tim/${tim.id}/anggota?periodeId=${periode.id}`)).json()).anggota as { userId: string; nama: string }[];
@@ -84,17 +84,20 @@ test("setup: ketua membuat 3 alokasi untuk Tari dan menyiapkan riwayat kalender"
 test("login → catat pekerjaan tersimpan < 2 menit di 360px; default alokasi TINGGI dengan deadline terdekat", async ({ page }) => {
   const mulai = Date.now();
   await login(page, USERS.tari.nip);
-  await page.waitForURL("**/hari-ini");
+  await page.waitForURL("**/beranda");
 
-  await expect(page.getByRole("heading", { name: "Hari Ini", exact: true })).toBeVisible();
-  await expect(page.getByText("Rabu, 14 Okt 2026")).toBeVisible();
+  // Beranda: sapaan, tanggal, status hari ini, lalu aksi cepat membuka form catat langsung.
+  await expect(page.getByRole("heading", { level: 1, name: /^Selamat (pagi|siang|sore|malam), Tari$/ })).toBeVisible();
+  await expect(page.getByText("Rabu, 14 Okt 2026").first()).toBeVisible();
   await expect(page.getByText("Belum ada catatan pekerjaan hari ini.")).toBeVisible();
 
-  const catat = page.getByRole("button", { name: "+ Catat Pekerjaan" });
+  const catat = page.getByRole("link", { name: /Catat pekerjaan hari ini/ });
   await tinggiMinimal(catat);
   await catat.click();
+  await page.waitForURL("**/hari-ini?catat=1");
 
   const form = page.getByRole("dialog");
+  await expect(form).toBeVisible();
   const pilih = form.getByLabel("Alokasi pekerjaan");
   await expect(pilih.locator("option:checked")).toHaveText("Tinggi dekat");
   // Volume default = sisa target (50 - 5 disetujui - 5 menunggu... riwayat: 5 disetujui; revisi tidak dihitung).
@@ -118,7 +121,8 @@ test("login → catat pekerjaan tersimpan < 2 menit di 360px; default alokasi TI
 
 test("validasi inline pada form entri (Bahasa Indonesia)", async ({ page }) => {
   await login(page, USERS.tari.nip);
-  await page.waitForURL("**/hari-ini");
+  await page.waitForURL("**/beranda");
+  await page.goto("/hari-ini", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "+ Catat Pekerjaan" }).click();
   const form = page.getByRole("dialog");
   await form.getByLabel(/^Volume/).fill("");
@@ -134,7 +138,7 @@ test("validasi inline pada form entri (Bahasa Indonesia)", async ({ page }) => {
 
 test("kalender menandai 4 status warna; badge Revisi muncul; perbaikan mengembalikan ke menunggu", async ({ page }) => {
   await login(page, USERS.tari.nip);
-  await page.waitForURL("**/hari-ini");
+  await page.waitForURL("**/beranda");
 
   // Badge Revisi di navigasi (1 entri MINTA_REVISI).
   const navRevisi = page.getByRole("navigation", { name: "Menu utama" }).getByRole("link", { name: /Revisi/ });
@@ -171,7 +175,8 @@ test("kalender menandai 4 status warna; badge Revisi muncul; perbaikan mengembal
 
 test("tugas tambahan (ad-hoc) tersimpan dan tampil di Hari Ini", async ({ page }) => {
   await login(page, USERS.tari.nip);
-  await page.waitForURL("**/hari-ini");
+  await page.waitForURL("**/beranda");
+  await page.goto("/hari-ini", { waitUntil: "networkidle" });
   await page.getByRole("button", { name: "+ Catat Pekerjaan" }).click();
   const form = page.getByRole("dialog");
   await form.getByLabel("Alokasi pekerjaan").selectOption({ label: "Tugas tambahan (di luar alokasi)" });

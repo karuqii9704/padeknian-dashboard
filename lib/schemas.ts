@@ -7,7 +7,11 @@ export const uuidSchema = z.string().uuid("ID tidak valid.");
 export const tanggalSchema = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal harus YYYY-MM-DD.")
-  .refine((s) => new Date(`${s}T00:00:00Z`).toISOString().slice(0, 10) === s, "Tanggal tidak valid.");
+  .refine((s) => {
+    // Format salah menghasilkan Invalid Date; toISOString() akan melempar RangeError (500), bukan galat validasi.
+    const d = new Date(`${s}T00:00:00Z`);
+    return !Number.isNaN(d.getTime()) && d.toISOString().slice(0, 10) === s;
+  }, "Tanggal tidak valid.");
 
 export const volumeSchema = z
   .number({ message: "Target volume harus berupa angka." })

@@ -10,6 +10,7 @@
     "lint": "eslint",
     "migrate": "prisma migrate dev",
     "seed": "tsx prisma/seed.ts",
+    "seed:dummy": "tsx scripts/seed-pengguna-dummy.ts",
     "test": "vitest run",
     "test:e2e": "playwright test",
     "worker": "tsx worker/index.ts",

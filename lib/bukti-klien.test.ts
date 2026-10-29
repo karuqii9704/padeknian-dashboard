@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatUkuran, periksaFileLokal, tipeTampilan } from "./bukti-klien";
+import { formatUkuran, periksaFileLokal, tipeTampilan, urlUnggahBukti } from "./bukti-klien";
 
 describe("periksaFileLokal", () => {
   it("menerima format yang didukung", () => {
@@ -27,5 +27,15 @@ describe("tipeTampilan & formatUkuran", () => {
     expect(formatUkuran(512)).toBe("512 B");
     expect(formatUkuran(2048)).toBe("2 KB");
     expect(formatUkuran(5 * 1024 * 1024)).toBe("5.0 MB");
+  });
+});
+
+describe("generalisasi untuk lampiran event", () => {
+  it("pesan batas file memakai nama objek yang diberikan", () => {
+    expect(periksaFileLokal({ name: "a.pdf", size: 10 }, 10, "event")).toBe("Maksimal 10 file bukti per event.");
+    expect(periksaFileLokal({ name: "a.pdf", size: 10 }, 10)).toBe("Maksimal 10 file bukti per catatan.");
+  });
+  it("alamat unggah bawaan adalah bukti entri pekerjaan harian", () => {
+    expect(urlUnggahBukti("abc")).toBe("/api/pekerjaan-harian/abc/bukti");
   });
 });

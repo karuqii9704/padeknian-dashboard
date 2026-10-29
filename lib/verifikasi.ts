@@ -17,7 +17,7 @@ export const antreanQuery = z.object({
  * Entri milik ketua sendiri dikecualikan: tidak ada verifikasi mandiri (pegawai -> ketua tim satu level).
  */
 // Di-memo per permintaan: layout (badge) dan halaman verifikasi memakai cakupan yang sama.
-const pasanganKetua = cache((ketuaId: string) =>
+export const pasanganKetua = cache((ketuaId: string) =>
   db.anggotaTim.findMany({
     where: { tim: { ketuaId }, userId: { not: ketuaId } },
     select: { userId: true, periodeId: true },

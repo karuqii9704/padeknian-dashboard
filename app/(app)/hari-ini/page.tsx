@@ -6,7 +6,7 @@ import { HariIniClient } from "./hari-ini-client";
 
 export const dynamic = "force-dynamic";
 
-export default async function HariIniPage() {
+export default async function HariIniPage({ searchParams }: { searchParams: Promise<{ catat?: string }> }) {
   let user;
   try {
     user = await requireRole("PEGAWAI", "KETUA_TIM");
@@ -20,6 +20,7 @@ export default async function HariIniPage() {
     );
   }
   // Data awal dirender server; klien hanya memuat ulang setelah ada perubahan.
+  const { catat } = await searchParams;
   const awal = JSON.parse(JSON.stringify(await ringkasanHariIni(user)));
-  return <HariIniClient awal={awal} />;
+  return <HariIniClient awal={awal} bukaForm={catat === "1"} />;
 }

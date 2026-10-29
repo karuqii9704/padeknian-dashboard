@@ -12,15 +12,18 @@ type Props = {
   disabled?: boolean;
   /** Dipanggil untuk mengulang unggah item yang gagal (entri sudah tersimpan). */
   onCobaLagi?: () => void;
+  judul?: string;
+  /** Nama objek induk pada petunjuk batas file, mis. "event". */
+  objek?: string;
 };
 
-export function BuktiPicker({ antrean, disabled, onCobaLagi }: Props) {
+export function BuktiPicker({ antrean, disabled, onCobaLagi, judul = "Bukti dukung (opsional, disarankan)", objek = "catatan" }: Props) {
   const { items, galat, tambah, hapus, sisaKuota } = antrean;
   const nonaktif = disabled || sisaKuota === 0;
 
   return (
     <fieldset className="flex flex-col gap-2" disabled={disabled}>
-      <legend className="mb-1.5 text-sm font-medium text-ink-soft">Bukti dukung (opsional, disarankan)</legend>
+      <legend className="mb-1.5 text-sm font-medium text-ink-soft">{judul}</legend>
       <div className="grid grid-cols-2 gap-2">
         <label className={`${tombol} ${nonaktif ? "opacity-50" : ""}`}>
           Ambil foto
@@ -51,7 +54,7 @@ export function BuktiPicker({ antrean, disabled, onCobaLagi }: Props) {
           />
         </label>
       </div>
-      <p className="text-xs text-gray-600">JPG, PNG, PDF, DOCX, atau XLSX. Maksimal 10 MB per file, 10 file per catatan.</p>
+      <p className="text-xs text-gray-600">JPG, PNG, PDF, DOCX, atau XLSX. Maksimal 10 MB per file, 10 file per {objek}.</p>
       {galat && (
         <p role="alert" className="rounded bg-red-50 px-3 py-2 text-xs text-red-800">
           {galat}

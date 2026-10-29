@@ -34,14 +34,16 @@ model User {
   keanggotaan     AnggotaTim[]
   periodeDikunci  Periode[]             @relation("DikunciOleh")
 
-  alokasiDibuat       Alokasi[]          @relation("AlokasiDibuat")
-  penugasan           PenugasanAlokasi[]
-  pekerjaanHarian     PekerjaanHarian[]
-  buktiDiunggah       BuktiDukung[]
-  verifikasiDilakukan Verifikasi[]
-  notifikasi          Notifikasi[]
-  rekapSebagaiPegawai RekapSKP[]         @relation("RekapPegawai")
-  rekapDigenerate     RekapSKP[]         @relation("RekapPembuat")
+  alokasiDibuat         Alokasi[]          @relation("AlokasiDibuat")
+  penugasan             PenugasanAlokasi[]
+  pekerjaanHarian       PekerjaanHarian[]
+  buktiDiunggah         BuktiDukung[]
+  verifikasiDilakukan   Verifikasi[]
+  notifikasi            Notifikasi[]
+  rekapSebagaiPegawai   RekapSKP[]         @relation("RekapPegawai")
+  rekapDigenerate       RekapSKP[]         @relation("RekapPembuat")
+  event                 Event[]
+  lampiranEventDiunggah EventLampiran[]
 
   @@map("User")
 }
@@ -139,6 +141,7 @@ model Periode {
   alokasi         Alokasi[]
   pekerjaanHarian PekerjaanHarian[]
   rekap           RekapSKP[]
+  event           Event[]
 
   @@unique([tahun, bulan])
   @@map("Periode")
@@ -392,4 +395,54 @@ model RekapSKP {
   @@index([periodeId, status])
   @@index([batchId])
   @@map("RekapSKP")
+}
+
+enum JenisEvent {
+  RAPAT
+  PELATIHAN
+  SURVEI_LAPANGAN
+  LAINNYA
+}
+
+/// Laporan kegiatan/event pegawai. Tidak diverifikasi dan tidak masuk rekap SKP; ketua tim hanya melihat.
+model Event {
+  id             String     @id @default(uuid()) @db.Uuid
+  userId         String     @map("user_id") @db.Uuid
+  periodeId      String     @map("periode_id") @db.Uuid
+  judul          String     @db.VarChar(200)
+  jenis          JenisEvent
+  tanggalMulai   DateTime   @map("tanggal_mulai") @db.Date
+  tanggalSelesai DateTime   @map("tanggal_selesai") @db.Date
+  lokasi         String     @db.VarChar(200)
+  peran          String     @db.VarChar(80)
+  uraianHasil    String     @map("uraian_hasil")
+  createdAt      DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime   @updatedAt @map("updated_at") @db.Timestamptz
+
+  user     User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  periode  Periode         @relation(fields: [periodeId], references: [id], onDelete: Restrict)
+  lampiran EventLampiran[]
+
+  @@index([userId, tanggalMulai])
+  @@index([periodeId, userId])
+  @@map("Event")
+}
+
+model EventLampiran {
+  id             String   @id @default(uuid()) @db.Uuid
+  eventId        String   @map("event_id") @db.Uuid
+  namaAsli       String   @map("nama_asli") @db.VarChar(255)
+  objectKey      String   @unique @map("object_key") @db.VarChar(500)
+  mimeType       String   @map("mime_type") @db.VarChar(120)
+  ukuranBytes    BigInt   @map("ukuran_bytes")
+  checksumSha256 String   @map("checksum_sha256") @db.Char(64)
+  uploadedById   String   @map("uploaded_by") @db.Uuid
+  uploadedAt     DateTime @default(now()) @map("uploaded_at") @db.Timestamptz
+
+  event      Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  uploadedBy User  @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@unique([eventId, checksumSha256])
+  @@index([eventId])
+  @@map("EventLampiran")
 }

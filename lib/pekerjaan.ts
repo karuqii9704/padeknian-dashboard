@@ -117,7 +117,7 @@ export function bentukEntri(e: EntriRow) {
 const tgl = (s: string) => new Date(`${s}T00:00:00Z`);
 
 /** Cari periode: yang diwajibkan (dari alokasi) atau yang memuat tanggal (tugas tambahan). */
-async function cariPeriode(tanggal: string, periodeWajibId?: string) {
+export async function cariPeriode(tanggal: string, periodeWajibId?: string) {
   const periode = periodeWajibId
     ? await db.periode.findUnique({ where: { id: periodeWajibId } })
     : await db.periode.findFirst({ where: { tanggalMulai: { lte: tgl(tanggal) }, tanggalSelesai: { gte: tgl(tanggal) } } });

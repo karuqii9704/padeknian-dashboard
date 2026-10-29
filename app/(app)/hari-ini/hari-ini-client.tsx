@@ -40,11 +40,14 @@ type Data = {
 const PRIORITAS_LABEL: Record<string, string> = { RENDAH: "Rendah", SEDANG: "Sedang", TINGGI: "Tinggi" };
 const STATUS_LABEL: Record<string, string> = { BELUM_MULAI: "Belum mulai", PROSES: "Proses", SELESAI: "Selesai" };
 
-export function HariIniClient({ awal }: { awal: Data }) {
+export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm?: boolean }) {
   const [data, setData] = useState<Data | null>(awal);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
-  const [form, setForm] = useState<{ mode: "baru"; pilihan?: string } | { mode: "ubah"; awal: EntriAwal } | null>(null);
+  // ?catat=1 (aksi cepat dari Beranda) langsung membuka form bila pencatatan memungkinkan.
+  const [form, setForm] = useState<{ mode: "baru"; pilihan?: string } | { mode: "ubah"; awal: EntriAwal } | null>(
+    bukaForm && awal.periode && awal.tanggalBolehDicatat.length > 0 ? { mode: "baru" } : null,
+  );
   const dialog = useRef<HTMLDialogElement>(null);
 
   const load = useCallback(async () => {

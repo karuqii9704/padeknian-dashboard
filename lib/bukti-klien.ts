@@ -6,12 +6,12 @@ const EKSTENSI = ["jpg", "jpeg", "png", "pdf", "docx", "xlsx"];
 export const FORMAT_DITERIMA = ".jpg,.jpeg,.png,.pdf,.docx,.xlsx,image/jpeg,image/png,application/pdf";
 
 /** Pemeriksaan cepat di browser. Pemeriksaan sebenarnya (magic bytes) tetap di server. */
-export function periksaFileLokal(file: { name: string; size: number }, jumlahSudahAda: number): string | null {
+export function periksaFileLokal(file: { name: string; size: number }, jumlahSudahAda: number, objek = "catatan"): string | null {
   const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
   if (!EKSTENSI.includes(ext)) return "Tipe file tidak didukung. Gunakan JPG, PNG, PDF, DOCX, atau XLSX.";
   if (file.size === 0) return "File kosong.";
   if (file.size > MAKS_UKURAN_BYTES) return "Ukuran file melebihi batas 10 MB.";
-  if (jumlahSudahAda >= MAKS_FILE_PER_ENTRI) return `Maksimal ${MAKS_FILE_PER_ENTRI} file bukti per catatan.`;
+  if (jumlahSudahAda >= MAKS_FILE_PER_ENTRI) return `Maksimal ${MAKS_FILE_PER_ENTRI} file bukti per ${objek}.`;
   return null;
 }
 
@@ -61,24 +61,32 @@ export async function kompresGambar(file: File): Promise<File> {
 
 export type HasilUnggah = { ok: true; id?: string; sudahAda?: boolean } | { ok: false; pesan: string; jaringan?: boolean };
 
-/** Kirim satu file dengan progres (fetch belum mendukung progres unggah). */
-export function unggahDenganProgres(entriId: string, file: File, onProgress: (persen: number) => void): Promise<HasilUnggah> {
+/** Alamat unggah bukti untuk satu entri pekerjaan harian (bawaan). */
+export const urlUnggahBukti = (entriId: string) => `/api/pekerjaan-harian/${entriId}/bukti`;
+
+/** Kirim satu file dengan progres (fetch belum mendukung progres unggah). `urlUnggah` bisa diganti, mis. untuk lampiran event. */
+export function unggahDenganProgres(
+  entriId: string,
+  file: File,
+  onProgress: (persen: number) => void,
+  urlUnggah: (id: string) => string = urlUnggahBukti,
+): Promise<HasilUnggah> {
   return new Promise((resolve) => {
     const xhr = new XMLHttpRequest();
-    xhr.open("POST", `/api/pekerjaan-harian/${entriId}/bukti`);
+    xhr.open("POST", urlUnggah(entriId));
     xhr.upload.onprogress = (e) => {
       if (e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100));
     };
     xhr.onerror = () => resolve({ ok: false, jaringan: true, pesan: "Koneksi terputus. Periksa jaringan lalu coba lagi." });
     xhr.ontimeout = () => resolve({ ok: false, jaringan: true, pesan: "Waktu unggah habis. Coba lagi." });
     xhr.onload = () => {
-      let body: { pesan?: string; bukti?: { id: string } } = {};
+      let body: { pesan?: string; bukti?: { id: string }; lampiran?: { id: string } } = {};
       try {
         body = JSON.parse(xhr.responseText);
       } catch {
         /* abaikan */
       }
-      if (xhr.status === 201) return resolve({ ok: true, id: body.bukti?.id });
+      if (xhr.status === 201) return resolve({ ok: true, id: body.bukti?.id ?? body.lampiran?.id });
       // Percobaan ulang setelah koneksi putus di tengah jalan: file yang sama sudah tersimpan -> anggap sukses.
       if (xhr.status === 409 && body.pesan?.includes("sudah dilampirkan")) return resolve({ ok: true, sudahAda: true });
       resolve({ ok: false, pesan: body.pesan ?? "Gagal mengunggah file." });

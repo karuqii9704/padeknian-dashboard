@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { MAKS_UKURAN_BYTES, buatObjectKey, sanitasiNamaFile, validasiFileBukti } from "./bukti-file";
+import { MAKS_UKURAN_BYTES, buatObjectKey, buatObjectKeyEvent, sanitasiNamaFile, validasiFileBukti } from "./bukti-file";
 import { contohDocx, contohExe, contohJpg, contohPdf, contohPng, contohXlsx } from "./testing/mini-zip";
 
 const cek = (bytes: Uint8Array, tipeDeklarasi?: string) => validasiFileBukti({ bytes, tipeDeklarasi });
@@ -78,5 +78,13 @@ describe("sanitasiNamaFile", () => {
 describe("buatObjectKey", () => {
   it("format periode/YYYY-MM/userId/uuid.ext", () => {
     expect(buatObjectKey({ tahun: 2026, bulan: 3, userId: "u1", uuid: "abc", ext: "jpg" })).toBe("periode/2026-03/u1/abc.jpg");
+  });
+});
+
+describe("buatObjectKeyEvent", () => {
+  it("memakai awalan event/ dan bulan dua digit, berbeda dari bukti dukung", () => {
+    const opsi = { tahun: 2026, bulan: 3, userId: "u1", uuid: "abc", ext: "pdf" };
+    expect(buatObjectKeyEvent(opsi)).toBe("event/2026-03/u1/abc.pdf");
+    expect(buatObjectKeyEvent(opsi)).not.toBe(buatObjectKey(opsi));
   });
 });

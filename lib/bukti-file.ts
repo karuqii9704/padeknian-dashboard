@@ -65,3 +65,8 @@ export function sanitasiNamaFile(nama: string) {
 export function buatObjectKey(opts: { tahun: number; bulan: number; userId: string; uuid: string; ext: string }) {
   return `periode/${opts.tahun}-${String(opts.bulan).padStart(2, "0")}/${opts.userId}/${opts.uuid}.${opts.ext}`;
 }
+
+/** Format: event/YYYY-MM/userId/uuid.ext (awalan berbeda dari bukti dukung dan rekap). */
+export function buatObjectKeyEvent(opts: { tahun: number; bulan: number; userId: string; uuid: string; ext: string }) {
+  return `event/${opts.tahun}-${String(opts.bulan).padStart(2, "0")}/${opts.userId}/${opts.uuid}.${opts.ext}`;
+}

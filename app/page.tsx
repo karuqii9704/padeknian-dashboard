@@ -3,7 +3,7 @@ import { HttpError, requireSession } from "@/lib/rbac";
 
 export const dynamic = "force-dynamic";
 
-// Beranda: arahkan ke halaman awal sesuai peran.
+// Halaman awal sesuai peran: pegawai dan ketua tim ke Beranda, yang lain ke halaman pemantauannya.
 export default async function Home() {
   let role;
   try {
@@ -14,5 +14,5 @@ export default async function Home() {
   }
   if (role === "ADMIN") redirect("/admin/pengguna");
   if (role === "PIMPINAN") redirect("/dashboard");
-  redirect("/hari-ini");
+  redirect("/beranda");
 }

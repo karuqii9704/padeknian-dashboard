@@ -7,7 +7,9 @@ import { Lambang } from "../brand";
 import { useTema } from "../theme";
 import {
   IkonAlokasi,
+  IkonBeranda,
   IkonDashboard,
+  IkonEvent,
   IkonHariIni,
   IkonKalender,
   IkonKegiatan,
@@ -51,6 +53,8 @@ type Grup = { judul: string; item: Item[] };
 const ROLE_LABEL: Record<string, string> = { PEGAWAI: "Pegawai", KETUA_TIM: "Ketua Tim", PIMPINAN: "Pimpinan", ADMIN: "Admin" };
 
 function menu(role: string, revisi: number, verifikasi: number): Grup[] {
+  const beranda: Item = { href: "/beranda", label: "Beranda", ikon: IkonBeranda };
+  const event: Item = { href: "/event", label: "Event", ikon: IkonEvent };
   const hariIni: Item = { href: "/hari-ini", label: "Hari Ini", ikon: IkonHariIni };
   const kalender: Item = { href: "/kalender", label: "Kalender", ikon: IkonKalender };
   const rev: Item = { href: "/revisi", label: "Revisi", ikon: IkonRevisi, badge: revisi, warna: "merah" };
@@ -58,10 +62,10 @@ function menu(role: string, revisi: number, verifikasi: number): Grup[] {
   const dashboard: Item = { href: "/dashboard", label: "Dashboard", ikon: IkonDashboard };
   const rekap: Item = { href: "/rekap", label: "Rekap", ikon: IkonRekap };
 
-  if (role === "PEGAWAI") return [{ judul: "Pekerjaan saya", item: [hariIni, kalender, rev, alokasi] }];
+  if (role === "PEGAWAI") return [{ judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event, alokasi] }];
   if (role === "KETUA_TIM") {
     return [
-      { judul: "Pekerjaan saya", item: [hariIni, kalender, rev] },
+      { judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event] },
       { judul: "Tim", item: [{ href: "/verifikasi", label: "Verifikasi", ikon: IkonVerifikasi, badge: verifikasi, warna: "emas" }, dashboard, alokasi] },
       { judul: "Laporan", item: [rekap] },
     ];
@@ -168,7 +172,7 @@ function KepalaSidebar() {
   return (
     <SidebarHeader className={cn("h-16 flex-row items-center border-b border-sidebar-border md:h-20", ciut ? "justify-center px-2" : "justify-between gap-3 px-4")}>
       {!ciut && (
-        <Link href="/" aria-label="Beranda" className="flex min-w-0 items-center gap-2.5">
+        <Link href="/" aria-label="BPS Kerinci, halaman awal" className="flex min-w-0 items-center gap-2.5">
           <Lambang ukuran={22} className="shrink-0" />
           <span className="truncate text-lg font-semibold tracking-tight">BPS Kerinci</span>
         </Link>
