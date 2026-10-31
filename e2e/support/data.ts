@@ -14,6 +14,8 @@ export const USERS = {
 } as const;
 
 // NIP yang sengaja digagalkan oleh worker uji (REKAP_GAGALKAN_NIP) untuk menguji penanganan job gagal.
+// Satu NIP dipakai worker untuk semua user yang gagal; tiap spec cleans-up sisa dari run
+// sebelumnya supaya spec bisa diulang tanpa bentrok unique constraint.
 export const NIP_GAGAL = "199777777777777777";
 
 export const TIM_NAMA = "Tim Statistik Produksi";

@@ -2,8 +2,9 @@ import ExcelJS from "exceljs";
 import { extractText, getDocumentProxy } from "unpdf";
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import type { RingkasanRekap } from "../lib/rekap-hitung";
-import { USERS } from "./support/data";
+import { E2E_PASSWORD, NIP_GAGAL, USERS } from "./support/data";
 import { anggotaTim, buatAlokasi, catat, periodeAktif, sebagai, timMilik } from "./support/api";
 
 const prisma = new PrismaClient();
@@ -127,11 +128,42 @@ test("kontrol akses PDF: ketua tim hanya untuk timnya; pegawai ditolak; tanpa se
 });
 
 test("rekap gagal tidak memiliki PDF; unduhan PDF-nya ditolak dengan pesan jelas", async ({ browser }) => {
-  const gagal = await prisma.rekapSKP.findFirst({ where: { status: "GAGAL" } });
-  test.skip(!gagal, "tidak ada rekap gagal pada data uji ini");
-  const pim = await sebagai(browser, USERS.pimpinan.nip);
-  const r = await pim.request.get(`/api/rekap/${gagal!.id}/download?format=pdf`, { maxRedirects: 0 });
-  expect(r.status()).toBe(404);
-  expect((await r.json()).pesan).toContain("belum tersedia");
-  await pim.tutup();
+  // Spec ini harus mandiri: jangan bergantung pada rekap.spec.ts (nama file "rekap-pdf"
+  // diurutkan SEBELUM "rekap", jadi rekap GAGAL belum ada saat spec ini jalan).
+  // Pegawai dengan NIP_GAGAL sengaja digagalkan worker uji (REKAP_GAGALKAN_NIP).
+  const admin = await sebagai(browser, USERS.admin.nip);
+  const ketua = await sebagai(browser, USERS.ketua.nip);
+  const tim = (await timMilik(ketua.request)).id;
+  // Bersihkan sisa dari run sebelumnya (NIP unik) supaya spec ini bisa diulang.
+  await prisma.rekapSKP.deleteMany({ where: { pegawai: { nip: NIP_GAGAL } } });
+  await prisma.anggotaTim.deleteMany({ where: { user: { nip: NIP_GAGAL } } });
+  await prisma.user.deleteMany({ where: { nip: NIP_GAGAL } });
+  const gagal = await prisma.user.create({
+    data: { nip: NIP_GAGAL, nama: "Pegawai Gagal Uji PDF", role: "PEGAWAI", passwordHash: await bcrypt.hash(E2E_PASSWORD, 4) },
+  });
+  const anggota = await prisma.anggotaTim.create({ data: { timId: tim, userId: gagal.id, periodeId } });
+  try {
+    const r = await admin.request.post("/api/rekap/generate", { data: { periodeId, userIds: [gagal.id] } });
+    expect(r.status()).toBe(202);
+    await tunggu(admin.request);
+
+    const row = await prisma.rekapSKP.findFirstOrThrow({ where: { userId: gagal.id }, orderBy: { versi: "desc" } });
+    expect(row.status, "worker uji harus gagalkan rekap ini").toBe("GAGAL");
+    expect(row.errorMessage).toContain("Kegagalan disimulasikan");
+    expect(row.filePdfKey, "rekap gagal tidak punya PDF").toBeNull();
+
+    // Sudut pandang PIMPINAN: unduhan PDF ditolak dengan pesan yang jelas (bukan 500).
+    const pim = await sebagai(browser, USERS.pimpinan.nip);
+    const dl = await pim.request.get(`/api/rekap/${row.id}/download?format=pdf`, { maxRedirects: 0 });
+    expect(dl.status()).toBe(404);
+    expect((await dl.json()).pesan).toContain("belum tersedia");
+    await pim.tutup();
+  } finally {
+    await prisma.anggotaTim.delete({ where: { id: anggota.id } });
+    // RekapSKP.userId punya onDelete: Restrict — hapus baris rekap dulu, baru user-nya.
+    await prisma.rekapSKP.deleteMany({ where: { userId: gagal.id } });
+    await prisma.user.delete({ where: { id: gagal.id } }).catch(() => undefined);
+    await admin.tutup();
+    await ketua.tutup();
+  }
 });

@@ -128,6 +128,10 @@ test("generate ulang menambah versi dan tidak menimpa versi lama; generate bersa
 test("job gagal tersimpan sebagai GAGAL + error_message, tanpa menghentikan job lain", async ({ browser }) => {
   const admin = await sebagai(browser, USERS.admin.nip);
   // Pegawai yang sengaja digagalkan worker uji (REKAP_GAGALKAN_NIP) dimasukkan sementara ke Tim A.
+  // Bersihkan sisa run sebelumnya (NIP unik) supaya spec bisa diulang.
+  await prisma.rekapSKP.deleteMany({ where: { pegawai: { nip: NIP_GAGAL } } });
+  await prisma.anggotaTim.deleteMany({ where: { user: { nip: NIP_GAGAL } } });
+  await prisma.user.deleteMany({ where: { nip: NIP_GAGAL } });
   const gagal = await prisma.user.create({ data: { nip: NIP_GAGAL, nama: "Pegawai Gagal Uji", role: "PEGAWAI", passwordHash: await bcrypt.hash(E2E_PASSWORD, 4) } });
   const anggota = await prisma.anggotaTim.create({ data: { timId: timA, userId: gagal.id, periodeId } });
   try {
@@ -156,6 +160,9 @@ test("job gagal tersimpan sebagai GAGAL + error_message, tanpa menghentikan job 
     expect((await prisma.rekapSKP.count({ where: { userId: gagal.id } }))).toBe(2);
   } finally {
     await prisma.anggotaTim.delete({ where: { id: anggota.id } }); // jangan ganggu generate lain
+    // RekapSKP.userId punya onDelete: Restrict — hapus baris rekap dulu, baru user-nya.
+    await prisma.rekapSKP.deleteMany({ where: { userId: gagal.id } });
+    await prisma.user.delete({ where: { id: gagal.id } }).catch(() => undefined);
   }
   await admin.tutup();
 });
