@@ -81,6 +81,8 @@
   --x-green-50: #f0fdf4;
   --x-green-100: #dcfce7;
   --x-green-200: #bbf7d0;
+  --x-green-300: #86efac;
+  --x-green-400: #4ade80;
   --x-green-600: #16a34a;
   --x-green-700: #15803d;
   --x-green-800: #166534;
@@ -95,11 +97,15 @@
   --x-gold-500: #c58a00;
   --x-gold-600: #9e6400;
   --x-gold-700: #9e6400;
+  --x-gold-800: #7c4f00;
+  --x-gold-900: #5c3a00;
+  --x-gold-950: #3a2400;
 
   --x-red-50: #fef2f2;
   --x-red-100: #fee2e2;
   --x-red-200: #fecaca;
   --x-red-300: #fca5a5;
+  --x-red-400: #f87171;
   --x-red-500: #ef4444;
   --x-red-600: #dc2626;
   --x-red-700: #b91c1c;
@@ -111,6 +117,7 @@
   --x-amber-100: #fef3c7;
   --x-amber-200: #fde68a;
   --x-amber-300: #fcd34d;
+  --x-amber-400: #fbbf24;
   --x-amber-600: #d97706;
   --x-amber-700: #b45309;
   --x-amber-800: #92400e;
@@ -182,6 +189,8 @@
   --x-green-50: rgb(52 211 153 / 0.1);
   --x-green-100: rgb(52 211 153 / 0.16);
   --x-green-200: rgb(52 211 153 / 0.3);
+  --x-green-300: #6ee7b7;
+  --x-green-400: #34d399;
   --x-green-600: #34d399;
   --x-green-700: #6ee7b7;
   --x-green-800: #a7f3d0;
@@ -191,13 +200,20 @@
   --x-gold-50: rgb(240 180 41 / 0.1);
   --x-gold-100: rgb(240 180 41 / 0.16);
   --x-gold-200: rgb(240 180 41 / 0.28);
+  --x-gold-300: #f5c451;
+  --x-gold-400: #f0b429;
   --x-gold-500: #f0b429;
   --x-gold-600: #c58a00;
   --x-gold-700: #f5c451;
+  --x-gold-800: #ffe08a;
+  --x-gold-900: #ffefc2;
+  --x-gold-950: #fff8e6;
 
   --x-red-50: rgb(248 113 113 / 0.1);
   --x-red-100: rgb(248 113 113 / 0.16);
   --x-red-200: rgb(248 113 113 / 0.3);
+  --x-red-300: #fca5a5;
+  --x-red-400: #f87171;
   --x-red-500: #f87171;
   --x-red-600: #ef4444;
   --x-red-700: #fca5a5;
@@ -208,6 +224,8 @@
   --x-amber-50: rgb(240 180 41 / 0.1);
   --x-amber-100: rgb(240 180 41 / 0.16);
   --x-amber-200: rgb(240 180 41 / 0.3);
+  --x-amber-300: #fcd34d;
+  --x-amber-400: #f0b429;
   --x-amber-600: #f0b429;
   --x-amber-700: #fcd34d;
   --x-amber-800: #fde68a;
@@ -316,6 +334,8 @@
   --color-green-50: var(--x-green-50);
   --color-green-100: var(--x-green-100);
   --color-green-200: var(--x-green-200);
+  --color-green-300: var(--x-green-300);
+  --color-green-400: var(--x-green-400);
   --color-green-600: var(--x-green-600);
   --color-green-700: var(--x-green-700);
   --color-green-800: var(--x-green-800);
@@ -330,11 +350,15 @@
   --color-gold-500: var(--x-gold-500);
   --color-gold-600: var(--x-gold-600);
   --color-gold-700: var(--x-gold-700);
+  --color-gold-800: var(--x-gold-800);
+  --color-gold-900: var(--x-gold-900);
+  --color-gold-950: var(--x-gold-950);
 
   --color-red-50: var(--x-red-50);
   --color-red-100: var(--x-red-100);
   --color-red-200: var(--x-red-200);
   --color-red-300: var(--x-red-300);
+  --color-red-400: var(--x-red-400);
   --color-red-500: var(--x-red-500);
   --color-red-600: var(--x-red-600);
   --color-red-700: var(--x-red-700);
@@ -346,6 +370,7 @@
   --color-amber-100: var(--x-amber-100);
   --color-amber-200: var(--x-amber-200);
   --color-amber-300: var(--x-amber-300);
+  --color-amber-400: var(--x-amber-400);
   --color-amber-600: var(--x-amber-600);
   --color-amber-700: var(--x-amber-700);
   --color-amber-800: var(--x-amber-800);
@@ -447,6 +472,141 @@
   }
 }
 
+/* ===== Tombol & field (dipakai di seluruh aplikasi) ====== */
+
+/*
+ * `.btn` = tombol dasar. Mengikuti token shadcn sehingga otomatis sesuai mode terang/gelap.
+ * Dipakai bersama utilitas Tailwind untuk ukuran (mis. `min-h-12`) dan lebar.
+ */
+@utility btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.75rem;
+  padding-inline: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.05);
+  &:hover:not(:disabled) {
+    background-color: var(--accent);
+    color: var(--accent-foreground);
+  }
+  &:active:not(:disabled) {
+    transform: translateY(1px);
+  }
+  &:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  /* Ikon di dalam tombol tidak boleh memshrink. */
+  &[data-size="icon"],
+  &[aria-label]:not([aria-label=""]) {
+    svg {
+      flex-shrink: 0;
+    }
+  }
+}
+
+/* Varian utama: kontras tinggi (primer = hitam di terang, putih di gelap). */
+@utility btn-primary {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+  &:hover:not(:disabled) {
+    background-color: color-mix(in oklab, var(--primary) 88%, var(--background));
+    color: var(--primary-foreground);
+  }
+}
+
+/* Varian sekunder: netral, dipakai untuk aksi pelengkap. */
+@utility btn-secondary {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border-color: var(--border);
+  &:hover:not(:disabled) {
+    background-color: var(--muted);
+  }
+}
+
+/* Varian bahaya: merah, kontras di kedua mode. */
+@utility btn-danger {
+  background-color: color-mix(in oklab, var(--destructive) 12%, var(--background));
+  color: var(--destructive);
+  border-color: color-mix(in oklab, var(--destructive) 35%, var(--border));
+  &:hover:not(:disabled) {
+    background-color: color-mix(in oklab, var(--destructive) 20%, var(--background));
+  }
+}
+
+/* Varian peringatan: kuning/emas, untuk revisi dan permintaan tambahan. */
+@utility btn-warn {
+  background-color: color-mix(in oklab, var(--color-gold-400) 16%, var(--background));
+  color: color-mix(in oklab, var(--color-gold-700) 88%, var(--foreground));
+  border-color: color-mix(in oklab, var(--color-gold-400) 40%, var(--border));
+  &:hover:not(:disabled) {
+    background-color: color-mix(in oklab, var(--color-gold-400) 26%, var(--background));
+  }
+  .dark & {
+    color: var(--color-gold-300);
+  }
+}
+
+/* Variant ghost: tanpa latar, hanya hover. */
+@utility btn-ghost {
+  background-color: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  &:hover:not(:disabled) {
+    background-color: var(--accent);
+  }
+}
+
+/* Field input/select/textarea: tinggi sentuh >= 44px, fokus jelas, error ditandai. */
+@utility field {
+  display: block;
+  width: 100%;
+  min-height: 2.75rem;
+  padding-inline: 0.75rem;
+  padding-block: 0.5rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--input);
+  background-color: var(--background);
+  color: var(--foreground);
+  font-size: 0.9375rem;
+  line-height: 1.4;
+  transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
+  &:focus {
+    outline: none;
+    border-color: var(--ring);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent);
+  }
+  &:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  &[aria-invalid="true"] {
+    border-color: var(--destructive);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--destructive) 22%, transparent);
+  }
+  &::placeholder {
+    color: var(--muted-foreground);
+  }
+}
+
+/* Chip/tag component */
 @utility chip {
   display: inline-flex;
   align-items: center;
@@ -478,85 +638,7 @@
   }
 }
 
-@utility btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-height: 2.75rem;
-  padding-inline: 1rem;
-  border-radius: var(--radius);
-  font-size: 0.875rem;
-  font-weight: 500;
-  white-space: nowrap;
-  transition: background-color 0.15s, border-color 0.15s, color 0.15s, box-shadow 0.15s;
-  &:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-}
-
-@utility btn-primary {
-  background-color: var(--primary);
-  color: var(--primary-foreground);
-  &:hover:not(:disabled) {
-    background-color: color-mix(in oklab, var(--primary) 85%, var(--background));
-  }
-}
-
-@utility btn-danger {
-  background-color: var(--destructive);
-  color: #fff;
-  &:hover:not(:disabled) {
-    background-color: color-mix(in oklab, var(--destructive) 88%, black);
-  }
-}
-
-@utility btn-warn {
-  background-color: #b45309;
-  color: #fff;
-  &:hover:not(:disabled) {
-    background-color: #92400e;
-  }
-}
-
-@utility btn-secondary {
-  background-color: var(--background);
-  color: var(--foreground);
-  border: 1px solid var(--border);
-  box-shadow: 0 2px 4px rgb(0 0 0 / 0.05);
-  &:hover:not(:disabled) {
-    background-color: var(--accent);
-  }
-}
-
-@utility btn-ghost {
-  color: var(--muted-foreground);
-  &:hover:not(:disabled) {
-    background-color: var(--accent);
-    color: var(--foreground);
-  }
-}
-
-@utility field {
-  min-height: 2.75rem;
-  width: 100%;
-  border-radius: var(--radius);
-  border: 1px solid var(--input);
-  background-color: var(--background);
-  padding-inline: 0.75rem;
-  color: var(--foreground);
-  transition: border-color 0.15s, box-shadow 0.15s;
-  &:focus {
-    border-color: var(--ring);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ring) 35%, transparent);
-    outline: none;
-  }
-  &[aria-invalid="true"] {
-    border-color: var(--destructive);
-  }
-}
-
+/* Skeleton loader */
 @utility skeleton {
   border-radius: 0.5rem;
   background: linear-gradient(90deg, var(--muted) 25%, var(--border) 50%, var(--muted) 75%);
@@ -564,6 +646,7 @@
   animation: var(--animate-kilau);
 }
 
+/* Eyebrow text */
 @utility eyebrow {
   font-size: 0.75rem;
   font-weight: 500;
@@ -709,11 +792,59 @@ dialog::backdrop {
   padding-block: 0.625rem;
 }
 
+/* Skip link for accessibility */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+  padding: 0.75rem 1.5rem;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: top 0.2s;
+}
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     transition: none !important;
     animation: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --border: #000;
+    --ring: #000;
+  }
+  .dark {
+    --border: #fff;
+    --ring: #fff;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .panel {
+    border: 1px solid #000 !important;
+    break-inside: avoid;
+  }
+  .sidebar,
+  header,
+  .btn,
+  dialog {
+    display: none !important;
   }
 }

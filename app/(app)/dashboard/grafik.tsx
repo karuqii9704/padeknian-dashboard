@@ -7,7 +7,7 @@ import type { Analitik } from "@/lib/dashboard-analitik";
  * disetujui = hijau merek, menunggu = emas, revisi/ditolak = merah.
  */
 
-const WARNA = { disetujui: "bg-brand-500", menunggu: "bg-gold-400", revisi: "bg-red-500" } as const;
+const WARNA = { disetujui: "var(--color-brand-500)", menunggu: "var(--color-gold-400)", revisi: "var(--color-red-500)" } as const;
 const desimal = (n: number) => String(n).replace(".", ",");
 const tgl = (iso: string) => Number(iso.slice(8));
 const NAMA_HARI = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -15,11 +15,11 @@ const hariDari = (iso: string) => NAMA_HARI[new Date(`${iso}T00:00:00Z`).getUTCD
 
 export function Legenda({ className = "", kosong }: { className?: string; kosong?: boolean }) {
   return (
-    <ul className={`flex flex-wrap gap-x-4 gap-y-1 text-xs text-ink-muted ${className}`}>
-      {kosong && <li className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-sm bg-gray-200" />Kosong</li>}
-      <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm ${WARNA.disetujui}`} />Disetujui</li>
-      <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm ${WARNA.menunggu}`} />Menunggu</li>
-      <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm ${WARNA.revisi}`} />Revisi/ditolak</li>
+    <ul className={`flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground ${className}`}>
+      {kosong && <li className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-sm bg-gray-200 dark:bg-gray-700" />Kosong</li>}
+      <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm`} style={{ background: WARNA.disetujui }} />Disetujui</li>
+      <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm`} style={{ background: WARNA.menunggu }} />Menunggu</li>
+      <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm`} style={{ background: WARNA.revisi }} />Revisi/ditolak</li>
     </ul>
   );
 }
@@ -56,15 +56,15 @@ function Gelombang({ nilai }: { nilai: number[] }) {
 
 /** Kolom bertumpuk per hari kerja: komposisi status entri + jumlah pegawai yang mengisi. */
 export function TrenHarian({ tren, totalPegawai }: { tren: Analitik["tren"]; totalPegawai: number }) {
-  if (tren.length === 0) return <p className="py-10 text-center text-sm text-ink-muted">Belum ada hari kerja yang berjalan pada periode ini.</p>;
+  if (tren.length === 0) return <p className="py-10 text-center text-sm text-muted-foreground">Belum ada hari kerja yang berjalan pada periode ini.</p>;
   const maks = Math.max(1, ...tren.map((t) => t.entri));
   const garis = [maks, Math.round(maks / 2)];
   return (
     <figure>
       <div className="relative flex h-44 gap-[3px] pl-7 sm:gap-1.5" aria-hidden>
         {garis.map((g) => (
-          <div key={g} className="pointer-events-none absolute inset-x-0 border-t border-dashed border-line" style={{ bottom: `${(g / maks) * 100}%` }}>
-            <span className="absolute -top-2 left-0 text-[10px] tabular-nums text-ink-muted">{g}</span>
+          <div key={g} className="pointer-events-none absolute inset-x-0 border-t border-dashed border-border" style={{ bottom: `${(g / maks) * 100}%` }}>
+            <span className="absolute -top-2 left-0 text-[10px] tabular-nums text-muted-foreground">{g}</span>
           </div>
         ))}
         <div className="pointer-events-none absolute inset-x-0 bottom-0 border-t border-line-strong" />
@@ -74,15 +74,15 @@ export function TrenHarian({ tren, totalPegawai }: { tren: Analitik["tren"]; tot
           return (
             <div key={t.tanggal} className="group relative flex flex-1 flex-col justify-end" style={{ ["--i" as string]: i }}>
               <div className="flex origin-bottom animate-[masuk_0.5s_var(--ease-out-expo)_both] flex-col overflow-hidden rounded-t-[3px] transition-opacity group-hover:opacity-80" style={{ height: tinggi(t.entri), animationDelay: `${i * 18}ms` }}>
-                <span className={WARNA.revisi} style={{ flexGrow: t.revisi }} />
-                <span className={WARNA.menunggu} style={{ flexGrow: t.menunggu }} />
-                <span className={WARNA.disetujui} style={{ flexGrow: t.disetujui }} />
+                <span style={{ background: WARNA.revisi, flexGrow: t.revisi }} />
+                <span style={{ background: WARNA.menunggu, flexGrow: t.menunggu }} />
+                <span style={{ background: WARNA.disetujui, flexGrow: t.disetujui }} />
               </div>
               {/* Tooltip */}
-              <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-40 -translate-x-1/2 rounded-lg bg-brand-950 px-3 py-2 text-[11px] text-white shadow-lg group-hover:block">
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-40 -translate-x-1/2 rounded-lg bg-foreground px-3 py-2 text-[11px] text-background shadow-lg group-hover:block">
                 <p className="font-semibold">{hariDari(t.tanggal)}, {tgl(t.tanggal)}</p>
-                <p className="mt-0.5 text-white/70">{t.entri} entri · {t.pegawai}/{totalPegawai} pegawai</p>
-                <p className="text-white/70">{t.disetujui} disetujui · {t.menunggu} menunggu · {t.revisi} revisi</p>
+                <p className="mt-0.5 text-foreground/70">{t.entri} entri · {t.pegawai}/{totalPegawai} pegawai</p>
+                <p className="text-foreground/70">{t.disetujui} disetujui · {t.menunggu} menunggu · {t.revisi} revisi</p>
               </div>
             </div>
           );
@@ -90,7 +90,7 @@ export function TrenHarian({ tren, totalPegawai }: { tren: Analitik["tren"]; tot
       </div>
       <div className="mt-1.5 flex gap-[3px] pl-7 sm:gap-1.5" aria-hidden>
         {tren.map((t, i) => (
-          <span key={t.tanggal} className={`flex-1 text-center text-[10px] tabular-nums text-ink-muted ${tren.length > 12 && i % 2 ? "max-sm:invisible" : ""}`}>
+          <span key={t.tanggal} className={`flex-1 text-center text-[10px] tabular-nums text-muted-foreground ${tren.length > 12 && i % 2 ? "max-sm:invisible" : ""}`}>
             {tgl(t.tanggal)}
           </span>
         ))}
@@ -127,7 +127,7 @@ export function DonatStatus({ status }: { status: Analitik["status"] }) {
   return (
     <div className="flex flex-wrap items-center justify-center gap-5">
       <svg viewBox="0 0 42 42" className="size-32 shrink-0" role="img" aria-label={`Sebaran status: ${segmen.map((s) => `${s.label} ${s.n}`).join(", ")}`}>
-        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--color-gray-100)" strokeWidth="5" />
+        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--color-gray-200) dark:stroke-gray-700" strokeWidth="5" />
         {total > 0 &&
           segmen.map((s) => {
             const p = (s.n / total) * 100;
@@ -135,16 +135,16 @@ export function DonatStatus({ status }: { status: Analitik["status"] }) {
             offset -= p;
             return el;
           })}
-        <text x="21" y="20.5" textAnchor="middle" className="fill-ink text-[7px] font-semibold tabular-nums">{total}</text>
-        <text x="21" y="26" textAnchor="middle" className="fill-ink-muted text-[3.2px]">entri</text>
+        <text x="21" y="20.5" textAnchor="middle" className="fill-foreground text-[7px] font-semibold tabular-nums">{total}</text>
+        <text x="21" y="26" textAnchor="middle" className="fill-muted-foreground text-[3.2px]">entri</text>
       </svg>
       <ul className="min-w-[13rem] flex-1 space-y-2 text-sm">
         {segmen.map((s) => (
           <li key={s.label} className="flex items-center gap-2">
             <span aria-hidden className="size-2.5 shrink-0 rounded-sm" style={{ background: s.warna }} />
-            <span className="flex-1 text-ink-soft">{s.label}</span>
+            <span className="flex-1 text-foreground">{s.label}</span>
             <span className="font-medium tabular-nums">{s.n}</span>
-            <span className="w-12 text-right text-xs tabular-nums text-ink-muted">{total ? `${desimal(Math.round((s.n / total) * 1000) / 10)}%` : "–"}</span>
+            <span className="w-12 text-right text-xs tabular-nums text-muted-foreground">{total ? `${desimal(Math.round((s.n / total) * 1000) / 10)}%` : "–"}</span>
           </li>
         ))}
       </ul>

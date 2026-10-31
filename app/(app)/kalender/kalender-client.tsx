@@ -105,7 +105,7 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
         judul="Kalender"
         aksi={
           <div className="panel flex items-center gap-1 p-1">
-            <button aria-label="Bulan sebelumnya" disabled={idx <= 0} onClick={() => { setDipilih(null); load(periodes[idx - 1].id); }} className="btn btn-ghost size-11 px-0">
+            <button type="button" aria-label="Bulan sebelumnya" disabled={idx <= 0} onClick={() => { setDipilih(null); load(periodes[idx - 1].id); }} className="btn btn-ghost size-11 px-0">
               <IkonKiri className="h-4 w-4" />
             </button>
             <span className="min-w-36 text-center text-sm font-semibold text-brand-900" aria-live="polite">{BULAN[kal.periode.bulan - 1]} {kal.periode.tahun}</span>
@@ -138,7 +138,7 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
           const w = h.status ? WARNA[h.status] : null;
           const ket = h.libur ?? (h.akhirPekan ? "Akhir pekan" : w?.label);
           return (
-            <button
+            <button type="button"
               key={h.tanggal}
               data-tanggal={h.tanggal}
               data-status={h.status ?? "LIBUR"}
@@ -185,7 +185,7 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
                 <BuktiEntri entriId={e.id} jumlah={e.jumlahBukti} />
                 {e.periodeDikunci && <p className="mt-1 text-xs text-ink-muted">Periode dikunci — catatan hanya dapat dibaca.</p>}
                 {e.statusVerifikasi !== "DISETUJUI" && !e.periodeDikunci && (
-                  <button
+                  <button type="button"
                     onClick={() =>
                       setForm({
                         mode: "ubah",
@@ -213,14 +213,14 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
             {entri.length === 0 && <li className="rounded-lg bg-surface-muted px-3 py-4 text-center text-sm text-ink-muted">Belum ada catatan pada tanggal ini.</li>}
           </ul>
           {bisaCatatHari(dipilih) ? (
-            <button onClick={() => setForm({ mode: "baru", tanggal: dipilih })} className="btn btn-primary">+ Catat untuk tanggal ini</button>
+            <button type="button" onClick={() => setForm({ mode: "baru", tanggal: dipilih })} className="btn btn-primary">+ Catat untuk tanggal ini</button>
           ) : (
             <p className="text-xs text-ink-muted">Pencatatan hanya untuk hari kerja hari ini atau maksimal 3 hari kalender ke belakang.</p>
           )}
         </section>
       )}
 
-      <dialog ref={dialog} onClose={() => setForm(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
+      <dialog ref={dialog} aria-label="Form hari kerja" onClose={() => setForm(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
         {form && konteks && (
           <EntriForm
             key={form.mode === "ubah" ? form.awal.id : `baru-${form.tanggal}`}

@@ -123,6 +123,11 @@ export const IkonUnduh = (p: P) => (
     <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
   </Svg>
 );
+export const IkonRefresh = (p: P) => (
+  <Svg {...p}>
+    <path d="M20 11a8 8 0 1 0-2.3 5.7M20 5v6h-6" />
+  </Svg>
+);
 export const IkonInfo = (p: P) => (
   <Svg {...p}>
     <circle cx="12" cy="12" r="9" />

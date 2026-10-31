@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { aksesTim, daftarAnggota, ubahAnggota, ubahAnggotaSchema, uuidSchema } from "@/lib/tim";
+import { aksesTim, daftarAnggotaDenganKetua, ubahAnggota, ubahAnggotaSchema, uuidSchema } from "@/lib/tim";
 import { handle, requireRole } from "@/lib/rbac";
 import { clientIp, parseBody, parseParam } from "@/lib/request";
 
@@ -13,7 +13,7 @@ export const GET = handle(async (req: Request, ctx: Ctx) => {
   await aksesTim(user, id, { tulis: false });
   const periodeId = new URL(req.url).searchParams.get("periodeId") ?? undefined;
   if (periodeId) parseParam(periodeId, uuidSchema, "Periode tidak ditemukan.");
-  const r = await daftarAnggota(id, periodeId);
+  const r = await daftarAnggotaDenganKetua(id, periodeId);
   if (!r.ok) return NextResponse.json({ pesan: r.pesan }, { status: r.status });
   return NextResponse.json({ periode: r.periode, anggota: r.anggota });
 });

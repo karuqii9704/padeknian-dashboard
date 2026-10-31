@@ -111,7 +111,7 @@ export function PeriodeClient({ awal }: { awal: { periodes: Periode[]; libur: Li
           <label className="flex flex-col gap-1 text-sm">Tahun
             <input name="tahun" type="number" defaultValue={now.getFullYear()} required className={`${input} w-28`} />
           </label>
-          <button className="min-h-11 rounded bg-blue-700 px-4 text-white">+ Buat periode</button>
+          <button className="btn btn-primary">+ Buat periode</button>
         </form>
         <div className="overflow-x-auto rounded border"><table className="w-full text-left text-sm">
           <thead className="border-b"><tr><th className="px-4 py-3">Periode</th><th className="px-4 py-3">Hari kerja</th><th className="px-4 py-3">Status</th><th className="px-4 py-3">Aksi</th></tr></thead>
@@ -121,9 +121,11 @@ export function PeriodeClient({ awal }: { awal: { periodes: Periode[]; libur: Li
                 <td className="px-4 py-3">{BULAN[p.bulan - 1]} {p.tahun}</td>
                 <td className="px-4 py-3">{p.jumlahHariKerja}</td>
                 <td className="px-4 py-3">{p.status}</td>
-                <td className="flex gap-2 px-4 py-3">
-                  {p.status === "DRAFT" && <button onClick={() => aktifkan(p)} className={btn}>Aktifkan</button>}
-                  {p.status !== "DIKUNCI" && <button onClick={() => kunci(p)} aria-label={`Kunci ${BULAN[p.bulan - 1]} ${p.tahun}`} className={btn}>Kunci</button>}
+                <td className="px-4 py-3">
+                  <div className="flex gap-2">
+                    {p.status === "DRAFT" && <button type="button" onClick={() => aktifkan(p)} className={btn}>Aktifkan</button>}
+                    {p.status !== "DIKUNCI" && <button type="button" onClick={() => kunci(p)} aria-label={`Kunci ${BULAN[p.bulan - 1]} ${p.tahun}`} className={btn}>Kunci</button>}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -143,13 +145,13 @@ export function PeriodeClient({ awal }: { awal: { periodes: Periode[]; libur: Li
           <label className="flex flex-col gap-1 text-sm">Jenis
             <select name="jenis" className={input}>{Object.entries(JENIS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
           </label>
-          <button className="min-h-11 rounded bg-blue-700 px-4 text-white">+ Tambah</button>
+          <button className="btn btn-primary">+ Tambah</button>
         </form>
         <ul className="divide-y text-sm">
           {libur.map((l) => (
             <li key={l.id} className="flex items-center justify-between py-2">
               <span><b>{l.tanggal}</b> · {l.keterangan} <span className="text-gray-500">({JENIS[l.jenis]})</span></span>
-              <button onClick={() => hapusLibur(l)} className={btn}>Hapus</button>
+              <button type="button" onClick={() => hapusLibur(l)} className={btn}>Hapus</button>
             </li>
           ))}
           {libur.length === 0 && <li className="py-2 text-gray-500">Belum ada hari libur pada tahun ini.</li>}

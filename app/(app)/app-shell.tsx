@@ -244,7 +244,11 @@ export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: s
   }
 
   return (
-    <SidebarProvider defaultOpen style={{ "--sidebar-width": "16.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
+    <>
+      <a href="#main-content" className="skip-link">
+        Lewati ke konten utama
+      </a>
+      <SidebarProvider defaultOpen style={{ "--sidebar-width": "16.5rem", "--sidebar-width-icon": "4.25rem" } as React.CSSProperties}>
       <Sidebar collapsible="icon" className="border-none">
         <KepalaSidebar />
         <SidebarContent className="gap-4 px-3 py-4">
@@ -284,7 +288,7 @@ export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: s
                 <span aria-hidden className="flex size-11 items-center justify-center rounded-lg bg-muted text-sm font-semibold">
                   {inisial(nama)}
                 </span>
-                <span className="hidden flex-col items-start gap-1 text-left md:flex">
+                <span className="hidden md:flex flex-col items-start gap-1 text-left">
                   <span className="text-[15px] font-medium leading-none">{nama}</span>
                   <span className="flex items-center gap-1.5 text-sm leading-none text-muted-foreground">
                     {ROLE_LABEL[role]}
@@ -309,9 +313,10 @@ export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: s
             </DropdownMenu>
           </div>
         </header>
-        <div className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</div>
+        <main id="main-content" className="min-w-0 flex-1 pb-[calc(4.5rem+env(safe-area-inset-bottom))] md:pb-0">{children}</main>
       </div>
       <TabBawah grup={grup} />
-    </SidebarProvider>
+      </SidebarProvider>
+    </>
   );
 }

@@ -120,6 +120,39 @@ export async function daftarAnggota(timId: string, periodeId?: string) {
   };
 }
 
+/**
+ * Daftar anggota tim PLUS ketua tim. Ketua dicerminkan dari `TimKerja.ketuaId` (bukan baris
+ * AnggotaTim) supaya UI admin menampilkan pemimpin sebagai readonly, sekaligus mencegahnya
+ * dipilih ulang dari dropdown "Tambah anggota".
+ */
+export async function daftarAnggotaDenganKetua(timId: string, periodeId?: string) {
+  const r = await daftarAnggota(timId, periodeId);
+  if (!r.ok) return r;
+  const tim = await db.timKerja.findUnique({
+    where: { id: timId },
+    select: { ketuaId: true, ketua: { select: { id: true, nip: true, nama: true, role: true, jabatan: true, isActive: true } } },
+  });
+  if (!tim) return fail(404, "Tim kerja tidak ditemukan.");
+  const sudahAda = r.anggota.some((a) => a.userId === tim.ketuaId);
+  const anggota = sudahAda
+    ? r.anggota
+    : [
+        {
+          anggotaId: null,
+          peranDalamTim: "KETUA" as const,
+          userId: tim.ketua.id,
+          id: tim.ketua.id,
+          nip: tim.ketua.nip,
+          nama: tim.ketua.nama,
+          role: tim.ketua.role,
+          jabatan: tim.ketua.jabatan,
+          isActive: tim.ketua.isActive,
+        },
+        ...r.anggota,
+      ];
+  return { ...r, anggota };
+}
+
 export async function ubahAnggota(
   actorId: string,
   tim: { id: string; ketuaId: string },
@@ -130,8 +163,14 @@ export async function ubahAnggota(
   if (!periode) return fail(404, "Periode tidak ditemukan.");
   if (periode.status === "DIKUNCI") return fail(409, "Periode sudah dikunci; keanggotaan tidak dapat diubah.");
 
+  // Ketua tim Leads the team through TimKerja.ketuaId and is NOT stored as an AnggotaTim row.
+  // Rejecting both add and remove keeps a single source of truth and prevents the leader from
+  // appearing twice (once as "Ketua" in the member list, once as a regular member).
   if (input.hapus.includes(tim.ketuaId)) {
     return fail(400, "Ketua tim tidak dapat dihapus dari keanggotaan. Ganti ketua tim terlebih dahulu.");
+  }
+  if (input.tambah.includes(tim.ketuaId)) {
+    return fail(400, "Ketua tim sudah menjadi pemimpin tim dan tidak perlu ditambahkan sebagai anggota.");
   }
 
   if (input.tambah.length) {
@@ -152,7 +191,7 @@ export async function ubahAnggota(
         timId: tim.id,
         userId,
         periodeId: periode.id,
-        peranDalamTim: userId === tim.ketuaId ? ("KETUA" as const) : ("ANGGOTA" as const),
+        peranDalamTim: "ANGGOTA" as const,
       })),
       skipDuplicates: true,
     }),

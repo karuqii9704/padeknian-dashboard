@@ -85,7 +85,7 @@ export function RevisiClient({ userId, awal: data0 }: { userId: string; awal: { 
             {e.periodeDikunci ? (
               <p className="mt-3 border-t border-line pt-3 text-xs text-ink-muted">Periode dikunci — catatan tidak dapat diperbaiki lagi.</p>
             ) : (
-            <button
+            <button type="button"
               onClick={() =>
                 setAwal({
                   id: e.id,
@@ -114,7 +114,7 @@ export function RevisiClient({ userId, awal: data0 }: { userId: string; awal: { 
         )}
       </ul>
 
-      <dialog ref={dialog} onClose={() => setAwal(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
+      <dialog ref={dialog} aria-label="Detail revisi" onClose={() => setAwal(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
         {awal && (
           <EntriForm
             key={awal.id}

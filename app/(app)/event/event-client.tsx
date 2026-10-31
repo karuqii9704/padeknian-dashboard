@@ -76,7 +76,7 @@ export function EventClient({ awal, hariIni, ketua, bukaForm }: { awal: Daftar; 
         judul="Event"
         keterangan="Laporkan rapat, pelatihan, survei lapangan, dan kegiatan lainnya beserta dokumentasinya."
         aksi={
-          <button onClick={() => setForm({ mode: "baru" })} className="btn btn-primary">
+          <button type="button" onClick={() => setForm({ mode: "baru" })} className="btn btn-primary">
             + Lapor event
           </button>
         }
@@ -85,7 +85,7 @@ export function EventClient({ awal, hariIni, ketua, bukaForm }: { awal: Daftar; 
       {ketua && (
         <div role="tablist" aria-label="Cakupan event" className="flex gap-2">
           {(["saya", "tim"] as const).map((t) => (
-            <button
+            <button type="button"
               key={t}
               role="tab"
               aria-selected={tab === t}
@@ -128,7 +128,7 @@ export function EventClient({ awal, hariIni, ketua, bukaForm }: { awal: Daftar; 
                   <p className="text-xs text-ink-muted">Periode sudah dikunci; event tidak dapat diubah.</p>
                 ) : (
                   <>
-                    <button
+                    <button type="button"
                       onClick={() =>
                         setForm({
                           mode: "ubah",
@@ -139,7 +139,7 @@ export function EventClient({ awal, hariIni, ketua, bukaForm }: { awal: Daftar; 
                     >
                       Ubah
                     </button>
-                    <button onClick={() => hapus(e)} className="btn btn-ghost text-red-700 hover:!bg-red-50 hover:!text-red-800">
+                    <button type="button" onClick={() => hapus(e)} className="btn btn-ghost text-red-700 hover:!bg-red-50 hover:!text-red-800">
                       Hapus
                     </button>
                   </>
@@ -162,13 +162,13 @@ export function EventClient({ awal, hariIni, ketua, bukaForm }: { awal: Daftar; 
 
       {aktif && aktif.data.length < aktif.total && (
         <div className="flex justify-center">
-          <button onClick={() => muat(tab, aktif.page + 1)} disabled={memuat} className="btn btn-secondary">
+          <button type="button" onClick={() => muat(tab, aktif.page + 1)} disabled={memuat} className="btn btn-secondary">
             {memuat ? "Memuat…" : "Muat lagi"}
           </button>
         </div>
       )}
 
-      <dialog ref={dialog} onClose={() => setForm(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
+      <dialog ref={dialog} aria-label="Form event" onClose={() => setForm(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
         {form && (
           <EventForm
             key={form.mode === "ubah" ? form.awal.id : "baru"}

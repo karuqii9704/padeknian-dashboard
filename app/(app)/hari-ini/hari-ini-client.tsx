@@ -105,7 +105,7 @@ export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm
             <p className="text-xs text-ink-muted">{data.alokasi.length} alokasi berjalan pada periode ini</p>
           </div>
         </div>
-        <button onClick={() => setForm({ mode: "baru" })} disabled={!bisaCatat} className="btn btn-primary min-h-12 w-full px-6 text-base sm:w-auto">
+        <button type="button" onClick={() => setForm({ mode: "baru" })} disabled={!bisaCatat} className="btn btn-primary min-h-12 w-full px-6 text-base sm:w-auto">
           + Catat Pekerjaan
         </button>
       </div>
@@ -125,7 +125,7 @@ export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm
                     Prioritas {PRIORITAS_LABEL[a.prioritas]} · sampai {tanggalSingkat(a.tanggalSelesai)}
                   </p>
                 </div>
-                <button onClick={() => setForm({ mode: "baru", pilihan: a.penugasanId })} disabled={!bisaCatat} className="btn btn-secondary shrink-0 px-3">
+                <button type="button" onClick={() => setForm({ mode: "baru", pilihan: a.penugasanId })} disabled={!bisaCatat} className="btn btn-secondary shrink-0 px-3">
                   Catat
                 </button>
               </div>
@@ -162,7 +162,7 @@ export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm
               <BuktiEntri entriId={e.id} jumlah={e.jumlahBukti} />
               {e.statusVerifikasi !== "DISETUJUI" && !e.periodeDikunci && (
                 <div className="mt-3 flex gap-2 border-t border-line pt-3">
-                  <button
+                  <button type="button"
                     onClick={() =>
                       setForm({
                         mode: "ubah",
@@ -184,7 +184,7 @@ export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm
                   >
                     Ubah
                   </button>
-                  <button onClick={() => hapus(e)} className="btn btn-ghost text-red-700 hover:!bg-red-50 hover:!text-red-800">Hapus</button>
+                  <button type="button" onClick={() => hapus(e)} className="btn btn-ghost text-red-700 hover:!bg-red-50 hover:!text-red-800">Hapus</button>
                 </div>
               )}
             </li>
@@ -197,7 +197,7 @@ export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm
         </ul>
       </section>
 
-      <dialog ref={dialog} onClose={() => setForm(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
+      <dialog ref={dialog} aria-label="Form pekerjaan harian" onClose={() => setForm(null)} className="m-auto max-h-[92vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
         {form && (
           <EntriForm
             key={form.mode === "ubah" ? form.awal.id : `baru-${form.pilihan ?? ""}`}

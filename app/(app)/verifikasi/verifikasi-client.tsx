@@ -182,7 +182,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
               </li>
             ))}
           </ul>
-          <button onClick={() => setHasilBulk(null)} className="btn btn-secondary mt-3">Tutup hasil</button>
+          <button type="button" onClick={() => setHasilBulk(null)} className="btn btn-secondary mt-3">Tutup hasil</button>
         </section>
       )}
 
@@ -197,7 +197,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
             />
             Pilih semua ({rows.length})
           </label>
-          <button
+          <button type="button"
             disabled={terpilih.size === 0}
             onClick={() => { setGalatBulk(null); setKonfirmasiBulk(true); }}
             className="btn btn-primary"
@@ -252,17 +252,17 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
             </div>
 
             <div className="mt-3 grid grid-cols-3 gap-2 border-t border-line pt-3" role="group" aria-label={`Aksi verifikasi ${e.user.nama}`}>
-              <button disabled={sibuk === e.id} onClick={() => setujui(e)} className="btn btn-primary px-2">
+              <button type="button" disabled={sibuk === e.id} onClick={() => setujui(e)} className="btn btn-primary px-2">
                 Setujui
               </button>
-              <button
+              <button type="button"
                 disabled={sibuk === e.id}
                 onClick={() => { setCatatanUntuk({ entri: e, aksi: "MINTA_REVISI" }); setCatatan(""); setGalatCatatan(null); }}
                 className="btn border border-amber-300 bg-surface px-2 text-amber-900 hover:bg-amber-50"
               >
                 Minta revisi
               </button>
-              <button
+              <button type="button"
                 disabled={sibuk === e.id}
                 onClick={() => { setCatatanUntuk({ entri: e, aksi: "TOLAK" }); setCatatan(""); setGalatCatatan(null); }}
                 className="btn border border-red-300 bg-surface px-2 text-red-800 hover:bg-red-50"
@@ -305,8 +305,8 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
               </div>
             )}
             <div className="flex justify-end gap-2">
-              <button onClick={() => setKonfirmasiBulk(false)} disabled={prosesBulk} className="btn btn-secondary">Batal</button>
-              <button onClick={jalankanBulk} disabled={prosesBulk || dipilihList.length === 0} className="btn btn-primary">
+              <button type="button" onClick={() => setKonfirmasiBulk(false)} disabled={prosesBulk} className="btn btn-secondary">Batal</button>
+              <button type="button" onClick={jalankanBulk} disabled={prosesBulk || dipilihList.length === 0} className="btn btn-primary">
                 {prosesBulk ? "Memproses…" : `Setujui ${dipilihList.length} catatan`}
               </button>
             </div>
@@ -314,7 +314,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
         )}
       </dialog>
 
-      <dialog ref={dialog} onClose={() => setCatatanUntuk(null)} className="m-auto w-[calc(100%-1rem)] max-w-md p-5">
+      <dialog ref={dialog} aria-label="Catatan verifikasi" onClose={() => setCatatanUntuk(null)} className="m-auto w-[calc(100%-1rem)] max-w-md p-5">
         {catatanUntuk && (
           <form onSubmit={kirimDenganCatatan} noValidate className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{catatanUntuk.aksi === "TOLAK" ? "Tolak catatan" : "Minta revisi"}</h2>

@@ -117,12 +117,12 @@ export function RekapClient({ role, awal }: { role: string; awal: { periodes: Pe
             ))}
           </select>
           {bisaGenerate && periodes.find((x) => x.id === periodeId)?.status !== "DIKUNCI" && (
-            <button onClick={kunci} disabled={memulai || berjalan || !periodeId} className="btn border border-red-300 bg-surface text-red-800 hover:bg-red-50">
+            <button type="button" onClick={kunci} disabled={memulai || berjalan || !periodeId} className="btn border border-red-300 bg-surface text-red-800 hover:bg-red-50">
               Kunci periode &amp; rekap final
             </button>
           )}
           {bisaGenerate && (
-            <button onClick={generate} disabled={memulai || berjalan || !periodeId} className="btn btn-primary">
+            <button type="button" onClick={generate} disabled={memulai || berjalan || !periodeId} className="btn btn-primary">
               {memulai || berjalan ? "Sedang membuat rekap…" : "Generate rekap"}
             </button>
           )}

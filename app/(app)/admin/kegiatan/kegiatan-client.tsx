@@ -64,7 +64,7 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
         judul="Master Kegiatan"
         keterangan="Daftar kegiatan yang dapat dialokasikan ke pegawai."
         aksi={
-          <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">
+          <button type="button" onClick={() => setEditing("baru")} className="btn btn-primary">
             + Tambah kegiatan
           </button>
         }
@@ -88,12 +88,14 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
           {rows.map((k) => (
             <tr key={k.id} className={`border-b ${k.isActive ? "" : "text-gray-500"}`}>
               <td className="px-4 py-3 font-mono">{k.kode ?? "-"}</td>
-              <td className="px-4 py-3">{k.uraian}</td>
+              <td className="max-w-[22rem] px-4 py-3"><span className="break-words">{k.uraian}</span></td>
               <td className="px-4 py-3">{k.satuanDefault ?? "-"}</td>
               <td className="px-4 py-3">{k.isActive ? "Aktif" : "Nonaktif"}</td>
-              <td className="flex gap-2 px-4 py-3">
-                <button onClick={() => setEditing(k)} className={btn}>Ubah</button>
-                <button onClick={() => toggle(k)} className={btn}>{k.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
+              <td className="px-4 py-3">
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setEditing(k)} className={btn}>Ubah</button>
+                  <button type="button" onClick={() => toggle(k)} className={btn}>{k.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
+                </div>
               </td>
             </tr>
           ))}
@@ -102,7 +104,7 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
           )}
         </tbody>
       </table></div>
-      <dialog ref={dialog} onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
+      <dialog ref={dialog} aria-label="Form kegiatan" onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
         {editing && (
           <form key={edit?.id ?? "baru"} onSubmit={submit} className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{edit ? "Ubah kegiatan" : "Tambah kegiatan"}</h2>
@@ -117,7 +119,7 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
             </label>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setEditing(null)} className={btn}>Batal</button>
-              <button className="min-h-11 rounded bg-blue-700 px-4 text-white">Simpan</button>
+              <button className="btn btn-primary">Simpan</button>
             </div>
           </form>
         )}

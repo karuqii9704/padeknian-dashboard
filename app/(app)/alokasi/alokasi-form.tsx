@@ -163,7 +163,7 @@ export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId,
       <div className="flex justify-end gap-2">
         {onSkip && <button type="button" onClick={onSkip} className="min-h-11 rounded border px-3 text-sm">Lewati</button>}
         <button type="button" onClick={onCancel} className="min-h-11 rounded border px-3 text-sm">Batal</button>
-        <button disabled={isSubmitting} className="min-h-11 rounded bg-blue-700 px-4 text-white disabled:opacity-60">
+        <button disabled={isSubmitting} className="btn btn-primary disabled:opacity-60">
           {isSubmitting ? "Menyimpan..." : "Simpan alokasi"}
         </button>
       </div>

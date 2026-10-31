@@ -73,7 +73,7 @@ export function SalinDialog({ open, timId, periodeTujuanId, rentang, anggota, ke
   const current = tinjau ? antrean[idx] : null;
 
   return (
-    <dialog ref={dialog} onClose={onClose} className="m-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded p-5 backdrop:bg-black/40">
+    <dialog ref={dialog} aria-label="Salin dari periode sebelumnya" onClose={onClose} className="m-auto max-h-[90vh] w-full max-w-lg overflow-y-auto rounded p-5 backdrop:bg-black/40">
       {open && !tinjau && (
         <div className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">Salin dari periode sebelumnya</h2>
@@ -113,11 +113,11 @@ export function SalinDialog({ open, timId, periodeTujuanId, rentang, anggota, ke
             </>
           )}
           <div className="flex justify-end gap-2">
-            <button onClick={onClose} className="min-h-11 rounded border px-3 text-sm">Batal</button>
-            <button
+            <button type="button" onClick={onClose} className="min-h-11 rounded border px-3 text-sm">Batal</button>
+            <button type="button"
               disabled={!hasil || dipilih.size === 0}
               onClick={() => hasil && setAntrean(hasil.draft.filter((d) => dipilih.has(d.sumberAlokasiId)))}
-              className="min-h-11 rounded bg-blue-700 px-4 text-white disabled:opacity-50"
+              className="btn btn-primary disabled:opacity-50"
             >
               Tinjau {dipilih.size > 0 ? `${dipilih.size} alokasi` : ""}
             </button>

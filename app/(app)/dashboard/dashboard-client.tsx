@@ -175,7 +175,7 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
           )
         }
         aksi={
-          <button onClick={ekspor} disabled={mengekspor || !data} aria-busy={mengekspor} className="btn btn-primary">
+          <button type="button" onClick={ekspor} disabled={mengekspor || !data} aria-busy={mengekspor} className="btn btn-primary">
             <IkonUnduh className="h-4 w-4" />
             {mengekspor ? "Menyiapkan ekspor…" : "Ekspor XLSX"}
           </button>
@@ -304,7 +304,7 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
                   {tabel.data.map((r) => (
                     <tr key={r.userId} data-pegawai={r.userId}>
                       <th scope="row" className="px-3 py-2 font-normal">
-                        <button onClick={() => bukaRincian(r.userId)} aria-label={`Lihat rincian ${r.nama}`} className="min-h-11 text-left font-medium text-brand-800 underline decoration-brand-200 underline-offset-4 hover:decoration-brand-600">
+                        <button type="button" onClick={() => bukaRincian(r.userId)} aria-label={`Lihat rincian ${r.nama}`} className="min-h-11 text-left font-medium text-brand-800 underline decoration-brand-200 underline-offset-4 hover:decoration-brand-600">
                           {r.nama}
                         </button>
                         <div className="text-xs text-ink-muted">{r.tim.join(", ")}</div>
@@ -363,7 +363,7 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
         {rinciGalat && (
           <div className="flex flex-col gap-3 p-5">
             <Alert nada="galat">{rinciGalat}</Alert>
-            <button onClick={tutupRincian} className="btn btn-secondary">Tutup</button>
+            <button type="button" onClick={tutupRincian} className="btn btn-secondary">Tutup</button>
           </div>
         )}
         {rinci && (
@@ -377,7 +377,7 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
               </div>
               <div className="flex gap-2">
                 <Link href={`/dashboard/pegawai/${rinci.pegawai.id}?periodeId=${periodeId}`} className="btn btn-secondary max-sm:hidden">Profil lengkap</Link>
-                <button onClick={tutupRincian} className="btn btn-secondary">Tutup</button>
+                <button type="button" onClick={tutupRincian} className="btn btn-secondary">Tutup</button>
               </div>
             </div>
             <ul className="space-y-2 p-5">

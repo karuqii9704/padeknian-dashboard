@@ -45,3 +45,11 @@ next-env.d.ts
 # test artifacts
 /test-results/
 /playwright-report/
+
+.vercel
+
+# Cache test runner
+/.vitest/
+
+# Berisi password akun uji; jangan di-commit
+/HANDOFF-TESTING.md

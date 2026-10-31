@@ -10,7 +10,7 @@ export function PasswordField({ name, label, autoComplete, required = true, minL
   const [lihat, setLihat] = useState(false);
   return (
     <div className="flex flex-col gap-1 text-sm">
-      <label htmlFor={id} className="font-medium text-gray-800">
+      <label htmlFor={id} className="font-medium text-foreground">
         {label}
       </label>
       <div className="relative">
@@ -31,7 +31,7 @@ export function PasswordField({ name, label, autoComplete, required = true, minL
           aria-pressed={lihat}
           aria-label={lihat ? "Sembunyikan sandi" : "Tampilkan sandi"}
           title={lihat ? "Sembunyikan sandi" : "Tampilkan sandi"}
-          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r text-gray-500 transition-colors hover:text-blue-800"
+          className="absolute inset-y-0 right-0 flex w-11 items-center justify-center rounded-r text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring"
         >
           <svg aria-hidden viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
             {lihat ? (

@@ -84,7 +84,7 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
         eyebrow="Data induk"
         judul="Tim Kerja"
         keterangan="Tim kerja per tahun beserta ketua dan anggotanya."
-        aksi={<button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">+ Tambah tim</button>}
+        aksi={<button type="button" onClick={() => setEditing("baru")} className="btn btn-primary">+ Tambah tim</button>}
       />
       {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900">{error}</p>}
 
@@ -93,11 +93,13 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
         <tbody>
           {tims.map((t) => (
             <tr key={t.id} className="border-b">
-              <td className="px-4 py-3">{t.nama}</td><td className="px-4 py-3">{t.tahun}</td><td className="px-4 py-3">{t.ketua.nama}</td>
+              <td className="max-w-[18rem] px-4 py-3"><span className="break-words">{t.nama}</span></td><td className="px-4 py-3">{t.tahun}</td><td className="max-w-[16rem] px-4 py-3"><span className="break-words">{t.ketua.nama}</span></td>
               <td className="px-4 py-3">{t.isActive ? "Aktif" : "Nonaktif"}</td>
-              <td className="flex gap-2 px-4 py-3">
-                <button onClick={() => setEditing(t)} className={btn}>Ubah</button>
-                <button onClick={() => setPanel(t)} className={btn}>Anggota</button>
+              <td className="px-4 py-3">
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setEditing(t)} className={btn}>Ubah</button>
+                  <button type="button" onClick={() => setPanel(t)} className={btn}>Anggota</button>
+                </div>
               </td>
             </tr>
           ))}
@@ -112,28 +114,48 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
             <select value={periodeId} onChange={(e) => setPeriodeId(e.target.value)} className="min-h-11 rounded border px-2" aria-label="Periode">
               {periodes.map((p) => <option key={p.id} value={p.id}>{BULAN[p.bulan - 1]} {p.tahun} ({p.status})</option>)}
             </select>
-            <button onClick={() => setPanel(null)} className={`${btn} ml-auto`}>Tutup</button>
+            <button type="button" onClick={() => setPanel(null)} className={`${btn} ml-auto`}>Tutup</button>
           </div>
           <ul className="mb-3 divide-y text-sm">
             {anggota.map((a) => (
-              <li key={a.userId} className="flex items-center justify-between py-2">
-                <span>{a.nama} <span className="text-gray-500">({a.nip})</span> {a.peranDalamTim === "KETUA" && <b>· Ketua</b>}</span>
-                {a.peranDalamTim !== "KETUA" && <button onClick={() => ubahAnggota({ hapus: [a.userId] })} className={btn}>Hapus</button>}
+              <li key={a.userId} className="flex items-center justify-between gap-3 py-2">
+                <span className="min-w-0">
+                  <span className="break-words">{a.nama}</span>{" "}
+                  <span className="text-gray-500">({a.nip})</span>{" "}
+                  {a.peranDalamTim === "KETUA" && (
+                    <span className="ml-1 inline-flex items-center rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                      Ketua tim
+                    </span>
+                  )}
+                </span>
+                {a.peranDalamTim !== "KETUA" && (
+                  <button
+                    type="button"
+                    onClick={() => ubahAnggota({ hapus: [a.userId] })}
+                    className={`${btn} shrink-0`}
+                    aria-label={`Hapus ${a.nama} dari anggota tim`}
+                  >
+                    Hapus
+                  </button>
+                )}
               </li>
             ))}
             {anggota.length === 0 && <li className="py-2 text-gray-500">Belum ada anggota pada periode ini.</li>}
           </ul>
-          <div className="flex gap-2">
-            <select value={pilih} onChange={(e) => setPilih(e.target.value)} className="min-h-11 flex-1 rounded border px-2" aria-label="Tambah anggota">
-              <option value="">Pilih pegawai…</option>
-              {pegawai.filter((u) => !sudah.has(u.id)).map((u) => <option key={u.id} value={u.id}>{u.nama} ({u.nip})</option>)}
-            </select>
-            <button disabled={!pilih || !periodeId} onClick={() => ubahAnggota({ tambah: [pilih] })} className="min-h-11 rounded bg-blue-700 px-4 text-white disabled:opacity-50">Tambah</button>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
+              <span className="sr-only">Pilih pegawai untuk ditambahkan sebagai anggota</span>
+              <select value={pilih} onChange={(e) => setPilih(e.target.value)} className="min-h-11 w-full rounded border px-2" aria-label="Tambah anggota">
+                <option value="">Pilih pegawai…</option>
+                {pegawai.filter((u) => !sudah.has(u.id) && u.id !== panel.ketua.id).map((u) => <option key={u.id} value={u.id}>{u.nama} ({u.nip})</option>)}
+              </select>
+            </label>
+            <button type="button" disabled={!pilih || !periodeId} onClick={() => ubahAnggota({ tambah: [pilih] })} className="btn btn-primary shrink-0 disabled:opacity-50">Tambah</button>
           </div>
         </section>
       )}
 
-      <dialog ref={dialog} onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
+      <dialog ref={dialog} aria-label="Form tim kerja" onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
         {editing && (
           <form key={edit?.id ?? "baru"} onSubmit={submitTim} className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{edit ? "Ubah tim" : "Tambah tim"}</h2>
@@ -151,7 +173,7 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
             </label>
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setEditing(null)} className={btn}>Batal</button>
-              <button className="min-h-11 rounded bg-blue-700 px-4 text-white">Simpan</button>
+              <button className="btn btn-primary">Simpan</button>
             </div>
           </form>
         )}

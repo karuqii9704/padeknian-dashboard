@@ -153,10 +153,10 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
         aksi={
           bisaTambah && (
             <>
-              <button onClick={() => setSalinOpen(true)} disabled={!tim || !periode || periode.status === "DIKUNCI"} className="btn btn-secondary">
+              <button type="button" onClick={() => setSalinOpen(true)} disabled={!tim || !periode || periode.status === "DIKUNCI"} className="btn btn-secondary">
                 Salin dari bulan lalu
               </button>
-              <button onClick={() => setFormOpen(true)} disabled={!tim || !periode || periode.status === "DIKUNCI"} className="btn btn-primary">
+              <button type="button" onClick={() => setFormOpen(true)} disabled={!tim || !periode || periode.status === "DIKUNCI"} className="btn btn-primary">
                 + Tambah alokasi
               </button>
             </>
@@ -173,8 +173,8 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
           {tims.map((t) => <option key={t.id} value={t.id}>{t.nama}</option>)}
         </select>
         <div className="flex gap-2 sm:ml-auto">
-          <button onClick={salin} className="btn btn-ghost">Salin untuk WhatsApp</button>
-          <button onClick={unduh} className="btn btn-ghost"><IkonUnduh className="h-4 w-4" />Unduh .txt</button>
+          <button type="button" onClick={salin} className="btn btn-ghost">Salin untuk WhatsApp</button>
+          <button type="button" onClick={unduh} className="btn btn-ghost"><IkonUnduh className="h-4 w-4" />Unduh .txt</button>
         </div>
       </div>
 
@@ -218,8 +218,8 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
               </ul>
               {bisaTambah && !batalkan && periode?.status !== "DIKUNCI" && (
                 <div className="mt-auto flex gap-2 border-t border-line pt-3 [&:not(:first-child)]:mt-4">
-                  <button onClick={() => { setBatal(a); setAlasan(""); setBatalError(null); }} className={btn}>Batalkan</button>
-                  <button onClick={() => hapus(a)} className="btn btn-ghost text-red-700 hover:!bg-red-50 hover:!text-red-800">Hapus</button>
+                  <button type="button" onClick={() => { setBatal(a); setAlasan(""); setBatalError(null); }} className={btn}>Batalkan</button>
+                  <button type="button" onClick={() => hapus(a)} className="btn btn-ghost text-red-700 hover:!bg-red-50 hover:!text-red-800">Hapus</button>
                 </div>
               )}
             </li>
@@ -235,7 +235,7 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
         )}
       </ul>
 
-      <dialog ref={dialog} onClose={() => setFormOpen(false)} className="m-auto max-h-[90vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
+      <dialog ref={dialog} aria-label="Form alokasi" onClose={() => setFormOpen(false)} className="m-auto max-h-[90vh] w-[calc(100%-1rem)] max-w-lg overflow-y-auto p-5">
         {formOpen && tim && periode && (
           <AlokasiForm
             key={`${tim.id}-${periode.id}-${anggota.length}`}
@@ -253,7 +253,7 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
           />
         )}
       </dialog>
-      <dialog ref={batalDialog} onClose={() => setBatal(null)} className="m-auto w-[calc(100%-1rem)] max-w-md p-5">
+      <dialog ref={batalDialog} aria-label="Pembatalan alokasi" onClose={() => setBatal(null)} className="m-auto w-[calc(100%-1rem)] max-w-md p-5">
         {batal && (
           <form onSubmit={kirimBatal} className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">Batalkan alokasi</h2>

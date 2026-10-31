@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { PageHeader } from "../../../ui/primitives";
+import type { AnalitikPegawai } from "@/lib/pegawai-insight";
+import { Alert } from "../../../ui/primitives";
+import { InformasiPegawai } from "./informasi-pegawai";
 
 type Role = "PEGAWAI" | "KETUA_TIM" | "PIMPINAN" | "ADMIN";
 type Pengguna = {
@@ -31,7 +33,15 @@ async function api(url: string, init?: RequestInit) {
   return { ok: res.ok, body };
 }
 
-export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pengguna[]; total: number } }) {
+export function PenggunaClient({
+  meId,
+  awal,
+  analitik,
+}: {
+  meId: string;
+  awal: { rows: Pengguna[]; total: number };
+  analitik: AnalitikPegawai;
+}) {
   const [rows, setRows] = useState<Pengguna[]>(awal.rows);
   const [total, setTotal] = useState(awal.total);
   const pertama = useRef(true); // data awal dirender server
@@ -118,39 +128,62 @@ export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pen
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
-      <PageHeader
-        eyebrow="Data induk"
-        judul="Kelola Pengguna"
-        keterangan="Akun pegawai, ketua tim, pimpinan, dan admin."
-        aksi={
-          <button onClick={() => setEditing("baru")} className="min-h-11 rounded bg-blue-700 px-4 text-white">
+      <InformasiPegawai data={analitik} />
+
+      <section aria-labelledby="h-kelola-akun" className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 id="h-kelola-akun" className="text-[15px] font-semibold">Kelola akun</h2>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              Tambah, ubah, nonaktifkan, atau reset password pegawai ({total} akun).
+            </p>
+          </div>
+          <button type="button" onClick={() => setEditing("baru")} className="btn btn-primary">
             + Tambah pengguna
           </button>
-        }
-      />
+        </div>
 
-      <div className="mb-3 flex flex-wrap gap-2">
-        <input
-          placeholder="Cari nama, NIP, atau email"
-          value={q}
-          onChange={(e) => {
-            setQ(e.target.value);
-            setPage(1);
-          }}
-          className="min-h-11 flex-1 rounded border px-3"
-        />
-        <select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="min-h-11 rounded border px-2" aria-label="Filter peran">
-          <option value="">Semua peran</option>
-          {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
-        </select>
-        <select value={aktif} onChange={(e) => { setAktif(e.target.value); setPage(1); }} className="min-h-11 rounded border px-2" aria-label="Filter status">
-          <option value="">Semua status</option>
-          <option value="true">Aktif</option>
-          <option value="false">Nonaktif</option>
-        </select>
-      </div>
+        <details className="panel group overflow-hidden">
+          <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-2 px-4 py-3 text-sm font-medium marker:content-none">
+            <span>Daftar akun ({rows.length} ditampilkan)</span>
+            <span aria-hidden className="text-muted-foreground transition-transform group-open:rotate-180">
+              ▾
+            </span>
+          </summary>
 
-      {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900">{error}</p>}
+          <div className="border-t px-4 py-3">
+            <div className="mb-3 flex flex-wrap gap-2">
+              <label className="flex min-w-[12rem] flex-1 flex-col gap-1">
+                <span className="sr-only">Cari nama, NIP, atau email</span>
+                <input
+                  type="search"
+                  placeholder="Cari nama, NIP, atau email"
+                  value={q}
+                  onChange={(e) => {
+                    setQ(e.target.value);
+                    setPage(1);
+                  }}
+                  className="field"
+                />
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="sr-only">Filter peran</span>
+                <select value={role} onChange={(e) => { setRole(e.target.value); setPage(1); }} className="field min-w-[9rem]" aria-label="Filter peran">
+                  <option value="">Semua peran</option>
+                  {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1">
+                <span className="sr-only">Filter status</span>
+                <select value={aktif} onChange={(e) => { setAktif(e.target.value); setPage(1); }} className="field min-w-[9rem]" aria-label="Filter status">
+                  <option value="">Semua status</option>
+                  <option value="true">Aktif</option>
+                  <option value="false">Nonaktif</option>
+                </select>
+              </label>
+            </div>
+
+            {error && <Alert nada="galat">{error}</Alert>}
 
       <div className="overflow-x-auto">
         <div className="overflow-x-auto rounded border"><table className="w-full text-left text-sm">
@@ -160,19 +193,21 @@ export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pen
           <tbody>
             {rows.map((u) => (
               <tr key={u.id} className="border-b">
-                <td className="px-4 py-3 font-mono">{u.nip}</td>
-                <td className="px-4 py-3">{u.nama}<div className="text-xs text-gray-500">{u.email ?? "-"}</div></td>
+                <td className="px-4 py-3 font-mono whitespace-nowrap">{u.nip}</td>
+                <td className="max-w-[18rem] px-4 py-3"><span className="break-words">{u.nama}</span><div className="break-all text-xs text-gray-500">{u.email ?? "-"}</div></td>
                 <td className="px-4 py-3">{ROLE_LABEL[u.role]}</td>
                 <td className="px-4 py-3">
                   {u.isActive ? "Aktif" : "Nonaktif"}
                   {u.mustChangePassword && <div className="text-xs text-amber-700">Wajib ganti password</div>}
                 </td>
-                <td className="flex flex-wrap gap-2 px-4 py-3">
-                  <button onClick={() => setEditing(u)} className={btn}>Ubah</button>
-                  <button onClick={() => reset(u)} className={btn}>Reset password</button>
-                  {u.id !== meId && (
-                    <button onClick={() => toggleAktif(u)} className={btn}>{u.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
-                  )}
+                <td className="px-4 py-3">
+                  <div className="flex flex-wrap gap-2">
+                    <button type="button" onClick={() => setEditing(u)} className={btn}>Ubah</button>
+                    <button type="button" onClick={() => reset(u)} className={btn}>Reset password</button>
+                    {u.id !== meId && (
+                      <button type="button" onClick={() => toggleAktif(u)} className={btn}>{u.isActive ? "Nonaktifkan" : "Aktifkan"}</button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -181,13 +216,16 @@ export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pen
         </table></div>
       </div>
 
-      <nav className="mt-3 flex items-center gap-2 text-sm">
-        <button disabled={page <= 1} onClick={() => setPage(page - 1)} className={btn}>Sebelumnya</button>
-        <span>Halaman {page} dari {pages} ({total} pengguna)</span>
-        <button disabled={page >= pages} onClick={() => setPage(page + 1)} className={btn}>Berikutnya</button>
+      <nav className="mt-3 flex flex-wrap items-center gap-2 text-sm">
+        <button type="button" disabled={page <= 1} onClick={() => setPage(page - 1)} className={btn}>Sebelumnya</button>
+        <span className="text-muted-foreground">Halaman {page} dari {pages} ({total} pengguna)</span>
+        <button type="button" disabled={page >= pages} onClick={() => setPage(page + 1)} className={btn}>Berikutnya</button>
       </nav>
+          </div>
+        </details>
+      </section>
 
-      <dialog ref={formDialog} onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
+      <dialog ref={formDialog} aria-label="Form pengguna" onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
         {editing && (
           <form key={edit?.id ?? "baru"} onSubmit={submitForm} className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{edit ? "Ubah pengguna" : "Tambah pengguna"}</h2>
@@ -213,19 +251,19 @@ export function PenggunaClient({ meId, awal }: { meId: string; awal: { rows: Pen
             {!edit && <p className="text-xs text-gray-600">Password sementara dibuat otomatis dan wajib diganti saat login pertama.</p>}
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setEditing(null)} className={btn}>Batal</button>
-              <button className="min-h-11 rounded bg-blue-700 px-4 text-white">Simpan</button>
+              <button className="btn btn-primary">Simpan</button>
             </div>
           </form>
         )}
       </dialog>
 
-      <dialog ref={secretDialog} onClose={() => setSecret(null)} className="m-auto w-full max-w-md rounded p-5">
+      <dialog ref={secretDialog} aria-label="Password sementara" onClose={() => setSecret(null)} className="m-auto w-full max-w-md rounded p-5">
         {secret && (
           <div className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">Password sementara</h2>
             <p className="text-sm">Untuk <b>{secret.nama}</b>. Hanya ditampilkan sekali; sampaikan lewat kanal aman.</p>
             <code className="select-all rounded bg-gray-100 px-3 py-2 text-center text-lg">{secret.password}</code>
-            <button onClick={() => setSecret(null)} className="min-h-11 rounded bg-blue-700 px-4 text-white">Tutup</button>
+            <button type="button" onClick={() => setSecret(null)} className="btn btn-primary">Tutup</button>
           </div>
         )}
       </dialog>
