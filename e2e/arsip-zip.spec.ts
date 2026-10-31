@@ -1,8 +1,9 @@
 import AdmZip from "adm-zip";
 import { expect, test, type APIRequestContext } from "@playwright/test";
 import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 import { contohJpg, contohPdf, contohPng } from "../lib/testing/mini-zip";
-import { USERS } from "./support/data";
+import { E2E_PASSWORD, USERS } from "./support/data";
 import { anggotaTim, buatAlokasi, catat, periodeAktif, sebagai, timMilik } from "./support/api";
 
 const prisma = new PrismaClient();
@@ -95,6 +96,7 @@ test("ZIP: struktur folder per tanggal lalu per alokasi, plus manifest", async (
 test("ZIP: hanya Admin/Pimpinan; pegawai tanpa bukti 404; tanpa sesi 401", async ({ browser, request }) => {
   const url = `/api/rekap/${periodeId}/bukti-zip?userId=${yulId}`;
   const ketua = await sebagai(browser, USERS.ketua.nip);
+  const timId = (await timMilik(ketua.request)).id; // diambil sebelum context ditutup
   expect((await ketua.request.get(url, { maxRedirects: 0 })).status()).toBe(403);
   await ketua.tutup();
   const yul = await sebagai(browser, USERS.yul.nip);
@@ -103,20 +105,30 @@ test("ZIP: hanya Admin/Pimpinan; pegawai tanpa bukti 404; tanpa sesi 401", async
   expect((await request.get(url, { maxRedirects: 0 })).status()).toBe(401);
 
   // Pegawai tanpa satu pun bukti pada periode ini.
-  const tanpa = await prisma.user.findMany({ where: { role: "PEGAWAI" }, select: { id: true } });
-  let kosong: string | undefined;
-  for (const u of tanpa) {
-    if ((await prisma.buktiDukung.count({ where: { pekerjaanHarian: { periodeId, userId: u.id } } })) === 0) {
-      kosong = u.id;
-      break;
-    }
-  }
-  test.skip(!kosong, "semua pegawai uji sudah punya bukti");
+  // Dibuat sendiri secara deterministik: jangan andalkan sisa data test lain
+  // (dulu pakai test.skip kondisional — jalur 404 bisa hilang tanpa pernah diuji).
+  const NIP_KOSONG = "199666666666666666";
+  await prisma.buktiDukung.deleteMany({ where: { pekerjaanHarian: { periodeId, user: { nip: NIP_KOSONG } } } });
+  await prisma.pekerjaanHarian.deleteMany({ where: { periodeId, user: { nip: NIP_KOSONG } } });
+  await prisma.anggotaTim.deleteMany({ where: { periodeId, user: { nip: NIP_KOSONG } } });
+  await prisma.rekapSKP.deleteMany({ where: { pegawai: { nip: NIP_KOSONG } } });
+  await prisma.user.deleteMany({ where: { nip: NIP_KOSONG } });
+  const kosongUser = await prisma.user.create({
+    data: { nip: NIP_KOSONG, nama: "Pegawai Tanpa Bukti Uji", role: "PEGAWAI", passwordHash: await bcrypt.hash(E2E_PASSWORD, 4) },
+  });
+  const kosongAnggota = await prisma.anggotaTim.create({
+    data: { timId, userId: kosongUser.id, periodeId, peranDalamTim: "ANGGOTA" },
+  });
   const pim = await sebagai(browser, USERS.pimpinan.nip);
-  const r = await pim.request.get(`/api/rekap/${periodeId}/bukti-zip?userId=${kosong}`, { maxRedirects: 0 });
-  expect(r.status()).toBe(404);
-  expect((await r.json()).pesan).toContain("belum memiliki bukti dukung");
-  await pim.tutup();
+  try {
+    const r = await pim.request.get(`/api/rekap/${periodeId}/bukti-zip?userId=${kosongUser.id}`, { maxRedirects: 0 });
+    expect(r.status()).toBe(404);
+    expect((await r.json()).pesan).toContain("belum memiliki bukti dukung");
+  } finally {
+    await prisma.anggotaTim.delete({ where: { id: kosongAnggota.id } }).catch(() => undefined);
+    await prisma.user.delete({ where: { id: kosongUser.id } }).catch(() => undefined);
+    await pim.tutup();
+  }
 });
 
 test("ZIP > 500 MB ditolak (413) dengan pesan Bahasa Indonesia", async ({ browser }) => {
