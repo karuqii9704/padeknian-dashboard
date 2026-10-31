@@ -33,9 +33,10 @@ async function main() {
 
   let totalBermasalah = 0;
   for (const t of tims) {
+    // Aturan bisnis: ketua tim memimpin lewat TimKerja.ketuaId dan TIDAK boleh punya baris AnggotaTim.
+    // Jadi setiap baris dengan userId == ketuaId adalah bug, apa pun nilai peranDalamTim-nya.
     const masalah = t.anggota.filter((a) => a.userId === t.ketuaId);
-    // Additional check:koa is the ketua also listed as ANGGOTA role (wrong role)?
-    const salahPeran = t.anggota.filter((a) => a.userId === t.ketuaId && a.peranDalamTim !== "KETUA");
+    // Baris berlabel KETUA milik orang lain juga salah (tidak ada leader kedua).
     const peranBermasalah = t.anggota.filter((a) => a.peranDalamTim === "KETUA" && a.userId !== t.ketuaId);
 
     console.log(`── ${t.nama} (${t.tahun}) ${t.isActive ? "AKTIF" : "NONAKTIF"}`);
@@ -53,9 +54,8 @@ async function main() {
       totalBermasalah += masalah.length;
       console.log(`   ⚠ BUG: ketua tim tercatat sebagai anggota pada ${masalah.length} baris (${masalah.map((m) => `${m.periode.tahun}-${m.periode.bulan}`).join(", ")})`);
     }
-    if (salahPeran.length) console.log(`   ⚠ BUG: ${salahPeran.length} baris salah peran (seharusnya KETUA).`);
     if (peranBermasalah.length)
-      console.log(`   ⚠ BUG: ${peranBermasalah.length} baris berlabel KETUA tapi bukan 用户Ketua: ${peranBermasalah.map((p) => p.user.nama).join(", ")}`);
+      console.log(`   ⚠ BUG: ${peranBermasalah.length} baris berlabel KETUA tapi bukan ketua tim: ${peranBermasalah.map((p) => p.user.nama).join(", ")}`);
     console.log();
   }
 

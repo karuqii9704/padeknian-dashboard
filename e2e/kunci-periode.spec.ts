@@ -168,7 +168,9 @@ test.describe("UI (360px)", () => {
     const ketua = await sebagai(browser, USERS.ketua.nip);
     const page = ketua.page;
     await page.goto("/alokasi", { waitUntil: "networkidle" });
-    await page.getByLabel("Periode").selectOption({ label: "Juli 2026 (DIKUNCI)" });
+    // exact: true wajib — ada <dialog aria-label="Salin dari periode sebelumnya"> di halaman yang sama,
+    // sehingga getByLabel("Periode") tanpa exact akan cocok dengan 2 elemen (strict mode violation).
+    await page.getByLabel("Periode", { exact: true }).selectOption({ label: "Juli 2026 (DIKUNCI)" });
     await expect(page.getByRole("heading", { name: "Alokasi Juli" })).toBeVisible();
     await expect(page.getByRole("button", { name: "+ Tambah alokasi" })).toBeDisabled();
     await expect(page.getByRole("button", { name: "Salin dari bulan lalu" })).toBeDisabled();
@@ -203,7 +205,7 @@ test.describe("UI (360px)", () => {
     await expect(admin.page.getByRole("button", { name: "Kunci Oktober 2026" })).toBeVisible();
     // Halaman Rekap menandai rekap final.
     await admin.page.goto("/rekap", { waitUntil: "networkidle" });
-    await admin.page.getByLabel("Periode").selectOption({ label: "Juli 2026 (DIKUNCI)" });
+    await admin.page.getByLabel("Periode", { exact: true }).selectOption({ label: "Juli 2026 (DIKUNCI)" });
     await expect(admin.page.locator(`[data-pegawai="${I.yul}"]`).getByText("Final")).toBeVisible();
     await expect(admin.page.getByRole("button", { name: /Kunci periode/ })).toHaveCount(0);
     await admin.tutup();

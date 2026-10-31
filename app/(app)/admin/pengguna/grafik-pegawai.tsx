@@ -153,7 +153,7 @@ export function TrenHarianPegawai({ data }: { data: AnalitikPegawai }) {
             <circle key={i} cx={x} cy={y} r="0.9" fill="currentColor" vectorEffect="non-scaling-stroke" />
           ))}
         </svg>
-        {data.barisHari.map((h, i) => (
+        {data.barisHari.map((h) => (
           <div key={h.tanggal} className="group relative flex h-full flex-1 items-end">
             <div
               className="w-full rounded-t-[3px] bg-brand-500/85 transition-opacity group-hover:opacity-70"

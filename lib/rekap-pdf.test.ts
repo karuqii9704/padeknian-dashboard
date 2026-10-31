@@ -29,6 +29,10 @@ async function teks(buf: Buffer) {
 }
 
 describe("renderRekapPdf", () => {
+  // Render PDF + parsing teks bisa >5 detik saat mesin sedang sibuk (suite penuh / CI).
+  // Timeout default Vitest 5 detik membuat tes ini flaky, bukan karena logika rusak.
+  const timeoutMs = 30_000;
+
   it("menghasilkan PDF A4 valid dengan header instansi, periode, identitas, dan tabel capaian", async () => {
     const buf = await renderRekapPdf(contoh, 3);
     expect(buf.subarray(0, 5).toString()).toBe("%PDF-");
@@ -40,7 +44,7 @@ describe("renderRekapPdf", () => {
       "Entri data Sakernas", "Pengolahan Susenas", "Rapat koordinasi",
       "Rekap versi 3", "Halaman 1 dari 1",
     ]) expect(t, x).toContain(x);
-  });
+  }, timeoutMs);
 
   it("angka konsisten dengan ringkasan (format Indonesia, koma desimal)", async () => {
     const { teks: t } = await teks(await renderRekapPdf(contoh, 1));
@@ -49,7 +53,7 @@ describe("renderRekapPdf", () => {
     expect(t).toContain("13 Okt, 14 Okt");
     expect(t).toContain("10 dari 21 hari kerja");
     expect(t).toContain("3 dari 6 catatan");
-  });
+  }, timeoutMs);
 
   it("alokasi/tugas kosong menampilkan keterangan, bukan tabel rusak", async () => {
     const kosong: RingkasanRekap = { ...contoh, alokasi: [], tugasTambahan: [], totalPerSatuan: [] };
@@ -57,7 +61,7 @@ describe("renderRekapPdf", () => {
     expect(t).toContain("Tidak ada alokasi pada periode ini.");
     expect(t).toContain("Tidak ada tugas tambahan.");
     expect(t).toContain("Belum ada capaian.");
-  });
+  }, timeoutMs);
 
   it("banyak alokasi memanjang ke beberapa halaman dengan nomor halaman benar", async () => {
     const banyak: RingkasanRekap = {
@@ -68,5 +72,5 @@ describe("renderRekapPdf", () => {
     expect(halaman).toBeGreaterThan(1);
     expect(t).toContain(`Halaman 1 dari ${halaman}`);
     expect(t).toContain("Kegiatan nomor 70");
-  });
+  }, timeoutMs);
 });

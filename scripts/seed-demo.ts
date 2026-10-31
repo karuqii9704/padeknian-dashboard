@@ -28,8 +28,10 @@ async function main() {
     (await prisma.periode.findFirst({ where: { tahun, bulan: 10 } })) ??
     (await prisma.periode.create({ data: { tahun, bulan: 10, tanggalMulai: d("2026-10-01"), tanggalSelesai: d("2026-10-31"), status: "AKTIF", jumlahHariKerja: 22 } }));
   const tim = await prisma.timKerja.create({ data: { nama: TIM, tahun, ketuaId: ketua.id } });
-  for (const u of [ketua, ...pegawai]) {
-    await prisma.anggotaTim.create({ data: { timId: tim.id, userId: u.id, periodeId: periode.id, peranDalamTim: u.id === ketua.id ? "KETUA" : "ANGGOTA" } });
+  // Ketua tim memimpin lewat TimKerja.ketuaId dan TIDAK disimpan sebagai baris AnggotaTim
+  // (aturan bisnis yang sama dengan lib/tim.ts). Hanya anggota biasa yang dicatat.
+  for (const u of pegawai) {
+    await prisma.anggotaTim.create({ data: { timId: tim.id, userId: u.id, periodeId: periode.id, peranDalamTim: "ANGGOTA" } });
   }
 
   const buatAlokasi = (judul: string, satuan: string, target: number, bagi: number[]) =>
