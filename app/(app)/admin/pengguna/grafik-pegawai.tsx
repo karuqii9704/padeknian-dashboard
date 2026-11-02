@@ -7,17 +7,26 @@ import type { AnalitikPegawai, BarisPegawai } from "@/lib/pegawai-insight";
  * ringan dan konsisten dengan dashboard utama. Semua nilai punya label teks sebagai cadangan
  * (bukan hanya warna) agar dapat diakses pembaca layar.
  *
- * Warna seri:
- *  - tren: batang entri = biru (brand), garis pegawai pengisi = emas (gold) — dua metode,
- *    dua warna, tidak pernah ditumpuk satu warna;
- *  - status & nada (donat, kelengkapan) memakai token status yang sama dengan grafik
- *    dashboard utama; komposisi peran memakai palet seri netral.
- *  - semua trek/grid memakai token (--color-muted, --color-border) sehingga ikut menyesuaikan
- *    mode terang/gelap — tidak ada warna hex mentah.
+ * Cara baca tren harian (dua angka, satu skala, tanpa normalisasi ganda):
+ *  - Setiap hari = satu batang bertumpuk. Bagian BIRU = pegawai yang mengisi (dasar),
+ *    bagian BIRU MUDA = entri tambahan di atas 1× pengisi. Jadi:
+ *      tinggi biru padat  = banyak pegawai yang mengisi hari itu;
+ *      tinggi biru muda   = sisa entri (entri − pegawai pengisi);
+ *      tinggi total       = jumlah entri hari itu.
+ *  - Sumbu Y (0, ½ maks, maks) dicetak di kiri agar tinggi batang punya acuan angka.
+ *  - Tidak ada garis melayang: dulu garis "pegawai mengisi" dinormalisasi dengan skala
+ *    sendiri sehingga terlihat seperti angka acak — kini digantikan segmen bertumpuk
+ *    yang skalanya sama dengan batang entri.
+ *
+ * Warna seri: status & nada memakai token status yang sama dengan grafik dashboard utama
+ * dan badge status; trek/grid memakai token (--color-track, --color-border) sehingga
+ * otomatis menyesuaikan mode terang/gelap — tidak ada warna hex mentah.
  */
 
 const desimal = (n: number) => String(n).replace(".", ",");
 const tgl = (iso: string) => Number(iso.slice(8));
+const NAMA_HARI = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
+const namaHari = (iso: string) => NAMA_HARI[new Date(`${iso}T00:00:00Z`).getUTCDay()];
 
 /** Warna status konsisten dengan grafik dashboard (grafik.tsx) dan badge status. */
 const WARNA_STATUS: Record<string, string> = {
@@ -52,7 +61,7 @@ export function DonatStatusVerifikasi({ data }: { data: AnalitikPegawai }) {
         aria-label={`Sebaran status verifikasi: ${data.sebaranStatus.map((s) => `${s.label} ${s.jumlah}`).join(", ")}`}
       >
         {/* Trek memakai token border: otomatis gelap/terang sesuai mode. */}
-        <circle cx="21" cy="21" r={r} fill="none" strokeWidth="5" className="stroke-border" />
+        <circle cx="21" cy="21" r={r} fill="none" strokeWidth="5" className="stroke-track-strong" />
         {data.sebaranStatus.map((s) => {
           const p = (s.jumlah / total) * 100;
           const el = (
@@ -136,86 +145,120 @@ export function BatangPeran({ data }: { data: AnalitikPegawai }) {
 }
 
 /**
- * Tren pencatatan harian: jumlah entri per hari (batang) + jumlah pegawai yang mengisi (garis).
- * Dua skala dinormalisasi agar satu grafik tetap terbaca. Nilai entri ditampilkan di atas
- * batang (bukan di dalamnya) agar terbaca di kedua mode; hari ini ditandai batang lebih penuh
- * + titik penanda.
+ * Tren pencatatan harian — batang bertumpuk, satu skala untuk kedua angka:
+ * segmen bawah (biru padat) = pegawai yang mengisi; segmen atas (biru muda) = entri
+ * tambahan di atas 1× pengisi. Tinggi total = jumlah entri. Sumbu Y tercetak di kiri
+ * (0 / ½ maks / maks) supaya tinggi batang punya acuan angka, dan setiap batang diberi
+ * label jumlah entri di atasnya. Hari ini ditandai batang lebih gelap + titik penanda.
  */
 export function TrenHarianPegawai({ data }: { data: AnalitikPegawai }) {
   if (data.barisHari.length === 0) {
     return <p className="py-10 text-center text-sm text-muted-foreground">Belum ada aktivitas harian pada periode ini.</p>;
   }
   const maksEntri = Math.max(1, ...data.barisHari.map((h) => h.jumlah));
-  const maksPegawai = Math.max(1, ...data.barisHari.map((h) => h.pegawai));
-  const tinggi = 11; // tinggi grafik dalam satuan viewBox
-  const lebar = 100;
-  const titik = data.barisHari.map((h, i) => {
-    const x = ((i + 0.5) / data.barisHari.length) * lebar;
-    const y = 30 - (h.pegawai / maksPegawai) * (tinggi - 2) - 1;
-    return [x, y] as const;
-  });
-  const garis = titik.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
+  const maksGaris = maksEntri * 1.15; // ruang kepala untuk label nilai di atas batang tertinggi
+  const setengah = Math.round(maksEntri / 2);
   const hariIni = new Date().toISOString().slice(0, 10);
+  const n = data.barisHari.length;
+  const tunggal = n === 1; // 1 hari: jangan batang lebar penuh (tampak seperti kesalahan)
+
+  // Sumbu Y: 0, ½ maks, maks (posisi bottom % relatif maksGaris agar ada ruang kepala).
+  const skala = [
+    { v: 0, bawah: 0 },
+    { v: setengah, bawah: (setengah / maksGaris) * 100 },
+    { v: maksEntri, bawah: (maksEntri / maksGaris) * 100 },
+  ];
 
   return (
     <figure>
-      {/* pt-5 = ruang kepala untuk label nilai di atas batang tertinggi. */}
-      <div className="relative flex h-52 items-end gap-[2px] pt-5 sm:gap-1" aria-hidden>
-        {/* Garis jumlah pegawai yang mengisi (emas) — di atas batang agar tidak tertutup. */}
-        <svg viewBox={`0 0 ${lebar} 32`} preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full text-gold-500 dark:text-gold-400">
-          <path d={garis} fill="none" stroke="currentColor" strokeWidth="0.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
-          {titik.map(([x, y], i) => (
-            <circle key={i} cx={x} cy={y} r="1" fill="currentColor" vectorEffect="non-scaling-stroke" />
-          ))}
-        </svg>
-        {data.barisHari.map((h) => {
-          const iniHariIni = h.tanggal === hariIni;
-          return (
-            <div key={h.tanggal} className="group relative flex h-full flex-1 flex-col justify-end">
-              <div
-                className={`w-full rounded-t-[3px] transition-opacity group-hover:opacity-75 ${
-                  iniHariIni ? "bg-brand-600 dark:bg-brand-300" : "bg-brand-500"
-                }`}
-                style={{ height: `${(h.jumlah / maksEntri) * 100}%` }}
-              />
-              {iniHariIni && <span aria-hidden className="pointer-events-none absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand-600 dark:bg-brand-300" />}
-              {/* Nilai di atas batang — warna teks normal penuh, tidak pernah di atas warna batang. */}
-              <span className="pointer-events-none absolute -top-4 left-1/2 w-full -translate-x-1/2 text-center text-[11px] font-medium tabular-nums leading-none text-foreground">
-                {h.jumlah}
-              </span>
-              {/* Tooltip */}
-              <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-7 hidden w-40 -translate-x-1/2 rounded-lg bg-foreground px-3 py-2 text-[11px] text-background shadow-lg group-hover:block">
-                <p className="font-semibold">{h.tanggal}</p>
-                <p className="mt-0.5 text-background/80">
-                  {h.jumlah} entri · {h.pegawai} pegawai mengisi
-                </p>
+      <div className="relative flex h-56 pl-8 pr-6" aria-hidden>
+        {/* Garis grid + label sumbu Y */}
+        {skala.map((g) => (
+          <div key={g.v} className="pointer-events-none absolute inset-x-0 border-t border-dashed border-border" style={{ bottom: `${g.bawah}%` }}>
+            <span className="absolute -top-2 -left-8 w-6 text-right text-[10px] tabular-nums text-muted-foreground">{g.v}</span>
+          </div>
+        ))}
+        {/* Garis dasar sumbu (solid, lebih tegas dari grid). */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 border-t border-line-strong" />
+
+        {/* Batang bertumpuk: pengisi (biru padat) + entri berlebih (biru muda).
+            Wadah kolom justify-end; kedua segmen punya tinggi eksplisit (% dari
+            skala yang SAMA = maksGaris), jadi segmen atas otomatis menempel di atas
+            segmen bawah dan tinggi total = jumlah entri. */}
+        <div className={`flex flex-1 items-end gap-[3px] sm:gap-1.5 ${tunggal ? "mx-auto w-24" : ""}`}>
+          {data.barisHari.map((h) => {
+            const iniHariIni = h.tanggal === hariIni;
+            const tinggiPegawai = (h.pegawai / maksGaris) * 100;
+            const tinggiSisa = Math.max(0, (h.jumlah - h.pegawai) / maksGaris) * 100;
+            return (
+              <div key={h.tanggal} className="group relative flex h-full flex-1 flex-col justify-end">
+                {/* Segmen bawah: pegawai yang mengisi */}
+                <div
+                  className={`w-full transition-opacity group-hover:opacity-80 ${
+                    iniHariIni ? "bg-brand-600 dark:bg-brand-300" : "bg-brand-500 dark:bg-brand-400"
+                  }`}
+                  style={{ height: `${tinggiPegawai}%` }}
+                />
+                {/* Segmen atas: entri tambahan di luar 1× pengisi */}
+                {tinggiSisa > 0 && (
+                  <div
+                    className="w-full rounded-t-[3px] bg-brand-200 dark:bg-brand-600"
+                    style={{ height: `${tinggiSisa}%` }}
+                  />
+                )}
+                {iniHariIni && (
+                  <span className="pointer-events-none absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand-600 dark:bg-brand-300" />
+                )}
+                {/* Nilai di atas batang — warna teks normal penuh, tidak pernah menimpa batang. */}
+                <span className="pointer-events-none absolute -top-4 left-1/2 w-full -translate-x-1/2 text-center text-[11px] font-medium tabular-nums leading-none text-foreground">
+                  {h.jumlah}
+                </span>
+                {/* Tooltip */}
+                <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-7 hidden w-44 -translate-x-1/2 rounded-lg bg-foreground px-3 py-2 text-[11px] text-background shadow-lg group-hover:block">
+                  <p className="font-semibold">
+                    {namaHari(h.tanggal)}, {h.tanggal}
+                  </p>
+                  <p className="mt-0.5 text-background/85">{h.jumlah} entri · {h.pegawai} pegawai mengisi</p>
+                  {h.jumlah > h.pegawai && <p className="text-background/85">+{h.jumlah - h.pegawai} entri susulan</p>}
+                </div>
               </div>
-            </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Sumbu X: nama hari + tanggal bila kolom cukup lebar (≤ 12 hari); bila hari
+          banyak (kolom sempit), cukup angka tanggal — nama hari & tanggal lengkap
+          tetap ada di tooltip. Pola selektif mobile mengikuti grafik dashboard. */}
+      <div className="mt-1.5 flex gap-[3px] pl-8 pr-6 sm:gap-1.5" aria-hidden>
+        {data.barisHari.map((h, i) => {
+          const kolomSempit = data.barisHari.length > 12;
+          return (
+            <span
+              key={h.tanggal}
+              className={`flex-1 text-center text-[10px] tabular-nums text-muted-foreground ${kolomSempit && i % 2 ? "max-sm:invisible" : ""}`}
+            >
+              {kolomSempit ? tgl(h.tanggal) : `${namaHari(h.tanggal)} ${tgl(h.tanggal)}`}
+            </span>
           );
         })}
-        {/* Garis dasar sumbu. */}
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 border-t border-line-strong" />
       </div>
-      <div className="mt-1.5 flex gap-[2px] sm:gap-1" aria-hidden>
-        {data.barisHari.map((h, i) => (
-          <span
-            key={h.tanggal}
-            className={`flex-1 text-center text-[10px] tabular-nums text-muted-foreground ${data.barisHari.length > 12 && i % 2 ? "max-sm:invisible" : ""}`}
-          >
-            {tgl(h.tanggal)}
-          </span>
-        ))}
-      </div>
+
       <figcaption className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
-          <span aria-hidden className="size-2.5 rounded-sm bg-brand-500" />
-          Jumlah entri per hari
+          <span aria-hidden className="size-2.5 rounded-sm bg-brand-500 dark:bg-brand-400" />
+          Pegawai mengisi
         </span>
         <span className="flex items-center gap-1.5">
-          <span aria-hidden className="size-2.5 rounded-full bg-gold-500 dark:bg-gold-400" />
-          Jumlah pegawai mengisi
+          <span aria-hidden className="size-2.5 rounded-sm bg-brand-200 dark:bg-brand-600" />
+          Entri tambahan (sisa)
+        </span>
+        <span className="flex items-center gap-1.5">
+          <span aria-hidden className="size-2.5 rounded-sm bg-brand-600 dark:bg-brand-300 ring-1 ring-foreground/20" />
+          Hari ini
         </span>
       </figcaption>
+
       {/* Data tabel untuk pembaca layar */}
       <div className="sr-only">
         <table>
@@ -242,7 +285,9 @@ export function TrenHarianPegawai({ data }: { data: AnalitikPegawai }) {
   );
 }
 
-/** Kelengkapan pengisian per pegawai (batang horizontal), urut dari yang terendah. */
+/** Kelengkapan pengisian per pegawai (batang horizontal), urut dari yang terendah.
+ *  Persen dihitung terhadap hari kerja yang sudah BERLALU (periode berjalan) atau
+ *  seluruh hari kerja (periode selesai) — disesuaikan di server (lib/pegawai-insight). */
 export function KelengkapanPegawai({ baris }: { baris: BarisPegawai[] }) {
   const punya = baris.filter((b) => b.hariKerjaBerlalu > 0);
   if (punya.length === 0) {
@@ -253,7 +298,7 @@ export function KelengkapanPegawai({ baris }: { baris: BarisPegawai[] }) {
     <ul className="space-y-3">
       {urut.map((b) => {
         const p = b.persenHariTerisi ?? 0;
-        const nada = p >= 80 ? "bg-brand-500" : p >= 50 ? "bg-gold-400" : "bg-red-500";
+        const nada = p >= 80 ? "bg-brand-500" : p >= 50 ? "bg-gold-500" : "bg-red-500";
         return (
           <li key={b.userId}>
             <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">

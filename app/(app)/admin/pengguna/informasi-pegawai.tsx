@@ -107,11 +107,31 @@ export function InformasiPegawai({ data }: { data: AnalitikPegawai }) {
         <KartuAngka label="Belum pernah login" nilai={r.belumPernahLogin} keterangan="akun belum aktif" />
       </div>
 
-      {/* Insight otomatis + grafik: lebar penuh → grafik kiri, insight kanan.
-          Insight tetap di atas di layar sempit (mobile) agar kondisi terbaca dulu. */}
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
-        {/* Grafik pendukung */}
-        <div className="panel overflow-hidden">
+      {/* Insight otomatis + grafik.
+          Urutan DOM: insight duluan supaya di layar sempit (mobile) kondisi terbaca dulu;
+          di layar lebar (lg) grafik dipindah ke kiri & insight tetap di kanan (order).
+          Insight dibungkus kartu panel agar sejajar & seimbang dengan kartu grafik. */}
+      <div className="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_24rem]">
+        {/* Insight otomatis — kartu di kanan layar lebar, di atas di mobile */}
+        <div className="panel order-1 lg:order-2 lg:sticky lg:top-6">
+          <h3 id="h-insight" className="border-b px-4 pt-3.5 pb-3 text-[15px] font-semibold">
+            Insight kondisi saat ini
+          </h3>
+          <div className="p-4 pt-3.5">
+            {data.insight.length === 0 ? (
+              <Alert nada="sukses">Tidak ada hal yang perlu perhatian saat ini.</Alert>
+            ) : (
+              <ul aria-labelledby="h-insight" className="grid gap-2.5">
+                {data.insight.map((i) => (
+                  <KartuInsight key={i.judul} insight={i} />
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+
+        {/* Grafik pendukung — kiri di layar lebar */}
+        <div className="panel order-2 overflow-hidden lg:order-1">
           <div className="border-b px-4 pt-3.5">
             <div role="tablist" aria-label="Grafik pendukung" className="no-scrollbar flex gap-1 overflow-x-auto">
               {TAB.map((t) => (
@@ -151,22 +171,6 @@ export function InformasiPegawai({ data }: { data: AnalitikPegawai }) {
               <PegawaiTeraktif data={data} />
             </div>
           </div>
-        </div>
-
-        {/* Insight otomatis — kolom kanan di layar lebar */}
-        <div>
-          <h3 id="h-insight" className="mb-2.5 text-[15px] font-semibold">
-            Insight kondisi saat ini
-          </h3>
-          {data.insight.length === 0 ? (
-            <Alert nada="sukses">Tidak ada hal yang perlu perhatian saat ini.</Alert>
-          ) : (
-            <ul aria-labelledby="h-insight" className="grid gap-2.5">
-              {data.insight.map((i) => (
-                <KartuInsight key={i.judul} insight={i} />
-              ))}
-            </ul>
-          )}
         </div>
       </div>
     </section>
