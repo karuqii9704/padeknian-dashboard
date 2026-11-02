@@ -77,14 +77,14 @@ export function SalinDialog({ open, timId, periodeTujuanId, rentang, anggota, ke
       {open && !tinjau && (
         <div className="flex flex-col gap-3">
           <h2 className="text-lg font-semibold">Salin dari periode sebelumnya</h2>
-          {loading && <p className="text-sm text-gray-600">Memuat…</p>}
+          {loading && <p className="text-sm text-ink-soft">Memuat…</p>}
           {error && <p role="alert" className="rounded bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>}
           {hasil && (
             <>
-              <p className="text-sm text-gray-700">
+              <p className="text-sm text-ink-soft">
                 Dari {BULAN[hasil.asal.bulan - 1]} {hasil.asal.tahun} ke {BULAN[hasil.tujuan.bulan - 1]} {hasil.tujuan.tahun}. Capaian dan bukti tidak ikut disalin.
               </p>
-              {hasil.draft.length === 0 && <p className="rounded border p-4 text-center text-sm text-gray-500">Tidak ada alokasi aktif di periode sebelumnya.</p>}
+              {hasil.draft.length === 0 && <p className="rounded border p-4 text-center text-sm text-ink-muted">Tidak ada alokasi aktif di periode sebelumnya.</p>}
               <ul className="divide-y">
                 {hasil.draft.map((d) => (
                   <li key={d.sumberAlokasiId}>
@@ -102,7 +102,7 @@ export function SalinDialog({ open, timId, periodeTujuanId, rentang, anggota, ke
                       />
                       <span>
                         <b>{d.judul}</b>
-                        <span className="block text-xs text-gray-600">
+                        <span className="block text-xs text-ink-soft">
                           {d.penugasan.map((p) => `${p.nama} ${angkaRingkas(p.targetVolume)} ${d.satuan}`).join("; ")}
                         </span>
                       </span>

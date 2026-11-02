@@ -225,7 +225,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
                 <h2 className="font-semibold">{e.user.nama}</h2>
                 <p className="text-xs text-ink-muted">
                   {labelTanggal(e.tanggal)}
-                  {e.isBackfill && <span className="ml-1.5 rounded-md bg-gray-100 px-1.5 py-0.5 text-[11px] text-ink-soft">diisi mundur</span>}
+                  {e.isBackfill && <span className="ml-1.5 rounded-md bg-track px-1.5 py-0.5 text-[11px] text-ink-soft">diisi mundur</span>}
                 </p>
               </div>
               <span className="rounded-full bg-gold-50 px-2.5 py-0.5 text-xs font-medium text-gold-700 ring-1 ring-inset ring-gold-200">Menunggu {lamaMenunggu(e.diajukanSejak)}</span>
@@ -283,7 +283,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
         {konfirmasiBulk && (
           <div className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">Setujui {dipilihList.length} catatan?</h2>
-            <p className="text-sm text-gray-700">Tanggal yang akan disetujui:</p>
+            <p className="text-sm text-ink-soft">Tanggal yang akan disetujui:</p>
             <ul className="max-h-60 space-y-0.5 overflow-y-auto rounded-lg border border-line bg-surface-muted p-2.5 text-sm">
               {dipilihList.map((r) => (
                 <li key={r.id}>
@@ -291,7 +291,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
                 </li>
               ))}
             </ul>
-            <p className="text-xs text-gray-600">Seluruh pilihan diproses sekaligus; bila ada yang tidak valid, tidak ada yang disetujui.</p>
+            <p className="text-xs text-ink-soft">Seluruh pilihan diproses sekaligus; bila ada yang tidak valid, tidak ada yang disetujui.</p>
             {galatBulk && (
               <div role="alert" className="rounded bg-red-50 px-3 py-2 text-sm text-red-800">
                 <p>{galatBulk.pesan}</p>
@@ -318,13 +318,13 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
         {catatanUntuk && (
           <form onSubmit={kirimDenganCatatan} noValidate className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">{catatanUntuk.aksi === "TOLAK" ? "Tolak catatan" : "Minta revisi"}</h2>
-            <p className="text-sm text-gray-700">
+            <p className="text-sm text-ink-soft">
               {catatanUntuk.entri.user.nama} · {labelTanggal(catatanUntuk.entri.tanggal)}
             </p>
             <label className="flex flex-col gap-1 text-sm">
               Catatan untuk pegawai
               <textarea value={catatan} onChange={(ev) => setCatatan(ev.target.value)} rows={4} className="field py-2 text-base" aria-invalid={!!galatCatatan} />
-              <span className="text-xs text-gray-600">Minimal {MIN_CATATAN} karakter ({catatan.trim().length} diisi).</span>
+              <span className="text-xs text-ink-soft">Minimal {MIN_CATATAN} karakter ({catatan.trim().length} diisi).</span>
             </label>
             {galatCatatan && <p role="alert" className="text-xs text-red-700">{galatCatatan}</p>}
             <div className="flex justify-end gap-2">

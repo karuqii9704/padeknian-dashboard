@@ -6,23 +6,33 @@ import type { AnalitikPegawai, BarisPegawai } from "@/lib/pegawai-insight";
  * Grafik pendukung halaman "Informasi Pegawai". Tanpa pustaka eksternal (SVG + CSS) supaya
  * ringan dan konsisten dengan dashboard utama. Semua nilai punya label teks sebagai cadangan
  * (bukan hanya warna) agar dapat diakses pembaca layar.
+ *
+ * Warna seri:
+ *  - tren: batang entri = biru (brand), garis pegawai pengisi = emas (gold) — dua metode,
+ *    dua warna, tidak pernah ditumpuk satu warna;
+ *  - status & nada (donat, kelengkapan) memakai token status yang sama dengan grafik
+ *    dashboard utama; komposisi peran memakai palet seri netral.
+ *  - semua trek/grid memakai token (--color-muted, --color-border) sehingga ikut menyesuaikan
+ *    mode terang/gelap — tidak ada warna hex mentah.
  */
 
 const desimal = (n: number) => String(n).replace(".", ",");
 const tgl = (iso: string) => Number(iso.slice(8));
 
+/** Warna status konsisten dengan grafik dashboard (grafik.tsx) dan badge status. */
 const WARNA_STATUS: Record<string, string> = {
   DISETUJUI: "var(--color-brand-500)",
-  MENUNGGU: "var(--color-gold-400)",
+  MENUNGGU: "var(--color-gold-500)",
   MINTA_REVISI: "var(--color-red-500)",
   DITOLAK: "var(--color-red-600)",
 };
 
-const WARNA_PERAN = [
+/** Palet seri netral untuk komposisi peran (bukan status) — urutan tetap, tidak bergantung data. */
+const WARNA_SERI = [
   "var(--color-brand-500)",
-  "var(--color-gold-400)",
+  "var(--color-gold-500)",
   "var(--color-green-600)",
-  "var(--color-gray-400)",
+  "var(--color-track-strong)",
 ];
 
 /** Donat sebaran status verifikasi — memakai teknik stroke-dasharray pada SVG. */
@@ -41,7 +51,8 @@ export function DonatStatusVerifikasi({ data }: { data: AnalitikPegawai }) {
         role="img"
         aria-label={`Sebaran status verifikasi: ${data.sebaranStatus.map((s) => `${s.label} ${s.jumlah}`).join(", ")}`}
       >
-        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--color-gray-200)" strokeWidth="5" />
+        {/* Trek memakai token border: otomatis gelap/terang sesuai mode. */}
+        <circle cx="21" cy="21" r={r} fill="none" strokeWidth="5" className="stroke-border" />
         {data.sebaranStatus.map((s) => {
           const p = (s.jumlah / total) * 100;
           const el = (
@@ -51,7 +62,7 @@ export function DonatStatusVerifikasi({ data }: { data: AnalitikPegawai }) {
               cy="21"
               r={r}
               fill="none"
-              stroke={WARNA_STATUS[s.status] ?? "var(--color-gray-400)"}
+              stroke={WARNA_STATUS[s.status] ?? "var(--color-track-strong)"}
               strokeWidth="5"
               strokeDasharray={`${p} ${100 - p}`}
               strokeDashoffset={offset}
@@ -70,7 +81,7 @@ export function DonatStatusVerifikasi({ data }: { data: AnalitikPegawai }) {
       <ul className="min-w-[13rem] flex-1 space-y-2 text-sm">
         {data.sebaranStatus.map((s) => (
           <li key={s.status} className="flex items-center gap-2">
-            <span aria-hidden className="size-2.5 shrink-0 rounded-sm" style={{ background: WARNA_STATUS[s.status] ?? "var(--color-gray-400)" }} />
+            <span aria-hidden className="size-2.5 shrink-0 rounded-sm" style={{ background: WARNA_STATUS[s.status] ?? "var(--color-track-strong)" }} />
             <span className="flex-1 text-foreground">{s.label}</span>
             <span className="font-medium tabular-nums">{s.jumlah}</span>
             <span className="w-12 text-right text-xs tabular-nums text-muted-foreground">
@@ -97,7 +108,7 @@ export function BatangPeran({ data }: { data: AnalitikPegawai }) {
           <li key={p.role}>
             <div className="mb-1 flex items-baseline justify-between gap-3 text-sm">
               <span className="flex items-center gap-2 truncate font-medium text-foreground">
-                <span aria-hidden className="size-2.5 shrink-0 rounded-sm" style={{ background: WARNA_PERAN[i % WARNA_PERAN.length] }} />
+                <span aria-hidden className="size-2.5 shrink-0 rounded-sm" style={{ background: WARNA_SERI[i % WARNA_SERI.length] }} />
                 {p.label}
               </span>
               <span className="shrink-0 tabular-nums text-muted-foreground">
@@ -105,7 +116,7 @@ export function BatangPeran({ data }: { data: AnalitikPegawai }) {
               </span>
             </div>
             <div
-              className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"
+              className="h-2 overflow-hidden rounded-full bg-track"
               role="meter"
               aria-label={`${p.label}: ${p.jumlah} orang`}
               aria-valuemin={0}
@@ -114,7 +125,7 @@ export function BatangPeran({ data }: { data: AnalitikPegawai }) {
             >
               <div
                 className="h-full rounded-full transition-[width] duration-700"
-                style={{ width: `${persen}%`, background: WARNA_PERAN[i % WARNA_PERAN.length] }}
+                style={{ width: `${persen}%`, background: WARNA_SERI[i % WARNA_SERI.length] }}
               />
             </div>
           </li>
@@ -126,7 +137,9 @@ export function BatangPeran({ data }: { data: AnalitikPegawai }) {
 
 /**
  * Tren pencatatan harian: jumlah entri per hari (batang) + jumlah pegawai yang mengisi (garis).
- * Dua skala dinormalisasi agar satu grafik tetap terbaca.
+ * Dua skala dinormalisasi agar satu grafik tetap terbaca. Nilai entri ditampilkan di atas
+ * batang (bukan di dalamnya) agar terbaca di kedua mode; hari ini ditandai batang lebih penuh
+ * + titik penanda.
  */
 export function TrenHarianPegawai({ data }: { data: AnalitikPegawai }) {
   if (data.barisHari.length === 0) {
@@ -142,31 +155,46 @@ export function TrenHarianPegawai({ data }: { data: AnalitikPegawai }) {
     return [x, y] as const;
   });
   const garis = titik.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(2)},${y.toFixed(2)}`).join(" ");
+  const hariIni = new Date().toISOString().slice(0, 10);
 
   return (
     <figure>
-      <div className="relative flex h-48 items-end gap-[2px] sm:gap-1" aria-hidden>
-        {/* Garis jumlah pegawai yang mengisi */}
-        <svg viewBox={`0 0 ${lebar} 32`} preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full text-gold-400">
+      {/* pt-5 = ruang kepala untuk label nilai di atas batang tertinggi. */}
+      <div className="relative flex h-52 items-end gap-[2px] pt-5 sm:gap-1" aria-hidden>
+        {/* Garis jumlah pegawai yang mengisi (emas) — di atas batang agar tidak tertutup. */}
+        <svg viewBox={`0 0 ${lebar} 32`} preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full text-gold-500 dark:text-gold-400">
           <path d={garis} fill="none" stroke="currentColor" strokeWidth="0.5" vectorEffect="non-scaling-stroke" strokeLinecap="round" strokeLinejoin="round" />
           {titik.map(([x, y], i) => (
-            <circle key={i} cx={x} cy={y} r="0.9" fill="currentColor" vectorEffect="non-scaling-stroke" />
+            <circle key={i} cx={x} cy={y} r="1" fill="currentColor" vectorEffect="non-scaling-stroke" />
           ))}
         </svg>
-        {data.barisHari.map((h) => (
-          <div key={h.tanggal} className="group relative flex h-full flex-1 items-end">
-            <div
-              className="w-full rounded-t-[3px] bg-brand-500/85 transition-opacity group-hover:opacity-70"
-              style={{ height: `${(h.jumlah / maksEntri) * 100}%` }}
-            />
-            <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-40 -translate-x-1/2 rounded-lg bg-foreground px-3 py-2 text-[11px] text-background shadow-lg group-hover:block">
-              <p className="font-semibold">{h.tanggal}</p>
-              <p className="mt-0.5 text-foreground/70">
-                {h.jumlah} entri · {h.pegawai} pegawai mengisi
-              </p>
+        {data.barisHari.map((h) => {
+          const iniHariIni = h.tanggal === hariIni;
+          return (
+            <div key={h.tanggal} className="group relative flex h-full flex-1 flex-col justify-end">
+              <div
+                className={`w-full rounded-t-[3px] transition-opacity group-hover:opacity-75 ${
+                  iniHariIni ? "bg-brand-600 dark:bg-brand-300" : "bg-brand-500"
+                }`}
+                style={{ height: `${(h.jumlah / maksEntri) * 100}%` }}
+              />
+              {iniHariIni && <span aria-hidden className="pointer-events-none absolute -top-1 left-1/2 size-1 -translate-x-1/2 rounded-full bg-brand-600 dark:bg-brand-300" />}
+              {/* Nilai di atas batang — warna teks normal penuh, tidak pernah di atas warna batang. */}
+              <span className="pointer-events-none absolute -top-4 left-1/2 w-full -translate-x-1/2 text-center text-[11px] font-medium tabular-nums leading-none text-foreground">
+                {h.jumlah}
+              </span>
+              {/* Tooltip */}
+              <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-7 hidden w-40 -translate-x-1/2 rounded-lg bg-foreground px-3 py-2 text-[11px] text-background shadow-lg group-hover:block">
+                <p className="font-semibold">{h.tanggal}</p>
+                <p className="mt-0.5 text-background/80">
+                  {h.jumlah} entri · {h.pegawai} pegawai mengisi
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
+        {/* Garis dasar sumbu. */}
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 border-t border-line-strong" />
       </div>
       <div className="mt-1.5 flex gap-[2px] sm:gap-1" aria-hidden>
         {data.barisHari.map((h, i) => (
@@ -184,7 +212,7 @@ export function TrenHarianPegawai({ data }: { data: AnalitikPegawai }) {
           Jumlah entri per hari
         </span>
         <span className="flex items-center gap-1.5">
-          <span aria-hidden className="size-2.5 rounded-full bg-gold-400" />
+          <span aria-hidden className="size-2.5 rounded-full bg-gold-500 dark:bg-gold-400" />
           Jumlah pegawai mengisi
         </span>
       </figcaption>
@@ -238,7 +266,7 @@ export function KelengkapanPegawai({ baris }: { baris: BarisPegawai[] }) {
               </span>
             </div>
             <div
-              className="h-2 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800"
+              className="h-2 overflow-hidden rounded-full bg-track"
               role="meter"
               aria-label={`Kelengkapan pengisian ${b.nama}`}
               aria-valuemin={0}
@@ -254,7 +282,7 @@ export function KelengkapanPegawai({ baris }: { baris: BarisPegawai[] }) {
   );
 }
 
-/** Pegawai paling aktif (jumlah entri) — grafik batang vertikal. */
+/** Pegawai paling aktif (jumlah entri) — grafik batang horizontal. */
 export function PegawaiTeraktif({ data }: { data: AnalitikPegawai }) {
   if (data.topAktif.length === 0) {
     return <p className="py-10 text-center text-sm text-muted-foreground">Belum ada pegawai yang mencatat pekerjaan.</p>;
@@ -268,9 +296,9 @@ export function PegawaiTeraktif({ data }: { data: AnalitikPegawai }) {
             {i + 1}
           </span>
           <span className="min-w-0 flex-1 truncate text-sm text-foreground">{t.nama}</span>
-          <span className="h-2 w-24 shrink-0 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800 sm:w-32">
+          <span className="h-2 w-24 shrink-0 overflow-hidden rounded-full bg-track sm:w-32">
             <span
-              className="block h-full rounded-full bg-brand-500/85"
+              className="block h-full rounded-full bg-brand-500 transition-[width] duration-700"
               style={{ width: `${Math.max(4, (t.nilai / maks) * 100)}%` }}
             />
           </span>

@@ -123,7 +123,7 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
           {kal.ringkas.belumTerisi > 0 && <> · <b>{kal.ringkas.belumTerisi}</b> hari kerja belum terisi</>}
           {kal.ringkas.revisi > 0 && <> · <b className="text-red-700">{kal.ringkas.revisi}</b> perlu revisi</>}
         </p>
-        <div aria-hidden className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100 sm:w-40">
+        <div aria-hidden className="h-1.5 w-full overflow-hidden rounded-full bg-track sm:w-40">
           <div className="h-full rounded-full bg-brand-500" style={{ width: `${kal.ringkas.hariKerja ? (kal.ringkas.terisi / kal.ringkas.hariKerja) * 100 : 0}%` }} />
         </div>
       </div>
@@ -145,7 +145,7 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
               aria-label={`${labelTanggal(h.tanggal)}: ${ket}${h.jumlah ? `, ${h.jumlah} catatan` : ""}`}
               aria-pressed={dipilih === h.tanggal}
               onClick={() => setDipilih(h.tanggal)}
-              className={`flex min-h-12 flex-col items-center justify-center rounded-lg border text-sm tabular-nums transition-[border-color,box-shadow] sm:min-h-14 ${w ? w.cls : "border-transparent bg-[repeating-linear-gradient(135deg,var(--color-gray-100)_0_4px,transparent_4px_8px)] text-ink-muted"} ${
+              className={`flex min-h-12 flex-col items-center justify-center rounded-lg border text-sm tabular-nums transition-[border-color,box-shadow] sm:min-h-14 ${w ? w.cls : "border-transparent bg-[repeating-linear-gradient(135deg,var(--color-track-strong)_0_4px,transparent_4px_8px)] text-ink-muted"} ${
                 dipilih === h.tanggal ? "ring-2 ring-brand-700 ring-offset-1" : ""
               } ${h.tanggal === kal.hariIni ? "font-bold underline decoration-gold-500 decoration-2 underline-offset-4" : ""}`}
             >

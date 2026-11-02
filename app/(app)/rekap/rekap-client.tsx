@@ -11,10 +11,10 @@ type PeriodeOpsi = { id: string; tahun: number; bulan: number; status: string };
 
 const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 const STATUS: Record<string, { label: string; cls: string }> = {
-  QUEUED: { label: "Dalam antrean", cls: "bg-gray-100 text-ink-soft ring-gray-200" },
-  PROSES: { label: "Diproses…", cls: "bg-gold-50 text-gold-700 ring-gold-200 animate-pulse" },
-  SELESAI: { label: "Selesai", cls: "bg-brand-50 text-brand-700 ring-brand-200" },
-  GAGAL: { label: "Gagal", cls: "bg-red-50 text-red-800 ring-red-200" },
+  QUEUED: { label: "Dalam antrean", cls: "bg-track text-ink-soft ring-track-strong" },
+  PROSES: { label: "Diproses…", cls: "bg-gold-50 text-gold-700 ring-gold-200 animate-pulse dark:text-gold-300" },
+  SELESAI: { label: "Selesai", cls: "bg-brand-50 text-brand-700 ring-brand-200 dark:text-brand-300" },
+  GAGAL: { label: "Gagal", cls: "bg-red-50 text-red-800 ring-red-200 dark:text-red-300" },
 };
 const POLL_MS = 1500;
 
@@ -136,7 +136,7 @@ export function RekapClient({ role, awal }: { role: string; awal: { periodes: Pe
           <p className="text-sm text-ink-soft" aria-live="polite" data-progres>
             {selesai} dari {total} pegawai selesai{berjalan ? " — memperbarui otomatis…" : ""}
           </p>
-          <div aria-hidden className="h-1.5 min-w-32 flex-1 overflow-hidden rounded-full bg-gray-100">
+          <div aria-hidden className="h-1.5 min-w-32 flex-1 overflow-hidden rounded-full bg-track">
             <div className="h-full rounded-full bg-brand-500 transition-[width] duration-700" style={{ width: `${(selesai / total) * 100}%` }} />
           </div>
         </div>

@@ -136,7 +136,7 @@ export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId,
 
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium">Penerima &amp; target per orang</legend>
-        {fields.length === 0 && <p className="text-sm text-gray-500">Tim belum punya anggota pada periode ini.</p>}
+        {fields.length === 0 && <p className="text-sm text-ink-muted">Tim belum punya anggota pada periode ini.</p>}
         {fields.map((f, i) => (
           <div key={f.id} className="flex flex-wrap items-center gap-2">
             <label className="flex min-h-11 min-w-40 flex-1 items-center gap-2 text-sm">
@@ -149,7 +149,7 @@ export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId,
               disabled={!penerima?.[i]?.dipilih}
               placeholder={targetUmum ? `${targetUmum} (default)` : "target"}
               aria-label={`Target ${f.nama}`}
-              className="min-h-11 w-40 rounded border px-3 disabled:bg-gray-100"
+              className="min-h-11 w-40 rounded border px-3 disabled:bg-track"
             />
             {errors.penerima?.[i]?.targetVolume && <span className={err}>{errors.penerima[i]?.targetVolume?.message}</span>}
           </div>

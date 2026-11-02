@@ -103,7 +103,7 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
               </td>
             </tr>
           ))}
-          {tims.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-gray-500">Belum ada tim kerja.</td></tr>}
+          {tims.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-ink-muted">Belum ada tim kerja.</td></tr>}
         </tbody>
       </table></div>
 
@@ -121,9 +121,9 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
               <li key={a.userId} className="flex items-center justify-between gap-3 py-2">
                 <span className="min-w-0">
                   <span className="break-words">{a.nama}</span>{" "}
-                  <span className="text-gray-500">({a.nip})</span>{" "}
+                  <span className="text-ink-muted">({a.nip})</span>{" "}
                   {a.peranDalamTim === "KETUA" && (
-                    <span className="ml-1 inline-flex items-center rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-brand-900/30 dark:text-brand-300">
+                    <span className="ml-1 inline-flex items-center rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-[#0a1a33] dark:text-brand-200">
                       Ketua tim
                     </span>
                   )}
@@ -140,7 +140,7 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
                 )}
               </li>
             ))}
-            {anggota.length === 0 && <li className="py-2 text-gray-500">Belum ada anggota pada periode ini.</li>}
+            {anggota.length === 0 && <li className="py-2 text-ink-muted">Belum ada anggota pada periode ini.</li>}
           </ul>
           <div className="flex flex-col gap-2 sm:flex-row">
             <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm">

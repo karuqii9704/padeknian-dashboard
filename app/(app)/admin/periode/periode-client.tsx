@@ -129,7 +129,7 @@ export function PeriodeClient({ awal }: { awal: { periodes: Periode[]; libur: Li
                 </td>
               </tr>
             ))}
-            {periodes.length === 0 && <tr><td colSpan={4} className="p-4 text-center text-gray-500">Belum ada periode.</td></tr>}
+            {periodes.length === 0 && <tr><td colSpan={4} className="p-4 text-center text-ink-muted">Belum ada periode.</td></tr>}
           </tbody>
         </table></div>
       </section>
@@ -150,11 +150,11 @@ export function PeriodeClient({ awal }: { awal: { periodes: Periode[]; libur: Li
         <ul className="divide-y text-sm">
           {libur.map((l) => (
             <li key={l.id} className="flex items-center justify-between py-2">
-              <span><b>{l.tanggal}</b> · {l.keterangan} <span className="text-gray-500">({JENIS[l.jenis]})</span></span>
+              <span><b>{l.tanggal}</b> · {l.keterangan} <span className="text-ink-muted">({JENIS[l.jenis]})</span></span>
               <button type="button" onClick={() => hapusLibur(l)} className={btn}>Hapus</button>
             </li>
           ))}
-          {libur.length === 0 && <li className="py-2 text-gray-500">Belum ada hari libur pada tahun ini.</li>}
+          {libur.length === 0 && <li className="py-2 text-ink-muted">Belum ada hari libur pada tahun ini.</li>}
         </ul>
       </section>
     </main>

@@ -54,7 +54,7 @@ export function BuktiPicker({ antrean, disabled, onCobaLagi, judul = "Bukti duku
           />
         </label>
       </div>
-      <p className="text-xs text-gray-600">JPG, PNG, PDF, DOCX, atau XLSX. Maksimal 10 MB per file, 10 file per {objek}.</p>
+      <p className="text-xs text-ink-soft">JPG, PNG, PDF, DOCX, atau XLSX. Maksimal 10 MB per file, 10 file per {objek}.</p>
       {galat && (
         <p role="alert" className="rounded bg-red-50 px-3 py-2 text-xs text-red-800">
           {galat}
@@ -68,13 +68,13 @@ export function BuktiPicker({ antrean, disabled, onCobaLagi, judul = "Bukti duku
               // eslint-disable-next-line @next/next/no-img-element
               <img src={i.previewUrl} alt={`Pratinjau ${i.file.name}`} className="h-14 w-14 shrink-0 rounded object-cover" />
             ) : (
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-medium uppercase">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-track text-xs font-medium uppercase">
                 {i.file.name.split(".").pop()}
               </span>
             )}
             <div className="min-w-0 flex-1 text-sm">
               <p className="truncate font-medium">{i.file.name}</p>
-              <p className="text-xs text-gray-600">{formatUkuran(i.file.size)}</p>
+              <p className="text-xs text-ink-soft">{formatUkuran(i.file.size)}</p>
               {i.status === "mengunggah" && (
                 <>
                   <p className="text-xs">Mengunggah…</p>

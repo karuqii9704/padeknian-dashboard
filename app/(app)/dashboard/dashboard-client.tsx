@@ -48,7 +48,7 @@ function Kartu({ id, label, nilai, ket, meter, aksen }: { id: string; label: str
         {nilai}
       </p>
       {meter !== undefined && (
-        <div aria-hidden className="mt-3 h-1 overflow-hidden rounded-full bg-gray-100">
+        <div aria-hidden className="mt-3 h-1 overflow-hidden rounded-full bg-track">
           <div className="h-full rounded-full bg-gold-400 transition-[width] duration-700" style={{ width: `${Math.min(100, meter ?? 0)}%` }} />
         </div>
       )}

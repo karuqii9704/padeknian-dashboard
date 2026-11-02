@@ -110,7 +110,7 @@ export function NotifikasiBell() {
         >
           <div className="sticky top-0 flex items-center justify-between border-b bg-popover px-4 py-2">
             <h2 className="text-sm font-semibold">Notifikasi</h2>
-            <button type="button" onClick={tandaiSemua} disabled={belumDibaca === 0} className="min-h-11 px-2 text-xs text-blue-800 underline disabled:text-gray-400 disabled:no-underline">
+            <button type="button" onClick={tandaiSemua} disabled={belumDibaca === 0} className="min-h-11 px-2 text-xs text-blue-800 underline dark:text-blue-300 disabled:text-ink-muted disabled:no-underline">
               Tandai semua dibaca
             </button>
           </div>

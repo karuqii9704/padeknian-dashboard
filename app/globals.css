@@ -94,7 +94,7 @@
   --x-gold-200: #ffe08a;
   --x-gold-300: #f5c451;
   --x-gold-400: #f0b429;
-  --x-gold-500: #c58a00;
+  --x-gold-500: #a97400;
   --x-gold-600: #9e6400;
   --x-gold-700: #9e6400;
   --x-gold-800: #7c4f00;
@@ -160,9 +160,12 @@
   --promo-from: #090d16;
   --promo-to: #1d4ed8;
 
+  /* Seri status mode gelap: -200 dipakai sebagai TEKS (dark:text-*) → wajib padat
+     (alpha rendah membuat teks tembus-cahaya & kontras anjlok). -50/-100 tetap tint
+     karena hanya dipakai sebagai latar/border (bg-*, ring-*). */
   --x-brand-50: rgb(77 141 255 / 0.1);
   --x-brand-100: rgb(77 141 255 / 0.16);
-  --x-brand-200: rgb(77 141 255 / 0.28);
+  --x-brand-200: #bcd6ff;
   --x-brand-300: #5f97f7;
   --x-brand-400: #4d8dff;
   --x-brand-500: #4d8dff;
@@ -188,7 +191,7 @@
 
   --x-green-50: rgb(52 211 153 / 0.1);
   --x-green-100: rgb(52 211 153 / 0.16);
-  --x-green-200: rgb(52 211 153 / 0.3);
+  --x-green-200: #a7f3d0;
   --x-green-300: #6ee7b7;
   --x-green-400: #34d399;
   --x-green-600: #34d399;
@@ -199,7 +202,7 @@
 
   --x-gold-50: rgb(240 180 41 / 0.1);
   --x-gold-100: rgb(240 180 41 / 0.16);
-  --x-gold-200: rgb(240 180 41 / 0.28);
+  --x-gold-200: #fcd34d;
   --x-gold-300: #f5c451;
   --x-gold-400: #f0b429;
   --x-gold-500: #f0b429;
@@ -211,7 +214,7 @@
 
   --x-red-50: rgb(248 113 113 / 0.1);
   --x-red-100: rgb(248 113 113 / 0.16);
-  --x-red-200: rgb(248 113 113 / 0.3);
+  --x-red-200: #fca5a5;
   --x-red-300: #fca5a5;
   --x-red-400: #f87171;
   --x-red-500: #f87171;
@@ -223,7 +226,7 @@
 
   --x-amber-50: rgb(240 180 41 / 0.1);
   --x-amber-100: rgb(240 180 41 / 0.16);
-  --x-amber-200: rgb(240 180 41 / 0.3);
+  --x-amber-200: #fcd34d;
   --x-amber-300: #fcd34d;
   --x-amber-400: #f0b429;
   --x-amber-600: #f0b429;
@@ -380,6 +383,15 @@
   --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
   --animate-masuk: masuk 0.35s var(--ease-out-expo) both;
   --animate-kilau: kilau 1.6s ease-in-out infinite;
+
+  /* Trek meter/progres netral — mengikuti mode, menggantikan bg-gray-100/200 mentah. */
+  --color-track: var(--x-gray-100);
+  --color-track-strong: var(--x-gray-200);
+}
+
+.dark {
+  --color-track: var(--x-gray-800);
+  --color-track-strong: var(--x-gray-700);
 }
 
 @keyframes masuk {

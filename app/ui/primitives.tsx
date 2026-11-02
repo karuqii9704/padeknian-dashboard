@@ -15,9 +15,9 @@ export function PageHeader({ judul, keterangan, eyebrow, aksi }: { judul: string
 }
 
 const NADA = {
-  galat: { cls: "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100", ikon: IkonPeringatan, ikonCls: "text-red-600 dark:text-red-400" },
-  peringatan: { cls: "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100", ikon: IkonPeringatan, ikonCls: "text-amber-600 dark:text-amber-400" },
-  sukses: { cls: "border-green-200 bg-green-50 text-green-900 dark:border-green-900 dark:bg-green-950/30 dark:text-green-100", ikon: IkonCentang, ikonCls: "text-green-700 dark:text-green-400" },
+  galat: { cls: "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-[#1a0505] dark:text-red-200", ikon: IkonPeringatan, ikonCls: "text-red-600 dark:text-red-400" },
+  peringatan: { cls: "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-[#1a1200] dark:text-amber-200", ikon: IkonPeringatan, ikonCls: "text-amber-600 dark:text-amber-400" },
+  sukses: { cls: "border-green-200 bg-green-50 text-green-900 dark:border-green-900 dark:bg-[#04140a] dark:text-green-200", ikon: IkonCentang, ikonCls: "text-green-700 dark:text-green-400" },
   info: { cls: "border-line bg-surface-muted text-ink-soft dark:border-border dark:bg-muted", ikon: IkonInfo, ikonCls: "text-brand-600 dark:text-brand-400" },
 } as const;
 
@@ -37,7 +37,7 @@ export function Alert({ nada, children, className = "" }: { nada: keyof typeof N
 export function EmptyState({ judul, keterangan, aksi, kecil }: { judul: string; keterangan?: React.ReactNode; aksi?: React.ReactNode; kecil?: boolean }) {
   return (
     <div className={`flex flex-col items-center text-center ${kecil ? "gap-1.5 px-4 py-6" : "gap-2 px-6 py-10"}`}>
-      <span aria-hidden className="mb-1 flex size-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-500 ring-1 ring-brand-100 dark:bg-brand-900/30 dark:text-brand-400 dark:ring-brand-800">
+      <span aria-hidden className="mb-1 flex size-11 items-center justify-center rounded-2xl bg-brand-50 text-brand-600 ring-1 ring-brand-100 dark:bg-[#0a1a33] dark:text-brand-300 dark:ring-brand-800">
         <IkonKosong className="h-5 w-5" />
       </span>
       <p className="text-sm font-medium text-ink-soft dark:text-muted-foreground">{judul}</p>

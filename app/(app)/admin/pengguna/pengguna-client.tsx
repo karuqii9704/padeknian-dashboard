@@ -194,7 +194,7 @@ export function PenggunaClient({
             {rows.map((u) => (
               <tr key={u.id} className="border-b">
                 <td className="px-4 py-3 font-mono whitespace-nowrap">{u.nip}</td>
-                <td className="max-w-[18rem] px-4 py-3"><span className="break-words">{u.nama}</span><div className="break-all text-xs text-gray-500">{u.email ?? "-"}</div></td>
+                <td className="max-w-[18rem] px-4 py-3"><span className="break-words">{u.nama}</span><div className="break-all text-xs text-ink-muted">{u.email ?? "-"}</div></td>
                 <td className="px-4 py-3">{ROLE_LABEL[u.role]}</td>
                 <td className="px-4 py-3">
                   {u.isActive ? "Aktif" : "Nonaktif"}
@@ -211,7 +211,7 @@ export function PenggunaClient({
                 </td>
               </tr>
             ))}
-            {rows.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-gray-500">Tidak ada pengguna.</td></tr>}
+            {rows.length === 0 && <tr><td colSpan={5} className="p-4 text-center text-ink-muted">Tidak ada pengguna.</td></tr>}
           </tbody>
         </table></div>
       </div>
@@ -248,7 +248,7 @@ export function PenggunaClient({
                 {ROLES.map((r) => <option key={r} value={r}>{ROLE_LABEL[r]}</option>)}
               </select>
             </label>
-            {!edit && <p className="text-xs text-gray-600">Password sementara dibuat otomatis dan wajib diganti saat login pertama.</p>}
+            {!edit && <p className="text-xs text-ink-soft">Password sementara dibuat otomatis dan wajib diganti saat login pertama.</p>}
             <div className="flex justify-end gap-2">
               <button type="button" onClick={() => setEditing(null)} className={btn}>Batal</button>
               <button className="btn btn-primary">Simpan</button>
@@ -262,7 +262,7 @@ export function PenggunaClient({
           <div className="flex flex-col gap-3">
             <h2 className="text-lg font-semibold">Password sementara</h2>
             <p className="text-sm">Untuk <b>{secret.nama}</b>. Hanya ditampilkan sekali; sampaikan lewat kanal aman.</p>
-            <code className="select-all rounded bg-gray-100 px-3 py-2 text-center text-lg">{secret.password}</code>
+            <code className="select-all rounded bg-track px-3 py-2 text-center text-lg">{secret.password}</code>
             <button type="button" onClick={() => setSecret(null)} className="btn btn-primary">Tutup</button>
           </div>
         )}

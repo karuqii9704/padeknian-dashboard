@@ -29,7 +29,7 @@ export function DaftarBukti({ bukti, onHapus, onGanti, sibuk }: Props) {
     else dialog.current?.close();
   }, [buka]);
 
-  if (bukti.length === 0) return <p className="text-sm text-gray-500">Belum ada bukti.</p>;
+  if (bukti.length === 0) return <p className="text-sm text-ink-muted">Belum ada bukti.</p>;
 
   return (
     <>
@@ -44,11 +44,11 @@ export function DaftarBukti({ bukti, onHapus, onGanti, sibuk }: Props) {
                   <img src={b.tautan} alt={b.namaAsli} loading="lazy" className="h-14 w-14 rounded object-cover" />
                 </button>
               ) : (
-                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-gray-100 text-xs font-semibold">{EKS[b.mimeType] ?? "FILE"}</span>
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded bg-track text-xs font-semibold">{EKS[b.mimeType] ?? "FILE"}</span>
               )}
               <div className="min-w-0 flex-1 text-sm">
                 <p className="truncate font-medium">{b.namaAsli}</p>
-                <p className="text-xs text-gray-600">{formatUkuran(b.ukuranBytes)}</p>
+                <p className="text-xs text-ink-soft">{formatUkuran(b.ukuranBytes)}</p>
               </div>
               <div className="flex flex-col gap-1">
                 {jenis === "dokumen" ? (

@@ -7,7 +7,7 @@ import type { Analitik } from "@/lib/dashboard-analitik";
  * disetujui = hijau merek, menunggu = emas, revisi/ditolak = merah.
  */
 
-const WARNA = { disetujui: "var(--color-brand-500)", menunggu: "var(--color-gold-400)", revisi: "var(--color-red-500)" } as const;
+const WARNA = { disetujui: "var(--color-brand-500)", menunggu: "var(--color-gold-500)", revisi: "var(--color-red-500)" } as const;
 const desimal = (n: number) => String(n).replace(".", ",");
 const tgl = (iso: string) => Number(iso.slice(8));
 const NAMA_HARI = ["Min", "Sen", "Sel", "Rab", "Kam", "Jum", "Sab"];
@@ -16,7 +16,7 @@ const hariDari = (iso: string) => NAMA_HARI[new Date(`${iso}T00:00:00Z`).getUTCD
 export function Legenda({ className = "", kosong }: { className?: string; kosong?: boolean }) {
   return (
     <ul className={`flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground ${className}`}>
-      {kosong && <li className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-sm bg-gray-200 dark:bg-gray-700" />Kosong</li>}
+      {kosong && <li className="flex items-center gap-1.5"><span aria-hidden className="size-2.5 rounded-sm bg-track-strong" />Kosong</li>}
       <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm`} style={{ background: WARNA.disetujui }} />Disetujui</li>
       <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm`} style={{ background: WARNA.menunggu }} />Menunggu</li>
       <li className="flex items-center gap-1.5"><span aria-hidden className={`size-2.5 rounded-sm`} style={{ background: WARNA.revisi }} />Revisi/ditolak</li>
@@ -81,8 +81,8 @@ export function TrenHarian({ tren, totalPegawai }: { tren: Analitik["tren"]; tot
               {/* Tooltip */}
               <div className="pointer-events-none absolute bottom-full left-1/2 z-10 mb-2 hidden w-40 -translate-x-1/2 rounded-lg bg-foreground px-3 py-2 text-[11px] text-background shadow-lg group-hover:block">
                 <p className="font-semibold">{hariDari(t.tanggal)}, {tgl(t.tanggal)}</p>
-                <p className="mt-0.5 text-foreground/70">{t.entri} entri · {t.pegawai}/{totalPegawai} pegawai</p>
-                <p className="text-foreground/70">{t.disetujui} disetujui · {t.menunggu} menunggu · {t.revisi} revisi</p>
+                <p className="mt-0.5 text-background/80">{t.entri} entri · {t.pegawai}/{totalPegawai} pegawai</p>
+                <p className="text-background/80">{t.disetujui} disetujui · {t.menunggu} menunggu · {t.revisi} revisi</p>
               </div>
             </div>
           );
@@ -120,14 +120,14 @@ export function DonatStatus({ status }: { status: Analitik["status"] }) {
   const r = 15.915; // keliling = 100
   const segmen = [
     { n: status.disetujui, warna: "var(--color-brand-500)", label: "Disetujui" },
-    { n: status.menunggu, warna: "var(--color-gold-400)", label: "Menunggu" },
+    { n: status.menunggu, warna: "var(--color-gold-500)", label: "Menunggu" },
     { n: status.revisi, warna: "var(--color-red-500)", label: "Revisi/ditolak" },
   ];
   let offset = 25;
   return (
     <div className="flex flex-wrap items-center justify-center gap-5">
       <svg viewBox="0 0 42 42" className="size-32 shrink-0" role="img" aria-label={`Sebaran status: ${segmen.map((s) => `${s.label} ${s.n}`).join(", ")}`}>
-        <circle cx="21" cy="21" r={r} fill="none" stroke="var(--color-gray-200) dark:stroke-gray-700" strokeWidth="5" />
+        <circle cx="21" cy="21" r={r} fill="none" strokeWidth="5" className="stroke-track-strong" />
         {total > 0 &&
           segmen.map((s) => {
             const p = (s.n / total) * 100;
@@ -167,7 +167,7 @@ export function KepatuhanTim({ tim }: { tim: Analitik["perTim"] }) {
               <span className="truncate font-medium text-ink-soft">{t.nama}</span>
               <span className="shrink-0 tabular-nums text-ink">{t.persenKepatuhan === null ? "–" : `${desimal(t.persenKepatuhan)}%`}</span>
             </div>
-            <div className="h-2 overflow-hidden rounded-full bg-gray-100" role="meter" aria-label={`Kepatuhan pengisian ${t.nama}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={p}>
+            <div className="h-2 overflow-hidden rounded-full bg-track" role="meter" aria-label={`Kepatuhan pengisian ${t.nama}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={p}>
               <div className={`h-full rounded-full ${nada} transition-[width] duration-700`} style={{ width: `${Math.min(100, p)}%` }} />
             </div>
             <p className="mt-1 text-[11px] text-ink-muted">
@@ -180,7 +180,7 @@ export function KepatuhanTim({ tim }: { tim: Analitik["perTim"] }) {
   );
 }
 
-const SEL_CLS = ["bg-gray-200/70", "bg-brand-500", "bg-gold-400", "bg-red-500"];
+const SEL_CLS = ["bg-track-strong", "bg-brand-500", "bg-gold-500", "bg-red-500"];
 const SEL_LABEL = ["kosong", "disetujui", "menunggu", "revisi"];
 
 /** Heatmap kepatuhan: pegawai × hari kerja. Pegawai paling jarang mengisi tampil di atas. */

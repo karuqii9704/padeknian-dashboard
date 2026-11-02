@@ -78,7 +78,7 @@ export default function LoginPage() {
           <span className="text-xs text-muted-foreground">(simpan NIP di perangkat ini)</span>
         </label>
         {error && (
-          <p role="alert" aria-live="assertive" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100">
+          <p role="alert" aria-live="assertive" className="rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-900 dark:border-red-900 dark:bg-[#1a0505] dark:text-red-200">
             {error}
           </p>
         )}

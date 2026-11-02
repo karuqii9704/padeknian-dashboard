@@ -21,7 +21,7 @@ export const dynamic = "force-dynamic";
 const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 const BULAN3 = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
 const PRIORITAS: Record<string, string> = { RENDAH: "Rendah", SEDANG: "Sedang", TINGGI: "Tinggi" };
-const SEL_CLS: Record<number, string> = { [SEL.KOSONG]: "bg-gray-100 text-ink-muted", [SEL.DISETUJUI]: "bg-brand-500 text-white", [SEL.MENUNGGU]: "bg-gold-400 text-brand-950", [SEL.REVISI]: "bg-red-500 text-white" };
+const SEL_CLS: Record<number, string> = { [SEL.KOSONG]: "bg-track text-ink-muted", [SEL.DISETUJUI]: "bg-brand-500 text-white", [SEL.MENUNGGU]: "bg-gold-500 text-white", [SEL.REVISI]: "bg-red-500 text-white" };
 const SEL_LABEL: Record<number, string> = { [SEL.KOSONG]: "belum ada catatan", [SEL.DISETUJUI]: "disetujui", [SEL.MENUNGGU]: "menunggu verifikasi", [SEL.REVISI]: "perlu revisi" };
 const desimal = (n: number | null) => (n === null ? "–" : `${String(n).replace(".", ",")}%`);
 
@@ -126,7 +126,7 @@ export default async function ProfilPegawaiPage({ params, searchParams }: { para
               const k = perTanggal.get(t);
               if (!k) {
                 return (
-                  <li key={t} title={`${labelTanggal(t)}: libur`} className="flex h-12 items-center justify-center rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-gray-100)_0_4px,transparent_4px_8px)] text-sm tabular-nums text-ink-muted/70">
+                  <li key={t} title={`${labelTanggal(t)}: libur`} className="flex h-12 items-center justify-center rounded-lg bg-[repeating-linear-gradient(135deg,var(--color-track-strong)_0_4px,transparent_4px_8px)] text-sm tabular-nums text-ink-muted/70">
                     <span className="sr-only">{labelTanggal(t)}: libur</span>
                     <span aria-hidden>{Number(t.slice(8))}</span>
                   </li>

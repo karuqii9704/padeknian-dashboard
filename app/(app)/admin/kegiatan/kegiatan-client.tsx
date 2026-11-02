@@ -86,7 +86,7 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
         </thead>
         <tbody>
           {rows.map((k) => (
-            <tr key={k.id} className={`border-b ${k.isActive ? "" : "text-gray-500"}`}>
+            <tr key={k.id} className={`border-b ${k.isActive ? "" : "text-ink-muted"}`}>
               <td className="px-4 py-3 font-mono">{k.kode ?? "-"}</td>
               <td className="max-w-[22rem] px-4 py-3"><span className="break-words">{k.uraian}</span></td>
               <td className="px-4 py-3">{k.satuanDefault ?? "-"}</td>
@@ -100,7 +100,7 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
             </tr>
           ))}
           {rows.length === 0 && (
-            <tr><td colSpan={5} className="p-4 text-center text-gray-500">Belum ada kegiatan.</td></tr>
+            <tr><td colSpan={5} className="p-4 text-center text-ink-muted">Belum ada kegiatan.</td></tr>
           )}
         </tbody>
       </table></div>

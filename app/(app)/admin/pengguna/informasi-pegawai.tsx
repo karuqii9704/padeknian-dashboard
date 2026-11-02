@@ -20,8 +20,8 @@ import {
 const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
 const NADA_INSAIGHT = {
-  galat: { kelas: "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-red-950/30 dark:text-red-100" },
-  peringatan: { kelas: "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100" },
+  galat: { kelas: "border-red-200 bg-red-50 text-red-900 dark:border-red-900 dark:bg-[#1a0505] dark:text-red-200" },
+  peringatan: { kelas: "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-900 dark:bg-[#1a1200] dark:text-amber-200" },
   info: { kelas: "border-line bg-surface-muted text-ink-soft dark:border-border dark:bg-muted" },
 } as const;
 
@@ -50,17 +50,17 @@ function KartuInsight({ insight }: { insight: AnalitikPegawai["insight"][number]
         aria-hidden
         className={`mt-px flex size-5 shrink-0 items-center justify-center rounded-full text-[11px] font-bold ${
           insight.tingkat === "galat"
-            ? "bg-red-600 text-white"
+            ? "bg-red-600 text-white dark:bg-red-400 dark:text-red-950"
             : insight.tingkat === "peringatan"
-              ? "bg-amber-500 text-white"
-              : "bg-brand-500 text-white"
+              ? "bg-amber-500 text-amber-950 dark:bg-amber-400 dark:text-amber-950"
+              : "bg-brand-600 text-white dark:bg-brand-400 dark:text-brand-950"
         }`}
       >
         {insight.tingkat === "info" ? "i" : "!"}
       </span>
       <div className="min-w-0 flex-1">
         <p className="font-medium">{insight.judul}</p>
-        <p className="mt-0.5 text-sm opacity-90">{insight.keterangan}</p>
+        <p className="mt-0.5 text-sm text-muted-foreground">{insight.keterangan}</p>
       </div>
     </li>
   );
@@ -107,62 +107,66 @@ export function InformasiPegawai({ data }: { data: AnalitikPegawai }) {
         <KartuAngka label="Belum pernah login" nilai={r.belumPernahLogin} keterangan="akun belum aktif" />
       </div>
 
-      {/* Insight otomatis */}
-      <div>
-        <h3 id="h-insight" className="mb-2.5 text-[15px] font-semibold">
-          Insight kondisi saat ini
-        </h3>
-        {data.insight.length === 0 ? (
-          <Alert nada="sukses">Tidak ada hal yang perlu perhatian saat ini.</Alert>
-        ) : (
-          <ul aria-labelledby="h-insight" className="grid gap-2.5 md:grid-cols-2">
-            {data.insight.map((i) => (
-              <KartuInsight key={i.judul} insight={i} />
-            ))}
-          </ul>
-        )}
-      </div>
-
-      {/* Grafik pendukung */}
-      <div className="panel overflow-hidden">
-        <div className="border-b px-4 pt-3.5">
-          <div role="tablist" aria-label="Grafik pendukung" className="no-scrollbar flex gap-1 overflow-x-auto">
-            {TAB.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                id={`tab-${t.id}`}
-                aria-selected={tab === t.id}
-                aria-controls={`panel-${t.id}`}
-                onClick={() => setTab(t.id)}
-                className={`min-h-10 shrink-0 border-b-2 px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${
-                  tab === t.id
-                    ? "border-foreground text-foreground"
-                    : "border-transparent text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {t.label}
-              </button>
-            ))}
+      {/* Insight otomatis + grafik: lebar penuh → grafik kiri, insight kanan.
+          Insight tetap di atas di layar sempit (mobile) agar kondisi terbaca dulu. */}
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        {/* Grafik pendukung */}
+        <div className="panel overflow-hidden">
+          <div className="border-b px-4 pt-3.5">
+            <div role="tablist" aria-label="Grafik pendukung" className="no-scrollbar flex gap-1 overflow-x-auto">
+              {TAB.map((t) => (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  id={`tab-${t.id}`}
+                  aria-selected={tab === t.id}
+                  aria-controls={`panel-${t.id}`}
+                  onClick={() => setTab(t.id)}
+                  className={`min-h-10 shrink-0 border-b-2 px-3 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-ring ${
+                    tab === t.id
+                      ? "border-foreground text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground"
+                  }`}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="p-4">
+            <div role="tabpanel" id="panel-tren" aria-labelledby="tab-tren" hidden={tab !== "tren"}>
+              <TrenHarianPegawai data={data} />
+            </div>
+            <div role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden={tab !== "status"}>
+              <DonatStatusVerifikasi data={data} />
+            </div>
+            <div role="tabpanel" id="panel-peran" aria-labelledby="tab-peran" hidden={tab !== "peran"}>
+              <BatangPeran data={data} />
+            </div>
+            <div role="tabpanel" id="panel-kelengkapan" aria-labelledby="tab-kelengkapan" hidden={tab !== "kelengkapan"}>
+              <KelengkapanPegawai baris={data.baris} />
+            </div>
+            <div role="tabpanel" id="panel-aktif" aria-labelledby="tab-aktif" hidden={tab !== "aktif"}>
+              <PegawaiTeraktif data={data} />
+            </div>
           </div>
         </div>
-        <div className="p-4">
-          <div role="tabpanel" id="panel-tren" aria-labelledby="tab-tren" hidden={tab !== "tren"}>
-            <TrenHarianPegawai data={data} />
-          </div>
-          <div role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden={tab !== "status"}>
-            <DonatStatusVerifikasi data={data} />
-          </div>
-          <div role="tabpanel" id="panel-peran" aria-labelledby="tab-peran" hidden={tab !== "peran"}>
-            <BatangPeran data={data} />
-          </div>
-          <div role="tabpanel" id="panel-kelengkapan" aria-labelledby="tab-kelengkapan" hidden={tab !== "kelengkapan"}>
-            <KelengkapanPegawai baris={data.baris} />
-          </div>
-          <div role="tabpanel" id="panel-aktif" aria-labelledby="tab-aktif" hidden={tab !== "aktif"}>
-            <PegawaiTeraktif data={data} />
-          </div>
+
+        {/* Insight otomatis — kolom kanan di layar lebar */}
+        <div>
+          <h3 id="h-insight" className="mb-2.5 text-[15px] font-semibold">
+            Insight kondisi saat ini
+          </h3>
+          {data.insight.length === 0 ? (
+            <Alert nada="sukses">Tidak ada hal yang perlu perhatian saat ini.</Alert>
+          ) : (
+            <ul aria-labelledby="h-insight" className="grid gap-2.5">
+              {data.insight.map((i) => (
+                <KartuInsight key={i.judul} insight={i} />
+              ))}
+            </ul>
+          )}
         </div>
       </div>
     </section>
