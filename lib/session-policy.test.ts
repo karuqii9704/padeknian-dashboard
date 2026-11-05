@@ -5,6 +5,7 @@ import {
   isIdleExpired,
   lockoutRemainingMs,
   sesiDicabut,
+  sisaKunciLogin,
 } from "./session-policy";
 
 describe("isIdleExpired", () => {
@@ -56,5 +57,28 @@ describe("sesiDicabut", () => {
   });
   it("token lama tanpa authAt ikut dicabut", () => {
     expect(sesiDicabut(undefined, sejak)).toBe(true);
+  });
+});
+
+describe("sisaKunciLogin (akun+IP, akun global, IP)", () => {
+  const now = 50_000_000;
+  const at = (minAgo: number) => now - minAgo * 60_000;
+  const gagal = (n: number, ip: string | null) => Array.from({ length: n }, (_, i) => ({ waktu: at(i + 1), ip }));
+
+  it("5 kegagalan dari IP penyerang tidak mengunci pemilik akun di IP lain", () => {
+    const akun = gagal(5, "6.6.6.6");
+    expect(sisaKunciLogin(akun, [], "6.6.6.6", now)).toBeGreaterThan(0);
+    expect(sisaKunciLogin(akun, [], "10.0.0.1", now)).toBe(0);
+  });
+  it("30 kegagalan dari banyak IP mengunci akun untuk semua IP", () => {
+    const akun = Array.from({ length: 30 }, (_, i) => ({ waktu: at(1), ip: `1.1.1.${i}` }));
+    expect(sisaKunciLogin(akun, [], "10.0.0.1", now)).toBeGreaterThan(0);
+  });
+  it("IP yang menebak 100 kali (akun mana pun) dikunci; 99 belum", () => {
+    expect(sisaKunciLogin([], Array(99).fill(at(1)), "6.6.6.6", now)).toBe(0);
+    expect(sisaKunciLogin([], Array(100).fill(at(1)), "6.6.6.6", now)).toBeGreaterThan(0);
+  });
+  it("tanpa IP: perilaku lama (5 kegagalan per akun)", () => {
+    expect(sisaKunciLogin(gagal(5, null), [], null, now)).toBeGreaterThan(0);
   });
 });

@@ -2,7 +2,7 @@ import type { Role, User } from "@prisma/client";
 import { db } from "@/lib/db";
 import { tulisAudit } from "@/lib/audit";
 import { hashPassword, verifyPassword } from "@/lib/password";
-import { LOGIN_WINDOW_MS, lockoutRemainingMs } from "@/lib/session-policy";
+import { LOGIN_WINDOW_MS, sisaKunciLogin } from "@/lib/session-policy";
 
 export type AuthResult =
   | { ok: true; user: Pick<User, "id" | "nip" | "nama" | "email" | "role" | "mustChangePassword"> }
@@ -23,12 +23,14 @@ export async function authenticate(
   }
 
   const since = new Date(Date.now() - LOGIN_WINDOW_MS);
-  const failures = await db.loginAttempt.findMany({
-    where: { identifier, createdAt: { gte: since } },
-    select: { createdAt: true },
-  });
-  const remaining = lockoutRemainingMs(
-    failures.map((f) => f.createdAt.getTime()),
+  const [gagalAkun, gagalIp] = await Promise.all([
+    db.loginAttempt.findMany({ where: { identifier, createdAt: { gte: since } }, select: { createdAt: true, ipAddress: true } }),
+    ip ? db.loginAttempt.findMany({ where: { ipAddress: ip, createdAt: { gte: since } }, select: { createdAt: true } }) : Promise.resolve([]),
+  ]);
+  const remaining = sisaKunciLogin(
+    gagalAkun.map((f) => ({ waktu: f.createdAt.getTime(), ip: f.ipAddress })),
+    gagalIp.map((f) => f.createdAt.getTime()),
+    ip,
     Date.now(),
   );
   if (remaining > 0) {
@@ -47,7 +49,7 @@ export async function authenticate(
   const valid = await verifyPassword(password, user?.passwordHash ?? (await getDummyHash()));
 
   if (!user || !user.isActive || !valid) {
-    await db.loginAttempt.create({ data: { identifier } });
+    await db.loginAttempt.create({ data: { identifier, ipAddress: ip } });
     await tulisAudit({
       userId: user?.id ?? null,
       aksi: "LOGIN_GAGAL",
