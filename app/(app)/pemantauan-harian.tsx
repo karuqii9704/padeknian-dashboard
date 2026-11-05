@@ -307,25 +307,28 @@ export function PemantauanHarian({
         <span>Ketuk atau arahkan kursor ke kolom untuk rincian.</span>
       </div>
 
-      <table className="sr-only">
-        <caption>{m.label} per hari kerja</caption>
-        <thead>
-          <tr>
-            <th>Tanggal</th>
-            <th>{m.label}</th>
-            <th>Rincian</th>
-          </tr>
-        </thead>
-        <tbody>
-          {hari.map((h, i) => (
-            <tr key={h.tanggal}>
-              <td>{labelHari(h.tanggal)}</td>
-              <td>{fmt(nilai[i])}</td>
-              <td>{m.rinci(h)}</td>
+      {/* sr-only pada <table> tidak memotong lebar (tabel mengabaikan width 1px); bungkus dengan div. */}
+      <div className="sr-only">
+        <table>
+          <caption>{m.label} per hari kerja</caption>
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>{m.label}</th>
+              <th>Rincian</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {hari.map((h, i) => (
+              <tr key={h.tanggal}>
+                <td>{labelHari(h.tanggal)}</td>
+                <td>{fmt(nilai[i])}</td>
+                <td>{m.rinci(h)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { HttpError, requireRole } from "@/lib/rbac";
 import { calonAnggota, daftarAnggotaDenganKetua } from "@/lib/tim";
@@ -22,11 +22,7 @@ export default async function TimSayaPage({ searchParams }: { searchParams: Prom
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) redirect("/login");
     if (e instanceof HttpError && e.status === 403 && e.message.includes("mengganti password")) redirect("/ganti-password");
-    return (
-      <Halaman lebar="max-w-xl">
-        <PageHeader judul="Akses ditolak" keterangan="Halaman ini untuk Pegawai dan Ketua Tim." />
-      </Halaman>
-    );
+    forbidden(); // HTTP 403 + app/(app)/forbidden.tsx
   }
 
   const { periodeId: diminta } = await searchParams;

@@ -198,8 +198,9 @@ test.describe("UI (360px)", () => {
 
   test("pegawai tidak melihat menu/halaman Verifikasi", async ({ browser }) => {
     const yul = await sebagai(browser, USERS.yul.nip);
-    await yul.page.goto("/verifikasi", { waitUntil: "networkidle" });
-    await expect(yul.page.getByText("Halaman ini hanya untuk Ketua Tim.")).toBeVisible();
+    const res = await yul.page.goto("/verifikasi", { waitUntil: "networkidle" });
+    expect(res?.status()).toBe(403);
+    await expect(yul.page.getByRole("heading", { level: 1, name: "Akses ditolak" })).toBeVisible();
     await expect(yul.page.getByRole("navigation", { name: "Menu utama" }).getByRole("link", { name: /Verifikasi/ })).toHaveCount(0);
     await yul.tutup();
   });

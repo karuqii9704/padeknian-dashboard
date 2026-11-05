@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { auditLogQuery, daftarAuditLog } from "@/lib/audit-log";
 import { Alert, EmptyState, PageHeader } from "../../../ui/primitives";
-import { AksesDitolak, gerbangAdmin } from "../gerbang";
+import { gerbangAdmin } from "../gerbang";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ const NADA_AKSI: Record<string, string> = {
 type Cari = Record<string, string | string[] | undefined>;
 
 export default async function AuditLogPage({ searchParams }: { searchParams: Promise<Cari> }) {
-  if (!(await gerbangAdmin())) return <AksesDitolak />;
+  await gerbangAdmin();
   const sp = await searchParams;
   const mentah = Object.fromEntries(Object.entries(sp).filter(([, v]) => typeof v === "string" && v !== "")) as Record<string, string>;
   const parsed = auditLogQuery.safeParse(mentah);

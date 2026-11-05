@@ -1,13 +1,13 @@
 import { db } from "@/lib/db";
 import { calonAnggota, daftarTim } from "@/lib/tim";
 import { daftarPengguna, listQuerySchema } from "@/lib/users";
-import { AksesDitolak, gerbangAdmin } from "../gerbang";
+import { gerbangAdmin } from "../gerbang";
 import { TimClient } from "./tim-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function TimPage() {
-  if (!(await gerbangAdmin())) return <AksesDitolak />;
+  await gerbangAdmin();
   // Lima permintaan yang sebelumnya dikirim berurutan dari browser kini berjalan paralel di server.
   const [tims, ketua, calon, periodes] = await Promise.all([
     daftarTim(),

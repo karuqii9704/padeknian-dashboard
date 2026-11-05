@@ -2,13 +2,13 @@ import { db } from "@/lib/db";
 import { daftarHariLibur } from "@/lib/periode";
 import { pemakaianStorage } from "@/lib/pemakaian-storage";
 import { PemakaianStorageView } from "./pemakaian-storage";
-import { AksesDitolak, gerbangAdmin } from "../gerbang";
+import { gerbangAdmin } from "../gerbang";
 import { PeriodeClient } from "./periode-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function PeriodePage() {
-  if (!(await gerbangAdmin())) return <AksesDitolak />;
+  await gerbangAdmin();
   const tahun = new Date().getFullYear();
   const [periodes, libur, storage] = await Promise.all([
     db.periode.findMany({ orderBy: [{ tahun: "desc" }, { bulan: "desc" }] }),

@@ -38,7 +38,9 @@ test("pegawai melihat ringkasan rekapnya dan mengunduh PDF miliknya; rekap orang
   const kartu = yul.page.locator(`[data-rekap="${milikYul.id}"]`);
   await expect(kartu).toBeVisible();
   await expect(kartu.getByText("Hari kerja terisi")).toBeVisible();
-  await expect(kartu.getByText("Capaian per alokasi")).toBeVisible();
+  // Daftar capaian hanya muncul bila rekap memuat alokasi (bergantung data spec lain).
+  const ringkas = milikYul.ringkasanJson as { alokasi?: unknown[] } | null;
+  await expect(kartu.getByText("Capaian per alokasi")).toHaveCount(ringkas?.alokasi?.length ? 1 : 0);
   // Hanya rekap milik sendiri yang tampil.
   await expect(yul.page.locator(`[data-rekap="${milikRina.id}"]`)).toHaveCount(0);
 
@@ -62,12 +64,14 @@ test("admin membuka Dashboard dari menu Pemantauan dan melihat grafik kepatuhan 
   await page.getByLabel("Pantau").selectOption("disetujui");
   await expect(grafik.getByText(/berapa persen yang sudah disetujui/)).toBeVisible();
   await expect(grafik.getByText("Terendah")).toBeVisible();
+  // "Catatan masuk" selalu bernilai (min. 0) sehingga garis pasti tergambar, apa pun datanya.
+  await page.getByLabel("Pantau").selectOption("catatan");
   const jenis = page.getByRole("group", { name: "Jenis grafik" });
   await jenis.getByRole("button", { name: "Garis" }).click();
   await expect(jenis.getByRole("button", { name: "Garis" })).toHaveAttribute("aria-pressed", "true");
   await expect(grafik.locator("svg polyline")).toHaveCount(1);
   await page.reload();
-  await expect(page.getByLabel("Pantau")).toHaveValue("disetujui");
+  await expect(page.getByLabel("Pantau")).toHaveValue("catatan");
   await expect(page.getByRole("group", { name: "Jenis grafik" }).getByRole("button", { name: "Garis" })).toHaveAttribute("aria-pressed", "true");
   await page.getByLabel("Pantau").selectOption("kepatuhan");
   await page.getByRole("group", { name: "Jenis grafik" }).getByRole("button", { name: "Batang" }).click();

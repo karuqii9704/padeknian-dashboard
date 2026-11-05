@@ -17,6 +17,8 @@ const nextConfig: NextConfig = {
   // Standalone hanya untuk image Docker (Dockerfile mengisi NEXT_OUTPUT); `next start` biasa tidak cocok dengannya.
   output: process.env.NEXT_OUTPUT === "standalone" ? "standalone" : undefined,
   poweredByHeader: false,
+  // forbidden() di halaman -> status HTTP 403 + app/(app)/forbidden.tsx (bukan 200 dengan teks "Akses ditolak").
+  experimental: { authInterrupts: true },
   serverExternalPackages: ["pino", "@prisma/client", "pg-boss", "exceljs", "archiver", "@react-pdf/renderer"],
   async headers() {
     return [

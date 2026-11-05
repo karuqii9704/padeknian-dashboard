@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { HttpError, requireRole } from "@/lib/rbac";
 import { rekapSaya } from "@/lib/rekap-saya";
 import { IkonUnduh } from "../../ui/icons";
@@ -30,11 +30,7 @@ export default async function RekapSayaPage() {
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) redirect("/login");
     if (e instanceof HttpError && e.status === 403 && e.message.includes("mengganti password")) redirect("/ganti-password");
-    return (
-      <Halaman lebar="max-w-xl">
-        <PageHeader judul="Akses ditolak" keterangan="Halaman ini untuk Pegawai dan Ketua Tim." />
-      </Halaman>
-    );
+    forbidden(); // HTTP 403 + app/(app)/forbidden.tsx
   }
   const daftar = await rekapSaya(user.id);
 

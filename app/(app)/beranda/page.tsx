@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { angkaRingkas } from "@/lib/alokasi-format";
 import { ringkasanBeranda } from "@/lib/beranda";
 import { labelTanggal, tanggalSingkat } from "@/lib/tanggal-id";
@@ -46,11 +46,7 @@ export default async function BerandaPage() {
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) redirect("/login");
     if (e instanceof HttpError && e.status === 403 && e.message.includes("mengganti password")) redirect("/ganti-password");
-    return (
-      <Halaman lebar="max-w-xl">
-        <PageHeader judul="Akses ditolak" keterangan="Halaman ini untuk pegawai dan ketua tim." />
-      </Halaman>
-    );
+    forbidden(); // HTTP 403 + app/(app)/forbidden.tsx
   }
   const d = await ringkasanBeranda(user);
   const sudah = d.jumlahEntriHariIni > 0;

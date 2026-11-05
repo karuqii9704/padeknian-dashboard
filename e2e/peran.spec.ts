@@ -110,3 +110,17 @@ test("pencarian tabel ringkasan pegawai di dashboard pimpinan", async ({ browser
   await expect(page.getByText(/Tidak ada pegawai yang cocok/)).toBeVisible();
   await pimpinan.tutup();
 });
+
+test("halaman di luar peran mengembalikan HTTP 403 dengan halaman Akses ditolak di dalam kerangka aplikasi", async ({ browser }) => {
+  const yul = await sebagai(browser, USERS.yul.nip);
+  for (const url of ["/dashboard", "/verifikasi", "/rekap", "/admin/pengguna", "/admin/audit-log"]) {
+    const res = await yul.page.goto(url);
+    expect(res?.status(), url).toBe(403);
+    await expect(yul.page.getByRole("heading", { level: 1, name: "Akses ditolak" }), url).toBeVisible();
+  }
+  // Tetap di dalam kerangka aplikasi (menu masih ada) dan menawarkan jalan keluar.
+  await expect(yul.page.getByRole("link", { name: "Hari Ini" }).first()).toBeVisible();
+  await expect(yul.page.getByRole("link", { name: "Ke halaman awal" })).toBeVisible();
+  expect((await yul.page.goto("/hari-ini"))?.status()).toBe(200);
+  await yul.tutup();
+});
