@@ -85,6 +85,17 @@ Skrip menolak database bernama `*e2e*`, melewati NIP yang sudah ada (idempoten),
 
 - **Backup**: `docker compose exec postgres pg_dump -U padeknian padeknian | gzip > backup-$(date +%F).sql.gz`; bucket MinIO (`miniodata`) dicadangkan dengan `mc mirror` atau snapshot volume.
 - **Restore**: `gunzip -c backup.sql.gz | docker compose exec -T postgres psql -U padeknian padeknian`.
+- **Uji pemulihan (wajib sebelum go-live, lalu berkala, mis. tiap bulan setelah tutup periode)**: `scripts/uji-pemulihan.sh` mencadangkan database sumber (`pg_dump` format custom), memulihkannya ke database sekali pakai yang namanya harus mengandung `pulih`, lalu membandingkan jumlah baris tabel penting. Skrip menolak tujuan yang sama dengan sumber.
+
+  ```bash
+  createdb padeknian_pulih_uji   # di Postgres lokal/Docker
+  SUMBER_URL="$DATABASE_URL" TUJUAN_URL=postgresql://padeknian:padeknian@127.0.0.1:15432/padeknian_pulih_uji bash scripts/uji-pemulihan.sh
+  DATABASE_URL=postgresql://padeknian:padeknian@127.0.0.1:15432/padeknian_pulih_uji npx prisma migrate status   # harus "up to date"
+  ```
+
+  `pg_dump` harus versi yang sama atau lebih baru dari server Neon. Simpan berkas `.dump` di luar Neon (mis. penyimpanan kantor) dan catat tanggal uji.
+- **Neon (produksi)**: selain dump di atas, Neon dapat memulihkan database ke titik waktu tertentu dalam jendela riwayat paket Anda (cek batasnya di konsol Neon). Cara aman: buat *branch* dari titik waktu sebelum insiden, uji aplikasi terhadap branch itu, baru arahkan `DATABASE_URL` ke sana atau pulihkan branch utama. Dump bulanan tetap diperlukan karena jendela riwayat terbatas.
+- **Bukti dukung (Cloudflare R2)**: cadangkan bucket secara berkala, mis. `rclone sync r2:<bucket> /cadangan/bukti`. Database hanya menyimpan kunci objek; tanpa salinan bucket, bukti tidak dapat dipulihkan.
 - **Hitung ulang progres** bila agregat diduga tidak sinkron: `npm run progres:rebuild`.
 - Migrasi memiliki `down.sql` per folder di `prisma/migrations/`.
 - Sesi: maksimum 8 jam, 60 menit tanpa aktivitas. Mengganti password mengeluarkan sesi di perangkat lain (perangkat yang mengganti tetap masuk); reset password oleh admin mengeluarkan semua sesi pengguna itu (kolom `User.sesi_berlaku_sejak`). Penguncian periode bersifat permanen.
