@@ -5,7 +5,7 @@ import type { AnalitikPegawai } from "@/lib/pegawai-insight";
 import { wajibLapor } from "@/lib/wajib-lapor";
 import { Alert, PageHeader } from "../../../ui/primitives";
 import { DonatStatusVerifikasi, KelengkapanPegawai } from "./grafik-pegawai";
-import { PemantauanHarian } from "./pemantauan-harian";
+import { PemantauanHarian } from "../../pemantauan-harian";
 import { TombolPengingat } from "./tombol-pengingat";
 
 /*

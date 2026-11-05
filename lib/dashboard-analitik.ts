@@ -3,6 +3,7 @@ import { hariIni } from "@/lib/clock";
 import { hariKerjaPeriode } from "@/lib/hari-kerja";
 import { persenAtauNull } from "@/lib/progres";
 import type { Cakupan } from "@/lib/dashboard";
+import { hitungKepatuhanDariAgregat } from "@/lib/kepatuhan-harian";
 
 /** Kode status satu sel heatmap (pegawai × hari kerja). Urutan = tingkat keparahan saat digabung. */
 export const SEL = { KOSONG: 0, DISETUJUI: 1, MENUNGGU: 2, REVISI: 3 } as const;
@@ -111,20 +112,21 @@ export function susunAnalitik(
 export async function analitikDashboard(c: Cakupan, tim: { id: string; nama: string }[]) {
   const [hk, baris] = await Promise.all([
     hariKerjaPeriode(c.periode),
-    db.$queryRaw<{ user_id: string; tanggal: string; jumlah: bigint; disetujui: bigint; menunggu: bigint; revisi: bigint }[]>`
+    db.$queryRaw<{ user_id: string; tanggal: string; jumlah: bigint; disetujui: bigint; menunggu: bigint; revisi: bigint; berbukti: bigint }[]>`
       SELECT ph."user_id",
              to_char(ph."tanggal", 'YYYY-MM-DD') AS tanggal,
              COUNT(*) AS jumlah,
              COUNT(*) FILTER (WHERE ph."status_verifikasi" = 'DISETUJUI') AS disetujui,
              COUNT(*) FILTER (WHERE ph."status_verifikasi" = 'MENUNGGU') AS menunggu,
-             COUNT(*) FILTER (WHERE ph."status_verifikasi" IN ('MINTA_REVISI', 'DITOLAK')) AS revisi
+             COUNT(*) FILTER (WHERE ph."status_verifikasi" IN ('MINTA_REVISI', 'DITOLAK')) AS revisi,
+             COUNT(*) FILTER (WHERE EXISTS (SELECT 1 FROM "BuktiDukung" b WHERE b."pekerjaan_harian_id" = ph."id")) AS berbukti
       FROM "PekerjaanHarian" ph
       WHERE ph."periode_id" = ${c.periode.id}::uuid AND ph."user_id" = ANY(${c.userIds}::uuid[])
       GROUP BY ph."user_id", ph."tanggal"`,
   ]);
   const sekarang = hariIni();
   const berlalu = hk.daftar.filter((t) => t <= sekarang);
-  return susunAnalitik(
+  const analitik = susunAnalitik(
     c,
     tim,
     berlalu,
@@ -137,6 +139,14 @@ export async function analitikDashboard(c: Cakupan, tim: { id: string; nama: str
       revisi: Number(b.revisi),
     })),
   );
+  // Pemantauan harian (pilihan metrik, batang/garis): wajib lapor = anggota aktif pada cakupan.
+  const harian = hitungKepatuhanDariAgregat(
+    hk.daftar,
+    sekarang,
+    baris.map((b) => ({ userId: b.user_id, tanggal: b.tanggal, jumlah: Number(b.jumlah), disetujui: Number(b.disetujui), berbukti: Number(b.berbukti) })),
+    new Set(c.aktifIds),
+  );
+  return { ...analitik, harian };
 }
 
 export type Analitik = Awaited<ReturnType<typeof analitikDashboard>>;

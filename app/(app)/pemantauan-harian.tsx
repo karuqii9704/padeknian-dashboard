@@ -77,7 +77,7 @@ function maksRapi(v: number) {
 
 const nadaKelas = (p: number) => (p >= ACUAN_BAIK ? "bg-brand-500" : p >= ACUAN_CUKUP ? "bg-gold-500" : "bg-red-500");
 
-const KUNCI_SIMPAN = "padeknian.pemantauan-harian";
+const KUNCI_SIMPAN_BAWAAN = "padeknian.pemantauan-harian";
 
 function Statistik({ label, nilai, ket }: { label: string; nilai: string; ket?: string }) {
   return (
@@ -89,25 +89,35 @@ function Statistik({ label, nilai, ket }: { label: string; nilai: string; ket?: 
   );
 }
 
-export function PemantauanHarian({ hari }: { hari: HariKepatuhan[] }) {
+/** `cakupan`: keterangan siapa yang dihitung sebagai pegawai wajib lapor (berbeda di beranda Admin dan Dashboard). */
+export function PemantauanHarian({
+  hari,
+  cakupan = "Pegawai & Ketua Tim aktif",
+  kunciSimpan = KUNCI_SIMPAN_BAWAAN,
+}: {
+  hari: HariKepatuhan[];
+  cakupan?: string;
+  /** Kunci localStorage pilihan metrik/jenis (berbeda per halaman). */
+  kunciSimpan?: string;
+}) {
   const [metrikId, setMetrikId] = useState<MetrikId>("kepatuhan");
   const [jenis, setJenis] = useState<Jenis>("batang");
 
   // Pilihan terakhir diingat per perangkat (kenyamanan saja; aman bila penyimpanan diblokir).
   useEffect(() => {
     try {
-      const v = JSON.parse(localStorage.getItem(KUNCI_SIMPAN) ?? "null") as { metrik?: string; jenis?: string } | null;
+      const v = JSON.parse(localStorage.getItem(kunciSimpan) ?? "null") as { metrik?: string; jenis?: string } | null;
       if (v?.metrik && v.metrik in METRIK) setMetrikId(v.metrik as MetrikId);
       if (v?.jenis === "batang" || v?.jenis === "garis") setJenis(v.jenis);
     } catch {
       /* abaikan */
     }
-  }, []);
+  }, [kunciSimpan]);
   function simpan(m: MetrikId, j: Jenis) {
     setMetrikId(m);
     setJenis(j);
     try {
-      localStorage.setItem(KUNCI_SIMPAN, JSON.stringify({ metrik: m, jenis: j }));
+      localStorage.setItem(kunciSimpan, JSON.stringify({ metrik: m, jenis: j }));
     } catch {
       /* abaikan */
     }
@@ -180,7 +190,7 @@ export function PemantauanHarian({ hari }: { hari: HariKepatuhan[] }) {
 
       <figcaption className="text-sm text-muted-foreground">
         {m.tanya} {m.catatan && <span className="text-xs">{m.catatan}</span>}
-        <span className="block text-xs">Pegawai wajib lapor: Pegawai &amp; Ketua Tim aktif ({hari[0].wajib} orang).</span>
+        <span className="block text-xs">Pegawai wajib lapor: {cakupan} ({hari[0].wajib} orang).</span>
       </figcaption>
 
       <div className="grid grid-cols-3 gap-2">

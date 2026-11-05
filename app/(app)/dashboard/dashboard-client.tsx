@@ -10,7 +10,9 @@ import { IndikatorBukti } from "../bukti/indikator-bukti";
 import { StatusBadge } from "../status-badge";
 import { IkonKanan, IkonUnduh } from "../../ui/icons";
 import { Alert, EmptyState, PageHeader } from "../../ui/primitives";
-import { DonatStatus, HeatmapKepatuhan, KepatuhanTim, Legenda, TrenHarian } from "./grafik";
+import { DonatStatus, HeatmapKepatuhan, KepatuhanTim, Legenda } from "./grafik";
+import { PemantauanHarian } from "../pemantauan-harian";
+import { KecepatanVerifikasiPanel } from "./kecepatan-verifikasi";
 
 type Opsi = { periode: { id: string; tahun: number; bulan: number; status: string }[]; tim: { id: string; nama: string }[] };
 type BarisPegawai = DashboardLengkap["tabel"]["data"][number];
@@ -176,7 +178,6 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
   useEffect(() => setBatas(LANGKAH_TABEL), [tabel, cari, urut]);
   const analitik = data?.analitik;
   const periode = data?.ringkasan.periode;
-  const totalPegawaiHeatmap = analitik?.heatmap.length ?? 0;
   const belumMengisiHariIni = k ? Math.max(0, k.pegawaiAktif - k.pegawaiMengisiHariIni) : 0;
 
   return (
@@ -263,8 +264,8 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
         {analitik && periode && (
           <>
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-              <Panel judul="Tren pengisian harian" ket="Jumlah entri per hari kerja yang sudah berjalan, menurut status verifikasi." aksi={<Legenda />}>
-                <TrenHarian tren={analitik.tren} totalPegawai={totalPegawaiHeatmap} />
+              <Panel judul="Tren pengisian harian" ket="Pilih yang ingin dipantau per hari kerja yang sudah berjalan; tampilkan sebagai batang atau garis.">
+                <PemantauanHarian hari={analitik.harian} cakupan="anggota aktif tim pada cakupan ini" kunciSimpan="padeknian.pemantauan-dashboard" />
               </Panel>
               <Panel judul="Status verifikasi" ket="Seluruh entri pada periode ini.">
                 <DonatStatus status={analitik.status} />
@@ -294,6 +295,22 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
               </Panel>
             </div>
           </>
+        )}
+
+        {data?.kecepatan && (
+          <Panel
+            judul="Kecepatan verifikasi"
+            ket={role === "KETUA_TIM" ? "Seberapa cepat catatan anggota tim Anda diverifikasi." : "Seberapa cepat tiap ketua tim memverifikasi catatan anggotanya."}
+            aksi={
+              role === "KETUA_TIM" && data.kecepatan.ringkas.menunggu > 0 ? (
+                <Link href="/verifikasi" className="btn btn-secondary">
+                  Buka antrean <IkonKanan className="h-4 w-4" />
+                </Link>
+              ) : undefined
+            }
+          >
+            <KecepatanVerifikasiPanel data={data.kecepatan} tampilkanKetua={role !== "KETUA_TIM"} />
+          </Panel>
         )}
 
         {tabel && (
