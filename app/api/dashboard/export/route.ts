@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 
 // Snapshot tabel dashboard ke XLSX sesuai filter. Mengembalikan signed URL berumur <= 15 menit (bukan URL publik permanen).
 export const GET = handle(async (req: Request) => {
-  const user = await requireRole("KETUA_TIM", "PIMPINAN");
+  const user = await requireRole("KETUA_TIM", "PIMPINAN", "ADMIN");
   const parsed = pegawaiQuery.safeParse(Object.fromEntries(new URL(req.url).searchParams));
   if (!parsed.success) return NextResponse.json({ pesan: "Parameter tidak valid." }, { status: 400 });
   const r = await eksporDashboard(user, parsed.data, clientIp(req));

@@ -4,13 +4,7 @@ import { useMemo, useState } from "react";
 import type { AnalitikPegawai } from "@/lib/pegawai-insight";
 import { wajibLapor } from "@/lib/wajib-lapor";
 import { Alert, PageHeader } from "../../../ui/primitives";
-import {
-  BatangPeran,
-  DonatStatusVerifikasi,
-  KelengkapanPegawai,
-  PegawaiTeraktif,
-  TrenHarianPegawai,
-} from "./grafik-pegawai";
+import { DonatStatusVerifikasi, KelengkapanPegawai, KepatuhanHarian } from "./grafik-pegawai";
 
 /*
  * Section "Informasi Pegawai": ringkasan kondisi pegawai saat ini + insight otomatis +
@@ -69,11 +63,9 @@ function KartuInsight({ insight }: { insight: AnalitikPegawai["insight"][number]
 
 /** Tab grafik: user bisa berpindah grafik tanpa memuat ulang halaman. */
 const TAB = [
-  { id: "tren", label: "Tren harian" },
+  { id: "tren", label: "Kepatuhan harian" },
+  { id: "kelengkapan", label: "Perlu diingatkan" },
   { id: "status", label: "Status verifikasi" },
-  { id: "peran", label: "Komposisi peran" },
-  { id: "kelengkapan", label: "Kelengkapan" },
-  { id: "aktif", label: "Paling aktif" },
 ] as const;
 type TabId = (typeof TAB)[number]["id"];
 
@@ -157,19 +149,13 @@ export function InformasiPegawai({ data }: { data: AnalitikPegawai }) {
           </div>
           <div className="p-4">
             <div role="tabpanel" id="panel-tren" aria-labelledby="tab-tren" hidden={tab !== "tren"}>
-              <TrenHarianPegawai data={data} />
+              <KepatuhanHarian hari={data.kepatuhanHarian} />
             </div>
             <div role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden={tab !== "status"}>
               <DonatStatusVerifikasi data={data} />
             </div>
-            <div role="tabpanel" id="panel-peran" aria-labelledby="tab-peran" hidden={tab !== "peran"}>
-              <BatangPeran data={data} />
-            </div>
             <div role="tabpanel" id="panel-kelengkapan" aria-labelledby="tab-kelengkapan" hidden={tab !== "kelengkapan"}>
               <KelengkapanPegawai baris={data.baris} />
-            </div>
-            <div role="tabpanel" id="panel-aktif" aria-labelledby="tab-aktif" hidden={tab !== "aktif"}>
-              <PegawaiTeraktif data={data} />
             </div>
           </div>
         </div>

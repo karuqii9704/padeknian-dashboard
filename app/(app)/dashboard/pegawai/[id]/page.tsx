@@ -39,7 +39,7 @@ export default async function ProfilPegawaiPage({ params, searchParams }: { para
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   let me;
   try {
-    me = await requireRole("KETUA_TIM", "PIMPINAN");
+    me = await requireRole("KETUA_TIM", "PIMPINAN", "ADMIN");
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) redirect("/login");
     if (e instanceof HttpError && e.status === 403 && e.message.includes("mengganti password")) redirect("/ganti-password");

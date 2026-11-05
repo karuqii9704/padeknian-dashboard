@@ -14,7 +14,7 @@ export type DashboardQuery = z.infer<typeof dashboardQuery>;
 /**
  * Cakupan data dashboard menurut peran:
  *  - KETUA_TIM: hanya tim yang dipimpinnya (default semuanya; `timId` harus salah satunya).
- *  - PIMPINAN : semua tim (atau satu tim bila `timId` diberikan).
+ *  - PIMPINAN/ADMIN : semua tim (atau satu tim bila `timId` diberikan).
  * Periode default adalah periode AKTIF.
  */
 export async function tentukanCakupan(user: SessionUser, q: DashboardQuery) {

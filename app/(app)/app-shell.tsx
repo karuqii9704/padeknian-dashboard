@@ -62,11 +62,12 @@ function menu(role: string, revisi: number, verifikasi: number): Grup[] {
   const dashboard: Item = { href: "/dashboard", label: "Dashboard", ikon: IkonDashboard };
   const rekap: Item = { href: "/rekap", label: "Rekap", ikon: IkonRekap };
   const timSaya: Item = { href: "/tim-saya", label: "Tim Saya", ikon: IkonTim };
+  const rekapSaya: Item = { href: "/rekap-saya", label: "Rekap Saya", ikon: IkonRekap };
 
-  if (role === "PEGAWAI") return [{ judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event, alokasi, timSaya] }];
+  if (role === "PEGAWAI") return [{ judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event, alokasi, timSaya, rekapSaya] }];
   if (role === "KETUA_TIM") {
     return [
-      { judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event] },
+      { judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event, rekapSaya] },
       {
         judul: "Tim",
         item: [
@@ -90,6 +91,7 @@ function menu(role: string, revisi: number, verifikasi: number): Grup[] {
           { href: "/admin/kegiatan", label: "Kegiatan", ikon: IkonKegiatan },
         ],
       },
+      { judul: "Pemantauan", item: [dashboard] },
       { judul: "Laporan", item: [rekap, alokasi] },
       { judul: "Keamanan", item: [{ href: "/admin/audit-log", label: "Audit Log", ikon: (p) => <ScrollTextIcon {...p} /> }] },
     ];

@@ -116,7 +116,7 @@ test("default memakai periode AKTIF; periode lain dapat dipilih; pegawai tanpa d
   await pim.tutup();
 });
 
-test("kontrol akses: ketua tim lain & tim tak dikenal ditolak; pegawai/admin 403; tanpa sesi 401; parameter salah 400", async ({ browser, request }) => {
+test("kontrol akses: ketua tim lain & tim tak dikenal ditolak; pegawai 403, admin 200; tanpa sesi 401; parameter salah 400", async ({ browser, request }) => {
   const ketua = await sebagai(browser, USERS.ketua.nip);
   expect((await ketua.request.get(`/api/dashboard/ringkasan?timId=${timB}`)).status(), "ketua A melihat tim B").toBe(403);
   expect((await ketua.request.get("/api/dashboard/ringkasan?timId=bukan-uuid")).status()).toBe(400);
@@ -126,11 +126,13 @@ test("kontrol akses: ketua tim lain & tim tak dikenal ditolak; pegawai/admin 403
   expect((await pim.request.get("/api/dashboard/ringkasan?timId=00000000-0000-4000-8000-000000000999")).status()).toBe(404);
   await pim.tutup();
 
-  for (const nip of [USERS.yul.nip, USERS.admin.nip]) {
-    const u = await sebagai(browser, nip);
-    expect((await u.request.get("/api/dashboard/ringkasan")).status(), nip).toBe(403);
-    await u.tutup();
-  }
+  const yulSesi = await sebagai(browser, USERS.yul.nip);
+  expect((await yulSesi.request.get("/api/dashboard/ringkasan")).status(), "pegawai").toBe(403);
+  await yulSesi.tutup();
+  // Admin ikut memantau seluruh tim (sama seperti pimpinan).
+  const adminSesi = await sebagai(browser, USERS.admin.nip);
+  expect((await adminSesi.request.get("/api/dashboard/ringkasan")).status(), "admin").toBe(200);
+  await adminSesi.tutup();
   expect((await request.get("/api/dashboard/ringkasan")).status()).toBe(401);
 });
 

@@ -9,7 +9,8 @@ const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "
 /**
  * Signed URL (<= 15 menit) untuk berkas rekap.
  *  - xlsx: file batch berisi SELURUH pegawai → hanya ADMIN/PIMPINAN (ketua tim tidak boleh melihat data tim lain).
- *  - pdf : per pegawai → ADMIN/PIMPINAN, atau KETUA_TIM bila pegawai anggota timnya pada periode itu.
+ *  - pdf : per pegawai → ADMIN/PIMPINAN, pegawai pemilik rekap itu sendiri, atau KETUA_TIM bila pegawai
+ *          anggota timnya pada periode itu.
  */
 export async function tautanUnduhRekap(user: SessionUser, rekapId: string, format: "xlsx" | "pdf") {
   const r = await db.rekapSKP.findUnique({
@@ -22,7 +23,8 @@ export async function tautanUnduhRekap(user: SessionUser, rekapId: string, forma
   if (format === "xlsx" && !penuh) {
     throw new HttpError(403, "File XLSX memuat seluruh pegawai dan hanya dapat diunduh Admin atau Pimpinan.");
   }
-  if (!penuh) {
+  const pemilik = r.userId === user.id;
+  if (!penuh && !pemilik) {
     const anggota = await db.anggotaTim.count({ where: { userId: r.userId, periodeId: r.periodeId, tim: { ketuaId: user.id } } });
     if (anggota === 0) throw new HttpError(404, "Rekap tidak ditemukan.");
   }

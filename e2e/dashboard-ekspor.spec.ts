@@ -123,11 +123,13 @@ test("keamanan: nama berformula ditulis sebagai teks (awalan '), tanpa sesi tida
 
   expect((await ketua.request.get(`/api/dashboard/export?timId=${timB}`)).status(), "ketua A minta tim B").toBe(403);
   await ketua.tutup();
-  for (const nip of [USERS.yul.nip, USERS.admin.nip]) {
-    const u = await sebagai(browser, nip);
-    expect((await u.request.get("/api/dashboard/export")).status(), nip).toBe(403);
-    await u.tutup();
-  }
+  const yulSesi = await sebagai(browser, USERS.yul.nip);
+  expect((await yulSesi.request.get("/api/dashboard/export")).status(), "pegawai").toBe(403);
+  await yulSesi.tutup();
+  // Admin ikut memantau seluruh tim (sama seperti pimpinan).
+  const adminSesi = await sebagai(browser, USERS.admin.nip);
+  expect((await adminSesi.request.get("/api/dashboard/export")).status(), "admin").toBe(200);
+  await adminSesi.tutup();
   expect((await request.get("/api/dashboard/export")).status()).toBe(401);
 });
 

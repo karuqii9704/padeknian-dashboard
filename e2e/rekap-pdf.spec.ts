@@ -111,7 +111,7 @@ test("angka PDF konsisten dengan ringkasan_json dan XLSX untuk pegawai yang sama
   await admin.tutup();
 });
 
-test("kontrol akses PDF: ketua tim hanya untuk timnya; pegawai ditolak; tanpa sesi 401", async ({ browser, request }) => {
+test("kontrol akses PDF: ketua tim hanya untuk timnya; pegawai hanya miliknya sendiri; tanpa sesi 401", async ({ browser, request }) => {
   const url = `/api/rekap/${rekapYul}/download?format=pdf`;
   const ketua = await sebagai(browser, USERS.ketua.nip);
   expect((await ketua.request.get(url, { maxRedirects: 0 })).status(), "ketua tim A atas anggotanya").toBe(302);
@@ -122,8 +122,11 @@ test("kontrol akses PDF: ketua tim hanya untuk timnya; pegawai ditolak; tanpa se
   await ketua2.tutup();
 
   const yul = await sebagai(browser, USERS.yul.nip);
-  expect((await yul.request.get(url, { maxRedirects: 0 })).status(), "pegawai").toBe(403);
+  expect((await yul.request.get(url, { maxRedirects: 0 })).status(), "pemilik rekap").toBe(302);
   await yul.tutup();
+  const rina = await sebagai(browser, USERS.rina.nip);
+  expect((await rina.request.get(url, { maxRedirects: 0 })).status(), "pegawai lain").toBe(404);
+  await rina.tutup();
   expect((await request.get(url, { maxRedirects: 0 })).status()).toBe(401);
 });
 

@@ -9,13 +9,13 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   let me;
   try {
-    me = await requireRole("KETUA_TIM", "PIMPINAN");
+    me = await requireRole("KETUA_TIM", "PIMPINAN", "ADMIN");
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) redirect("/login");
     if (e instanceof HttpError && e.status === 403 && e.message.includes("mengganti password")) redirect("/ganti-password");
     return (
       <Halaman lebar="max-w-xl">
-        <PageHeader judul="Akses ditolak" keterangan="Dashboard untuk Ketua Tim dan Pimpinan." />
+        <PageHeader judul="Akses ditolak" keterangan="Dashboard untuk Ketua Tim, Pimpinan, dan Admin." />
       </Halaman>
     );
   }

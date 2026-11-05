@@ -70,10 +70,13 @@ Skrip menolak database bernama `*e2e*`, melewati NIP yang sudah ada (idempoten),
 - `/admin/audit-log` dan `GET /api/audit-log?aksi=&q=&dari=&sampai=&page=` (Admin): jejak login, perubahan akun/peran, reset password, verifikasi, alokasi, kunci periode, dan unduhan arsip; tanggal dibaca dalam WIB.
 - Tabel "Ringkasan per pegawai" di dashboard dapat dicari dan diurutkan, dan tampil bertahap per 50 baris; halaman Rekap dapat dicari per nama/NIP/tim.
 - Insight "belum mengisi" dan "di bawah 50%" di Informasi Pegawai hanya menghitung akun aktif berperan Pegawai/Ketua Tim (Admin dan Pimpinan tidak wajib mencatat).
+- `/rekap-saya` (Pegawai dan Ketua Tim): rekap SKP terbaru milik sendiri per periode (Final/Sementara), ringkasan hari terisi, catatan disetujui, bukti, dan capaian per alokasi, serta unduhan PDF. Unduhan PDF rekap boleh untuk pemiliknya; XLSX (berisi seluruh pegawai) tetap khusus Admin/Pimpinan.
+- Admin dapat membuka Dashboard pemantauan (cakupan seluruh tim, sama seperti Pimpinan).
+- Beranda Admin (Informasi Pegawai): grafik "Kepatuhan harian" = persen pegawai wajib lapor yang mengisi pada tiap hari kerja berjalan (skala 0-100%, acuan 80%; hari kerja tanpa pengisi tetap tampil), tab "Perlu diingatkan" (12 pegawai dengan hari terisi paling sedikit), dan "Status verifikasi".
 
 ## Dashboard & profil pegawai
 
-- `/dashboard` (Ketua Tim, Pimpinan): KPI, tren pengisian harian, sebaran status verifikasi, kepatuhan per tim, peta kepatuhan (pegawai × hari kerja), dan ringkasan per pegawai. Data awal dirender di server.
+- `/dashboard` (Ketua Tim, Pimpinan, Admin): KPI, tren pengisian harian, sebaran status verifikasi, kepatuhan per tim, peta kepatuhan (pegawai × hari kerja), dan ringkasan per pegawai. Data awal dirender di server.
 - `/dashboard/pegawai/[id]?periodeId=`: profil pegawai berisi kepatuhan, kalender pengisian, progres alokasi, riwayat 6 periode, dan daftar catatan. Ketua Tim hanya dapat membuka profil anggota timnya.
 - `GET /api/dashboard?periodeId=&timId=&userId=` mengembalikan `{ ringkasan, tabel, analitik }` dalam satu respons (cakupan dihitung sekali). Endpoint lama `/api/dashboard/ringkasan` dan `/api/dashboard/pegawai` tetap tersedia.
 - Grafik dibuat dengan HTML/SVG tanpa pustaka tambahan dan tetap berjalan offline.
