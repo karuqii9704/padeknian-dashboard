@@ -6,6 +6,7 @@ import { wajibLapor } from "@/lib/wajib-lapor";
 import { Alert, PageHeader } from "../../../ui/primitives";
 import { DonatStatusVerifikasi, KelengkapanPegawai } from "./grafik-pegawai";
 import { PemantauanHarian } from "./pemantauan-harian";
+import { TombolPengingat } from "./tombol-pengingat";
 
 /*
  * Section "Informasi Pegawai": ringkasan kondisi pegawai saat ini + insight otomatis +
@@ -156,7 +157,10 @@ export function InformasiPegawai({ data }: { data: AnalitikPegawai }) {
               <DonatStatusVerifikasi data={data} />
             </div>
             <div role="tabpanel" id="panel-kelengkapan" aria-labelledby="tab-kelengkapan" hidden={tab !== "kelengkapan"}>
-              <KelengkapanPegawai baris={data.baris} />
+              <div className="space-y-4">
+                <TombolPengingat />
+                <KelengkapanPegawai baris={data.baris} />
+              </div>
             </div>
           </div>
         </div>

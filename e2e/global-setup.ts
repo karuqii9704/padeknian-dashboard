@@ -20,7 +20,7 @@ function matikan(p: ChildProcess) {
 /** Jalankan worker pg-boss (proses terpisah) dan tunggu sampai siap. */
 async function jalankanWorker() {
   const worker = spawn(process.execPath, ["node_modules/tsx/dist/cli.mjs", "worker/index.ts"], {
-    env: { ...process.env, REKAP_GAGALKAN_NIP: NIP_GAGAL },
+    env: { ...process.env, REKAP_GAGALKAN_NIP: NIP_GAGAL, PENGINGAT_NONAKTIF: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   let log = "";
