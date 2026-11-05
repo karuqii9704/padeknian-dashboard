@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // forbidden() di halaman -> status HTTP 403 + app/(app)/forbidden.tsx (bukan 200 dengan teks "Akses ditolak").
   experimental: { authInterrupts: true },
-  serverExternalPackages: ["pino", "@prisma/client", "pg-boss", "exceljs", "archiver", "@react-pdf/renderer"],
+  serverExternalPackages: ["pino", "@prisma/client", "@prisma/adapter-pg", "pg", "pg-boss", "exceljs", "archiver", "@react-pdf/renderer"],
   async headers() {
     return [
       { source: "/:path*", headers: headerKeamanan },

@@ -1,11 +1,11 @@
 import ExcelJS from "exceljs";
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import bcrypt from "bcryptjs";
 import { E2E_PASSWORD, USERS } from "./support/data";
 import { anggotaTim, buatAlokasi, periodeAktif, sebagai, timMilik } from "./support/api";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 

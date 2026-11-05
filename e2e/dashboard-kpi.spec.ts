@@ -1,10 +1,10 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { contohPng } from "../lib/testing/mini-zip";
 import { FAKE_TODAY, USERS } from "./support/data";
 import { anggotaTim, buatAlokasi, catat, periodeAktif, sebagai, timMilik } from "./support/api";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 

@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { periodeAktif, sebagai } from "./support/api";
 import { E2E_PASSWORD, FAKE_TODAY, TIM_NAMA, USERS } from "./support/data";
 
 // Pengingat harian: FAKE_TODAY Rabu 14 Okt 2026 -> sasaran hari kerja sebelumnya Selasa 13 Okt.
 const SASARAN = "2026-10-13";
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 
 test("pengingat dikirim ke yang belum mengisi hari kerja sebelumnya, idempoten, dan hanya Admin/token", async ({ browser, request }) => {

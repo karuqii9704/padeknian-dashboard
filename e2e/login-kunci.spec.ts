@@ -1,11 +1,11 @@
 import { expect, test } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { sebagai } from "./support/api";
 import { E2E_PASSWORD, USERS } from "./support/data";
 
 // Kunci login per pasangan akun+IP: penyerang yang salah password berulang dari IP-nya sendiri
 // tidak dapat mengunci pemilik akun yang login dari IP lain.
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 
 test("5 kali salah dari IP penyerang mengunci IP itu saja; pemilik akun tetap bisa login dari IP lain", async ({ browser, playwright, baseURL }) => {

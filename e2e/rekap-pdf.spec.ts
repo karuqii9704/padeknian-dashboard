@@ -1,13 +1,13 @@
 import ExcelJS from "exceljs";
 import { extractText, getDocumentProxy } from "unpdf";
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import bcrypt from "bcryptjs";
 import type { RingkasanRekap } from "../lib/rekap-hitung";
 import { E2E_PASSWORD, NIP_GAGAL, USERS } from "./support/data";
 import { anggotaTim, buatAlokasi, catat, periodeAktif, sebagai, timMilik } from "./support/api";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 

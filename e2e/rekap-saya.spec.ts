@@ -1,11 +1,11 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { periodeAktif, sebagai } from "./support/api";
 import { USERS } from "./support/data";
 
 // Rekap Saya: pegawai melihat dan mengunduh rekap SKP miliknya sendiri, tidak milik orang lain.
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 

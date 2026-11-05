@@ -1,9 +1,9 @@
 import { expect, test } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { sebagai } from "./support/api";
 import { USERS } from "./support/data";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 
 test("admin melihat pemakaian penyimpanan yang cocok dengan database; peran lain tidak", async ({ browser }) => {

@@ -1,12 +1,12 @@
 import { createHash } from "node:crypto";
 import { expect, test, type APIRequestContext, type Browser } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { contohDocx, contohExe, contohJpg, contohPdf, contohPng, contohXlsx } from "../lib/testing/mini-zip";
 import { signedDownloadUrl } from "../lib/storage";
 import { USERS } from "./support/data";
 import { loginUI } from "./support/auth";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 

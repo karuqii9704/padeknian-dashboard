@@ -1,20 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import type { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "@/lib/prisma-klien";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 /**
- * Di Vercel tiap instance hanya diberi 1 koneksi lewat DATABASE_URL, sehingga halaman yang dimuat paralel
- * (prefetch menu) saling antre sampai habis waktu (P2024). Beri ruang beberapa koneksi dan waktu tunggu lebih longgar.
+ * Di Vercel tiap instance hanya diberi sedikit koneksi, sehingga halaman yang dimuat paralel (prefetch menu)
+ * saling antre. Beri pool kecil dengan waktu tunggu lebih longgar; selain itu pool 10 koneksi.
  */
-function datasourceUrl() {
-  const url = process.env.DATABASE_URL;
-  if (!url || !process.env.VERCEL) return undefined;
-  const u = new URL(url);
-  u.searchParams.set("connection_limit", "5");
-  u.searchParams.set("pool_timeout", "20");
-  return u.toString();
+function buatDb() {
+  return process.env.VERCEL ? buatPrisma({ max: 5, connectionTimeoutMillis: 20_000 }) : buatPrisma({ max: 10 });
 }
 
-export const db = globalForPrisma.prisma ?? new PrismaClient({ datasourceUrl: datasourceUrl() });
+export const db = globalForPrisma.prisma ?? buatDb();
 
 if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = db;

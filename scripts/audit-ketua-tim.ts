@@ -2,9 +2,9 @@
  * Audit data: apakah Ketua Tim pernah/dapat tercatat sebagai anggota (AnggotaTim)?
  * Script sekali jalan untuk memeriksa data nyata di Neon, lalu tidak mengubah apa pun.
  */
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 
-const db = new PrismaClient();
+const db = buatPrisma();
 
 async function main() {
   const tims = await db.timKerja.findMany({

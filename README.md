@@ -2,7 +2,9 @@
 
 Pencatatan pekerjaan harian pegawai, verifikasi ketua tim, dashboard capaian, dan rekap SKP bulanan (XLSX/PDF) dengan arsip berversi dan ZIP bukti dukung.
 
-Stack: Next.js 15 (App Router) · TypeScript · Tailwind v4 · Auth.js v5 · Prisma 6 + PostgreSQL 16 · MinIO (S3) · pg-boss (antrean rekap).
+Stack: Next.js 16 (App Router, Turbopack) · TypeScript · Tailwind v4 · Auth.js v5 · Prisma 7 (driver adapter `pg`) + PostgreSQL 16 · MinIO (S3) · pg-boss (antrean rekap & pengingat).
+
+Prisma 7: URL database dibaca dari `prisma.config.ts` (bukan `schema.prisma`) dan CLI tidak lagi memuat `.env` sendiri — `prisma.config.ts` memuatnya bila ada. Semua kode membuat klien lewat `buatPrisma()` di `lib/prisma-klien.ts`.
 
 ## Menjalankan dengan Docker (semua layanan)
 
@@ -35,6 +37,8 @@ UI berbasis shadcn/ui dengan gaya "Bionis": sidebar yang bisa diciutkan ke ikon 
 - **Aplikasi**: Render web service (runtime Node, region Singapura). Build `npm ci && npm run build`, start `npm start`. Set `JOBS_INLINE=1` agar job rekap dijalankan di proses web (tanpa worker terpisah).
 - **Penyimpanan bukti**: Cloudflare R2 (S3-kompatibel) → `S3_ENDPOINT`, `S3_PUBLIC_ENDPOINT` (keduanya `https://<account-id>.r2.cloudflarestorage.com`), `S3_REGION=auto`, `S3_KEY`, `S3_SECRET`, `S3_BUCKET`.
 - `NEXTAUTH_SECRET` (acak ≥32 karakter) dan `NEXTAUTH_URL` (alamat produksi).
+- **Pengingat harian 08.00 WIB**: dengan worker (Docker) terjadwal otomatis lewat pg-boss. Di Render tanpa worker, isi `CRON_SECRET` (acak ≥16 karakter) di aplikasi, lalu isi secret repo GitHub `APP_URL` dan `CRON_SECRET` agar workflow `.github/workflows/pengingat.yml` memanggil `POST /api/pengingat` tiap hari kerja (alternatif: Render Cron Job / layanan cron eksternal dengan header `Authorization: Bearer <CRON_SECRET>`). Pemicu ganda aman (idempoten).
+- Opsional: `STORAGE_KUOTA_GB` (mis. `10` untuk R2 gratis) untuk indikator kuota di Admin → Periode; `TRUSTED_PROXY_HOPS` (bawaan 1) bila ada lebih dari satu proxy di depan aplikasi.
 - Paket gratis Render tertidur setelah 15 menit tanpa trafik; permintaan pertama sesudahnya butuh sekitar satu menit.
 
 ## Pengujian
@@ -73,6 +77,16 @@ Skrip menolak database bernama `*e2e*`, melewati NIP yang sudah ada (idempoten),
 - `/rekap-saya` (Pegawai dan Ketua Tim): rekap SKP terbaru milik sendiri per periode (Final/Sementara), ringkasan hari terisi, catatan disetujui, bukti, dan capaian per alokasi, serta unduhan PDF. Unduhan PDF rekap boleh untuk pemiliknya; XLSX (berisi seluruh pegawai) tetap khusus Admin/Pimpinan.
 - Admin dapat membuka Dashboard pemantauan (cakupan seluruh tim, sama seperti Pimpinan).
 - Beranda Admin (Informasi Pegawai): tab "Pemantauan harian" dengan pilihan metrik per hari kerja berjalan (kepatuhan pengisian % dengan acuan 80%, catatan masuk, % catatan sudah disetujui, % catatan berbukti dukung) yang dapat ditampilkan sebagai batang atau garis (pilihan diingat per perangkat); hari kerja tanpa pengisi tetap tampil. Tab lain: "Perlu diingatkan" (12 pegawai dengan hari terisi paling sedikit) dan "Status verifikasi".
+
+## Pengingat, keamanan, PWA, dan bantuan
+
+- **Pengingat harian** (`lib/pengingat.ts`): tiap hari kerja, notifikasi in-app ke anggota/ketua tim aktif yang belum mencatat pekerjaan pada hari kerja sebelumnya (melewati akhir pekan & libur, hanya periode AKTIF); tautannya membuka form catat dengan tanggal itu. Admin dapat memicu manual di tab "Perlu diingatkan".
+- **Kunci login**: 5 gagal per pasangan akun+IP (penyerang dari IP lain tidak mengunci pemilik akun), 30 per akun dari banyak IP, 100 per IP. IP diambil dari proxy tepercaya (`TRUSTED_PROXY_HOPS`).
+- **Kecepatan verifikasi** di Dashboard: antrean, median lama menunggu, catatan paling lama menunggu (merah > 3 hari), dan median sampai verifikasi pertama, per tim/ketua.
+- **Halaman di luar peran** mengembalikan HTTP 403 (`forbidden()` + `app/(app)/forbidden.tsx`).
+- **PWA**: `app/manifest.ts` + `public/sw.js` (offline shell). Hanya aset statis yang di-cache; halaman/API berisi data pegawai tidak disimpan di perangkat.
+- **Bantuan** (`/bantuan`, dari menu profil): panduan per peran.
+- **Pemakaian penyimpanan** (Admin → Periode): ukuran bukti dan lampiran per periode.
 
 ## Dashboard & profil pegawai
 
