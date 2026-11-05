@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sedang offline – BPS Kerinci</title>
+<style>
+  :root { --bg:#ffffff; --fg:#0b1b33; --muted:#5b6476; --card:#f4f5f7; --brand:#1975f2; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#000; --fg:#f2f4f7; --muted:#a1a8b5; --card:#141414; --brand:#4d8dff; } }
+  * { box-sizing: border-box; }
+  body { margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px 16px;
+         background:var(--bg); color:var(--fg); font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+  main { max-width:420px; text-align:center; background:var(--card); border-radius:16px; padding:32px 24px; }
+  img { width:56px; height:56px; border-radius:12px; }
+  h1 { font-size:1.35rem; margin:16px 0 8px; }
+  p { color:var(--muted); margin:0 0 12px; }
+  button { margin-top:8px; min-height:44px; padding:0 20px; border:0; border-radius:10px; background:var(--brand); color:#fff; font:inherit; font-weight:600; cursor:pointer; }
+</style>
+</head>
+<body>
+<main>
+  <img src="/icons/icon-192.png" alt="">
+  <h1>Anda sedang offline</h1>
+  <p>Koneksi internet terputus. Data pekerjaan tidak disimpan di perangkat ini, jadi pencatatan perlu koneksi.</p>
+  <p>Tulis dulu catatan Anda di tempat lain, lalu isi saat sinyal kembali (catatan susulan dapat diisi hingga 3 hari).</p>
+  <button type="button" onclick="location.reload()">Coba lagi</button>
+</main>
+</body>
+</html>

@@ -19,7 +19,11 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   serverExternalPackages: ["pino", "@prisma/client", "pg-boss", "exceljs", "archiver", "@react-pdf/renderer"],
   async headers() {
-    return [{ source: "/:path*", headers: headerKeamanan }];
+    return [
+      { source: "/:path*", headers: headerKeamanan },
+      // Service worker harus selalu diperiksa ulang agar pembaruan cepat sampai ke perangkat.
+      { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache, no-store, must-revalidate" }] },
+    ];
   },
 };
 
