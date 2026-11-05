@@ -244,7 +244,7 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
 
       <label className={lbl}>
         Deskripsi capaian
-        <textarea {...register("deskripsiCapaian")} rows={3} className={area} aria-invalid={!!errors.deskripsiCapaian} />
+        <textarea {...register("deskripsiCapaian")} maxLength={5000} rows={3} className={area} aria-invalid={!!errors.deskripsiCapaian} />
         {errors.deskripsiCapaian && <span className={err}>{errors.deskripsiCapaian.message}</span>}
       </label>
 
@@ -266,7 +266,7 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
 
       <label className={lbl}>
         <span>Kendala <span className="font-normal text-ink-muted">(opsional)</span></span>
-        <textarea {...register("kendala")} rows={2} className={area} />
+        <textarea {...register("kendala")} maxLength={2000} rows={2} className={area} />
       </label>
 
       </fieldset>

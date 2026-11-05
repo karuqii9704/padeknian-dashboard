@@ -195,7 +195,8 @@ export async function resetPassword(actorId: string, targetId: string, ip: strin
     db.userPasswordHistory.create({ data: { userId: targetId, passwordHash: target.passwordHash } }),
     db.user.update({
       where: { id: targetId },
-      data: { passwordHash: await hashPassword(sementara), mustChangePassword: true },
+      // Cabut semua sesi aktif pengguna: password sementara wajib dipakai untuk login ulang.
+      data: { passwordHash: await hashPassword(sementara), mustChangePassword: true, sesiBerlakuSejak: new Date() },
     }),
     db.loginAttempt.deleteMany({ where: { identifier: { in: [target.nip, (target.email ?? "").toLowerCase()] } } }),
   ]);

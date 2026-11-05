@@ -12,10 +12,10 @@ export const entriFormSchema = z
     judulAdHoc: z.string().trim().max(200, "Judul maksimal 200 karakter.").optional(),
     satuanAdHoc: z.string().trim().max(30, "Satuan maksimal 30 karakter.").optional(),
     tanggal: z.string().min(1, "Tanggal wajib diisi."),
-    deskripsiCapaian: z.string().trim().min(1, "Deskripsi capaian wajib diisi."),
+    deskripsiCapaian: z.string().trim().min(1, "Deskripsi capaian wajib diisi.").max(5000, "Deskripsi capaian maksimal 5000 karakter."),
     volume: z.string().trim().min(1, "Volume wajib diisi."),
     status: z.enum(STATUS, { message: "Status pekerjaan wajib dipilih." }),
-    kendala: z.string().trim().optional(),
+    kendala: z.string().trim().max(2000, "Kendala maksimal 2000 karakter.").optional(),
   })
   .superRefine((v, ctx) => {
     const n = parseAngka(v.volume);

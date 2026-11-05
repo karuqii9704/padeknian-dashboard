@@ -163,7 +163,7 @@ export function EventForm({ awal, hariIni, onSaved, onCancel }: Props) {
 
         <label className={lbl}>
           Uraian hasil
-          <textarea {...register("uraianHasil")} rows={4} className={area} aria-invalid={!!errors.uraianHasil} placeholder="Hasil, kesepakatan, atau tindak lanjut" />
+          <textarea {...register("uraianHasil")} maxLength={5000} rows={4} className={area} aria-invalid={!!errors.uraianHasil} placeholder="Hasil, kesepakatan, atau tindak lanjut" />
           {errors.uraianHasil && <span className={err}>{errors.uraianHasil.message}</span>}
         </label>
       </fieldset>

@@ -15,6 +15,15 @@ export const SESSION_COOKIE_OPTIONS = {
   secure,
 };
 
+/**
+ * Sesi dicabut bila login (authAt, ms) terjadi sebelum `berlakuSejak` (password diganti/di-reset).
+ * Token lama tanpa authAt dianggap login di awal waktu sehingga ikut dicabut.
+ */
+export function sesiDicabut(authAtMs: number | undefined, berlakuSejak: Date | null | undefined) {
+  if (!berlakuSejak) return false;
+  return (authAtMs ?? 0) < berlakuSejak.getTime();
+}
+
 export function isIdleExpired(lastActivityMs: number | undefined, nowMs: number) {
   return typeof lastActivityMs === "number" && nowMs - lastActivityMs > IDLE_TIMEOUT_MS;
 }

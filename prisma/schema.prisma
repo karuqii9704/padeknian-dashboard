@@ -25,6 +25,8 @@ model User {
   isActive           Boolean   @default(true) @map("is_active")
   mustChangePassword Boolean   @default(false) @map("must_change_password")
   lastLoginAt        DateTime? @map("last_login_at") @db.Timestamptz
+  /// Sesi (JWT) yang login sebelum waktu ini ditolak; diisi saat password diganti/di-reset.
+  sesiBerlakuSejak   DateTime? @map("sesi_berlaku_sejak") @db.Timestamptz
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 

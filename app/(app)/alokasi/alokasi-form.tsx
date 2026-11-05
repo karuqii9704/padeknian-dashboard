@@ -98,7 +98,7 @@ export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId,
       </label>
 
       <label className="flex flex-col gap-1 text-sm">Deskripsi
-        <textarea {...register("deskripsi")} rows={3} className="rounded border px-3 py-2" aria-invalid={!!errors.deskripsi} />
+        <textarea {...register("deskripsi")} maxLength={5000} rows={3} className="rounded border px-3 py-2" aria-invalid={!!errors.deskripsi} />
         {errors.deskripsi && <span className={err}>{errors.deskripsi.message}</span>}
       </label>
 

@@ -18,7 +18,7 @@ const angkaPositif = (nama: string) => (s: string) => {
 export const alokasiFormSchema = z
   .object({
     judul: z.string().trim().min(1, "Judul wajib diisi.").max(200, "Judul maksimal 200 karakter."),
-    deskripsi: z.string().trim().min(1, "Deskripsi wajib diisi."),
+    deskripsi: z.string().trim().min(1, "Deskripsi wajib diisi.").max(5000, "Deskripsi maksimal 5000 karakter."),
     tanggalMulai: z.string().min(1, "Tanggal mulai wajib diisi."),
     tanggalSelesai: z.string().min(1, "Tanggal selesai wajib diisi."),
     targetVolume: z.string().trim().min(1, "Target volume wajib diisi."),

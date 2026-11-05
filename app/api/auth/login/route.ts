@@ -1,19 +1,14 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { encode } from "next-auth/jwt";
 import { authenticate } from "@/lib/auth-service";
 import { clientIp } from "@/lib/request";
-import {
-  SESSION_COOKIE_NAME,
-  SESSION_COOKIE_OPTIONS,
-  SESSION_MAX_AGE_SECONDS,
-} from "@/lib/session-policy";
+import { pasangCookieSesi } from "@/lib/sesi-cookie";
 
 export const dynamic = "force-dynamic";
 
 const bodySchema = z.object({
-  identifier: z.string().min(1, "NIP atau email wajib diisi."),
-  password: z.string().min(1, "Password wajib diisi."),
+  identifier: z.string().min(1, "NIP atau email wajib diisi.").max(254, "NIP/email terlalu panjang."),
+  password: z.string().min(1, "Password wajib diisi.").max(256, "Password terlalu panjang."),
 });
 
 export async function POST(req: Request) {
@@ -32,34 +27,13 @@ export async function POST(req: Request) {
     return res;
   }
 
-  const secret = process.env.NEXTAUTH_SECRET;
-  if (!secret) {
-    return NextResponse.json({ pesan: "Konfigurasi server belum lengkap." }, { status: 500 });
-  }
-
   const { user } = result;
-  const token = await encode({
-    token: {
-      sub: user.id,
-      id: user.id,
-      nip: user.nip,
-      name: user.nama,
-      email: user.email,
-      role: user.role,
-      lastActivity: Date.now(),
-    },
-    secret,
-    salt: SESSION_COOKIE_NAME,
-    maxAge: SESSION_MAX_AGE_SECONDS,
-  });
-
   const res = NextResponse.json({
     user: { id: user.id, nip: user.nip, nama: user.nama, role: user.role },
     mustChangePassword: user.mustChangePassword,
   });
-  res.cookies.set(SESSION_COOKIE_NAME, token, {
-    ...SESSION_COOKIE_OPTIONS,
-    maxAge: SESSION_MAX_AGE_SECONDS,
-  });
+  if (!(await pasangCookieSesi(res, user))) {
+    return NextResponse.json({ pesan: "Konfigurasi server belum lengkap." }, { status: 500 });
+  }
   return res;
 }

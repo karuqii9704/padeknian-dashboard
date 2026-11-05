@@ -17,7 +17,7 @@ const penugasanItem = z.object({ userId: uuidSchema, targetVolume: volume.option
 
 const dasar = {
   judul: z.string().trim().min(1, "Judul wajib diisi.").max(200, "Judul maksimal 200 karakter."),
-  deskripsi: z.string().trim().min(1, "Deskripsi wajib diisi."),
+  deskripsi: z.string().trim().min(1, "Deskripsi wajib diisi.").max(5000, "Deskripsi maksimal 5000 karakter."),
   tanggalMulai: tanggalSchema,
   tanggalSelesai: tanggalSchema,
   targetVolume: volume,

@@ -77,4 +77,5 @@ Skrip menolak database bernama `*e2e*`, melewati NIP yang sudah ada (idempoten),
 - **Restore**: `gunzip -c backup.sql.gz | docker compose exec -T postgres psql -U padeknian padeknian`.
 - **Hitung ulang progres** bila agregat diduga tidak sinkron: `npm run progres:rebuild`.
 - Migrasi memiliki `down.sql` per folder di `prisma/migrations/`.
-- Sesi: maksimum 8 jam, 60 menit tanpa aktivitas. Penguncian periode bersifat permanen.
+- Sesi: maksimum 8 jam, 60 menit tanpa aktivitas. Mengganti password mengeluarkan sesi di perangkat lain (perangkat yang mengganti tetap masuk); reset password oleh admin mengeluarkan semua sesi pengguna itu (kolom `User.sesi_berlaku_sejak`). Penguncian periode bersifat permanen.
+- Header keamanan (`next.config.ts`): `X-Frame-Options`/`frame-ancestors` (anti-clickjacking), `nosniff`, `Referrer-Policy`, `Permissions-Policy`, dan HSTS bila `NEXTAUTH_URL` berawalan `https://`.

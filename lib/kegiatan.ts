@@ -18,14 +18,14 @@ const satuan = z
 
 export const buatKegiatanSchema = z.object({
   kode: kode.nullish(),
-  uraian: z.string().trim().min(1, "Uraian wajib diisi."),
+  uraian: z.string().trim().min(1, "Uraian wajib diisi.").max(1000, "Uraian maksimal 1000 karakter."),
   satuanDefault: satuan.nullish(),
 });
 
 export const ubahKegiatanSchema = z
   .object({
     kode: kode.nullish(),
-    uraian: z.string().trim().min(1, "Uraian wajib diisi.").optional(),
+    uraian: z.string().trim().min(1, "Uraian wajib diisi.").max(1000, "Uraian maksimal 1000 karakter.").optional(),
     satuanDefault: satuan.nullish(),
     isActive: z.boolean().optional(),
   })

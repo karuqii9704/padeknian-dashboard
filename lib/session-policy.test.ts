@@ -4,6 +4,7 @@ import {
   LOGIN_WINDOW_MS,
   isIdleExpired,
   lockoutRemainingMs,
+  sesiDicabut,
 } from "./session-policy";
 
 describe("isIdleExpired", () => {
@@ -36,5 +37,24 @@ describe("lockoutRemainingMs", () => {
     const fails = [at(15), at(16), at(17), at(18), at(19)];
     expect(lockoutRemainingMs(fails, now)).toBe(0);
     expect(LOGIN_WINDOW_MS).toBe(15 * 60_000);
+  });
+});
+
+describe("sesiDicabut", () => {
+  const sejak = new Date(1_000_000);
+
+  it("tidak dicabut bila password belum pernah diganti/di-reset", () => {
+    expect(sesiDicabut(5, null)).toBe(false);
+    expect(sesiDicabut(undefined, undefined)).toBe(false);
+  });
+  it("dicabut bila login sebelum password diganti", () => {
+    expect(sesiDicabut(999_999, sejak)).toBe(true);
+  });
+  it("tetap berlaku bila login tepat atau setelah password diganti (sesi yang diterbitkan ulang)", () => {
+    expect(sesiDicabut(1_000_000, sejak)).toBe(false);
+    expect(sesiDicabut(1_000_001, sejak)).toBe(false);
+  });
+  it("token lama tanpa authAt ikut dicabut", () => {
+    expect(sesiDicabut(undefined, sejak)).toBe(true);
   });
 });

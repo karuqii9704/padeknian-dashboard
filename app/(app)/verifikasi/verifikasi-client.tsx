@@ -323,7 +323,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
             </p>
             <label className="flex flex-col gap-1 text-sm">
               Catatan untuk pegawai
-              <textarea value={catatan} onChange={(ev) => setCatatan(ev.target.value)} rows={4} className="field py-2 text-base" aria-invalid={!!galatCatatan} />
+              <textarea value={catatan} onChange={(ev) => setCatatan(ev.target.value)} maxLength={2000} rows={4} className="field py-2 text-base" aria-invalid={!!galatCatatan} />
               <span className="text-xs text-ink-soft">Minimal {MIN_CATATAN} karakter ({catatan.trim().length} diisi).</span>
             </label>
             {galatCatatan && <p role="alert" className="text-xs text-red-700">{galatCatatan}</p>}

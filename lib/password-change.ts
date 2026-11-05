@@ -15,7 +15,7 @@ export const gantiPasswordSchema = z.object({
   passwordBaru: passwordBaruSchema,
 });
 
-export type GantiPasswordResult = { ok: true } | { ok: false; status: 400 | 401; pesan: string };
+export type GantiPasswordResult = { ok: true; berlakuSejak: Date } | { ok: false; status: 400 | 401; pesan: string };
 
 export async function gantiPassword(
   userId: string,
@@ -48,9 +48,11 @@ export async function gantiPassword(
   }
 
   const newHash = await hashPassword(passwordBaru);
+  // Sesi di perangkat lain yang login sebelum saat ini dicabut; pemanggil menerbitkan ulang sesi perangkat ini.
+  const berlakuSejak = new Date();
   await db.$transaction([
     db.userPasswordHistory.create({ data: { userId, passwordHash: user.passwordHash } }),
-    db.user.update({ where: { id: userId }, data: { passwordHash: newHash, mustChangePassword: false } }),
+    db.user.update({ where: { id: userId }, data: { passwordHash: newHash, mustChangePassword: false, sesiBerlakuSejak: berlakuSejak } }),
   ]);
   await tulisAudit({
     userId,
@@ -59,5 +61,5 @@ export async function gantiPassword(
     entitasId: userId,
     ipAddress: ip,
   });
-  return { ok: true };
+  return { ok: true, berlakuSejak };
 }
