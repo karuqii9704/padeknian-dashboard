@@ -315,6 +315,9 @@ export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: s
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
+                  <Link href="/bantuan">Bantuan</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
                   <Link href="/ganti-password">Ganti password</Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem variant="destructive" onSelect={keluar}>
