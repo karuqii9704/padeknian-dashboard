@@ -72,7 +72,7 @@ Skrip menolak database bernama `*e2e*`, melewati NIP yang sudah ada (idempoten),
 - Insight "belum mengisi" dan "di bawah 50%" di Informasi Pegawai hanya menghitung akun aktif berperan Pegawai/Ketua Tim (Admin dan Pimpinan tidak wajib mencatat).
 - `/rekap-saya` (Pegawai dan Ketua Tim): rekap SKP terbaru milik sendiri per periode (Final/Sementara), ringkasan hari terisi, catatan disetujui, bukti, dan capaian per alokasi, serta unduhan PDF. Unduhan PDF rekap boleh untuk pemiliknya; XLSX (berisi seluruh pegawai) tetap khusus Admin/Pimpinan.
 - Admin dapat membuka Dashboard pemantauan (cakupan seluruh tim, sama seperti Pimpinan).
-- Beranda Admin (Informasi Pegawai): grafik "Kepatuhan harian" = persen pegawai wajib lapor yang mengisi pada tiap hari kerja berjalan (skala 0-100%, acuan 80%; hari kerja tanpa pengisi tetap tampil), tab "Perlu diingatkan" (12 pegawai dengan hari terisi paling sedikit), dan "Status verifikasi".
+- Beranda Admin (Informasi Pegawai): tab "Pemantauan harian" dengan pilihan metrik per hari kerja berjalan (kepatuhan pengisian % dengan acuan 80%, catatan masuk, % catatan sudah disetujui, % catatan berbukti dukung) yang dapat ditampilkan sebagai batang atau garis (pilihan diingat per perangkat); hari kerja tanpa pengisi tetap tampil. Tab lain: "Perlu diingatkan" (12 pegawai dengan hari terisi paling sedikit) dan "Status verifikasi".
 
 ## Dashboard & profil pegawai
 

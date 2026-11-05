@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import type { AnalitikPegawai } from "@/lib/pegawai-insight";
 import { wajibLapor } from "@/lib/wajib-lapor";
 import { Alert, PageHeader } from "../../../ui/primitives";
-import { DonatStatusVerifikasi, KelengkapanPegawai, KepatuhanHarian } from "./grafik-pegawai";
+import { DonatStatusVerifikasi, KelengkapanPegawai } from "./grafik-pegawai";
+import { PemantauanHarian } from "./pemantauan-harian";
 
 /*
  * Section "Informasi Pegawai": ringkasan kondisi pegawai saat ini + insight otomatis +
@@ -63,7 +64,7 @@ function KartuInsight({ insight }: { insight: AnalitikPegawai["insight"][number]
 
 /** Tab grafik: user bisa berpindah grafik tanpa memuat ulang halaman. */
 const TAB = [
-  { id: "tren", label: "Kepatuhan harian" },
+  { id: "tren", label: "Pemantauan harian" },
   { id: "kelengkapan", label: "Perlu diingatkan" },
   { id: "status", label: "Status verifikasi" },
 ] as const;
@@ -149,7 +150,7 @@ export function InformasiPegawai({ data }: { data: AnalitikPegawai }) {
           </div>
           <div className="p-4">
             <div role="tabpanel" id="panel-tren" aria-labelledby="tab-tren" hidden={tab !== "tren"}>
-              <KepatuhanHarian hari={data.kepatuhanHarian} />
+              <PemantauanHarian hari={data.kepatuhanHarian} />
             </div>
             <div role="tabpanel" id="panel-status" aria-labelledby="tab-status" hidden={tab !== "status"}>
               <DonatStatusVerifikasi data={data} />

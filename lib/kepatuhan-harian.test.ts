@@ -12,7 +12,7 @@ describe("hitungKepatuhanHarian", () => {
       { userId: "b", tanggal: "2026-10-01" },
       { userId: "c", tanggal: "2026-10-02" },
     ], wajib);
-    expect(r[0]).toEqual({ tanggal: "2026-10-01", pengisi: 2, wajib: 4, persen: 50 });
+    expect(r[0]).toMatchObject({ tanggal: "2026-10-01", pengisi: 2, wajib: 4, persen: 50, catatan: 3 });
     expect(r[1]).toMatchObject({ pengisi: 1, persen: 25 });
   });
   it("hari kerja tanpa pengisi tetap muncul sebagai 0%", () => {
@@ -32,5 +32,15 @@ describe("hitungKepatuhanHarian", () => {
     expect(hitungKepatuhanHarian(hk, "2026-10-01", [], new Set())[0].persen).toBeNull();
     expect(rataKepatuhan([])).toBeNull();
     expect(rataKepatuhan(hitungKepatuhanHarian(hk, "2026-10-02", [{ userId: "a", tanggal: "2026-10-01" }], wajib))).toBe(12.5);
+  });
+
+  it("menghitung catatan, yang disetujui, dan yang berbukti per hari (hanya pegawai wajib lapor)", () => {
+    const r = hitungKepatuhanHarian(hk, "2026-10-01", [
+      { userId: "a", tanggal: "2026-10-01", statusVerifikasi: "DISETUJUI", adaBukti: true },
+      { userId: "a", tanggal: "2026-10-01", statusVerifikasi: "MENUNGGU", adaBukti: false },
+      { userId: "b", tanggal: "2026-10-01", statusVerifikasi: "DISETUJUI" },
+      { userId: "admin", tanggal: "2026-10-01", statusVerifikasi: "DISETUJUI", adaBukti: true },
+    ], wajib);
+    expect(r[0]).toMatchObject({ catatan: 3, disetujui: 2, berbukti: 1, pengisi: 2 });
   });
 });

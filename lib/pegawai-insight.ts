@@ -309,7 +309,7 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
       }),
       db.pekerjaanHarian.findMany({
         where: { periodeId: periode.id },
-        select: { userId: true, tanggal: true, statusVerifikasi: true },
+        select: { id: true, userId: true, tanggal: true, statusVerifikasi: true },
       }),
     ]);
 
@@ -342,12 +342,8 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
 
     // Jumlah bukti per pegawai (butuh join ke pekerjaan).
     const buktiPerEntri = new Map(buktiAgg.map((b) => [b.pekerjaanHarianId, b._count._all]));
-    const entriBukti = await db.pekerjaanHarian.findMany({
-      where: { periodeId: periode.id },
-      select: { id: true, userId: true },
-    });
     const buktiPerUser = new Map<string, number>();
-    for (const e of entriBukti) {
+    for (const e of hariAgg) {
       const n = buktiPerEntri.get(e.id) ?? 0;
       if (n > 0) buktiPerUser.set(e.userId, (buktiPerUser.get(e.userId) ?? 0) + n);
     }
@@ -372,7 +368,12 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
     kepatuhanHarian = hitungKepatuhanHarian(
       hk.daftar,
       sekarang,
-      hariAgg.map((e) => ({ userId: e.userId, tanggal: e.tanggal.toISOString().slice(0, 10) })),
+      hariAgg.map((e) => ({
+        userId: e.userId,
+        tanggal: e.tanggal.toISOString().slice(0, 10),
+        statusVerifikasi: e.statusVerifikasi,
+        adaBukti: (buktiPerEntri.get(e.id) ?? 0) > 0,
+      })),
       wajibIds,
     );
   }
