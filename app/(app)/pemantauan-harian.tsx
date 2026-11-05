@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
+import { usePenyimpananLokal } from "@/hooks/use-penyimpanan-lokal";
 import { ACUAN_BAIK, ACUAN_CUKUP, type HariKepatuhan } from "@/lib/kepatuhan-harian";
 
 /*
@@ -100,27 +101,26 @@ export function PemantauanHarian({
   /** Kunci localStorage pilihan metrik/jenis (berbeda per halaman). */
   kunciSimpan?: string;
 }) {
-  const [metrikId, setMetrikId] = useState<MetrikId>("kepatuhan");
-  const [jenis, setJenis] = useState<Jenis>("batang");
-
-  // Pilihan terakhir diingat per perangkat (kenyamanan saja; aman bila penyimpanan diblokir).
-  useEffect(() => {
+  // Pilihan terakhir diingat per perangkat (kenyamanan saja). Pilihan sesi ini tetap berlaku walau
+  // penyimpanan diblokir; tanpa pilihan sesi, pakai yang tersimpan, lalu bawaan.
+  const [tersimpan, simpanLokal] = usePenyimpananLokal(kunciSimpan);
+  const [pilihanSesi, setPilihanSesi] = useState<{ metrik: MetrikId; jenis: Jenis } | null>(null);
+  const dariPerangkat = useMemo(() => {
     try {
-      const v = JSON.parse(localStorage.getItem(kunciSimpan) ?? "null") as { metrik?: string; jenis?: string } | null;
-      if (v?.metrik && v.metrik in METRIK) setMetrikId(v.metrik as MetrikId);
-      if (v?.jenis === "batang" || v?.jenis === "garis") setJenis(v.jenis);
+      const v = JSON.parse(tersimpan ?? "null") as { metrik?: string; jenis?: string } | null;
+      return {
+        metrik: v?.metrik && v.metrik in METRIK ? (v.metrik as MetrikId) : undefined,
+        jenis: v?.jenis === "batang" || v?.jenis === "garis" ? (v.jenis as Jenis) : undefined,
+      };
     } catch {
-      /* abaikan */
+      return {};
     }
-  }, [kunciSimpan]);
+  }, [tersimpan]);
+  const metrikId: MetrikId = pilihanSesi?.metrik ?? dariPerangkat.metrik ?? "kepatuhan";
+  const jenis: Jenis = pilihanSesi?.jenis ?? dariPerangkat.jenis ?? "batang";
   function simpan(m: MetrikId, j: Jenis) {
-    setMetrikId(m);
-    setJenis(j);
-    try {
-      localStorage.setItem(kunciSimpan, JSON.stringify({ metrik: m, jenis: j }));
-    } catch {
-      /* abaikan */
-    }
+    setPilihanSesi({ metrik: m, jenis: j });
+    simpanLokal(JSON.stringify({ metrik: m, jenis: j }));
   }
 
   if (hari.length === 0) {

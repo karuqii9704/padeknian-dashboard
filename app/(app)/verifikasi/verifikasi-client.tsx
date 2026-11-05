@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { angkaRingkas } from "@/lib/alokasi-format";
 import { labelTanggal } from "@/lib/tanggal-id";
@@ -56,7 +56,7 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
   const [galatCatatan, setGalatCatatan] = useState<string | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
   const dialogBulk = useRef<HTMLDialogElement>(null);
-  const [terpilih, setTerpilih] = useState<Set<string>>(new Set());
+  const [pilihanMentah, setTerpilih] = useState<Set<string>>(new Set());
   const [konfirmasiBulk, setKonfirmasiBulk] = useState(false);
   const [prosesBulk, setProsesBulk] = useState(false);
   const [galatBulk, setGalatBulk] = useState<{ pesan: string; masalah: { id: string; pesan: string }[] } | null>(null);
@@ -81,12 +81,12 @@ export function VerifikasiClient({ awal }: { awal: { rows: EntriAntrean[]; total
     else dialogBulk.current?.close();
   }, [konfirmasiBulk]);
 
-  // Pilihan yang sudah tidak ada di antrean (mis. diproses di perangkat lain) dibuang otomatis.
-  useEffect(() => {
-    if (!rows) return;
+  // Pilihan yang sudah tidak ada di antrean (mis. diproses di perangkat lain) diabaikan (diturunkan saat render).
+  const terpilih = useMemo(() => {
+    if (!rows) return pilihanMentah;
     const ada = new Set(rows.map((r) => r.id));
-    setTerpilih((prev) => (prev.size && [...prev].some((id) => !ada.has(id)) ? new Set([...prev].filter((id) => ada.has(id))) : prev));
-  }, [rows]);
+    return [...pilihanMentah].every((id) => ada.has(id)) ? pilihanMentah : new Set([...pilihanMentah].filter((id) => ada.has(id)));
+  }, [pilihanMentah, rows]);
 
   function togglePilih(id: string) {
     setTerpilih((prev) => {

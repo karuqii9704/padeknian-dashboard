@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { alokasiFormSchema, keBodyApi, type AlokasiFormValues } from "@/lib/alokasi-form";
 import { angkaRingkas } from "@/lib/alokasi-format";
@@ -44,7 +44,6 @@ export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId,
     register,
     control,
     handleSubmit,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<AlokasiFormValues>({
     resolver: zodResolver(alokasiFormSchema),
@@ -64,8 +63,8 @@ export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId,
     },
   });
   const { fields } = useFieldArray({ control, name: "penerima" });
-  const penerima = watch("penerima");
-  const targetUmum = watch("targetVolume");
+  const penerima = useWatch({ control, name: "penerima" });
+  const targetUmum = useWatch({ control, name: "targetVolume" });
 
   useEffect(() => {
     setServerError(null);

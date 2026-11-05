@@ -27,7 +27,7 @@ export function SalinDialog({ open, timId, periodeTujuanId, rentang, anggota, ke
   const dialog = useRef<HTMLDialogElement>(null);
   const [hasil, setHasil] = useState<Hasil | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(open);
   const [dipilih, setDipilih] = useState<Set<string>>(new Set());
   const [antrean, setAntrean] = useState<Hasil["draft"]>([]);
   const [idx, setIdx] = useState(0);
@@ -38,13 +38,8 @@ export function SalinDialog({ open, timId, periodeTujuanId, rentang, anggota, ke
       dialog.current?.close();
       return;
     }
+    // Komponen dipasang ulang setiap kali dibuka (lihat alokasi-client), jadi state awal sudah bersih.
     dialog.current?.showModal();
-    setHasil(null);
-    setError(null);
-    setAntrean([]);
-    setIdx(0);
-    setTersimpan(0);
-    setLoading(true);
     (async () => {
       const res = await fetch("/api/alokasi/salin", {
         method: "POST",

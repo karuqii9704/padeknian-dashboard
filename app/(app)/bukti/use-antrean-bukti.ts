@@ -28,7 +28,10 @@ export function useAntreanBukti(jumlahSudahAda = 0, { urlUnggah, objek }: OpsiAn
   const [items, setItems] = useState<ItemBukti[]>([]);
   const [galat, setGalat] = useState<string | null>(null);
   const ref = useRef<ItemBukti[]>([]);
-  ref.current = items;
+  // Salinan terbaru untuk callback async & pembersihan saat unmount; diperbarui setelah render, bukan saat render.
+  useEffect(() => {
+    ref.current = items;
+  }, [items]);
 
   const ubah = useCallback((key: string, patch: Partial<ItemBukti>) => {
     setItems((prev) => prev.map((i) => (i.key === key ? { ...i, ...patch } : i)));

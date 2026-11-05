@@ -5,7 +5,7 @@ import { BuktiPicker } from "../bukti/bukti-picker";
 import { DaftarBukti, type BuktiView } from "../bukti/daftar-bukti";
 import { useAntreanBukti } from "../bukti/use-antrean-bukti";
 import { kompresGambar, periksaFileLokal } from "@/lib/bukti-klien";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ADHOC, entriFormSchema, keBodyBaru, keBodyUbah, type EntriFormValues } from "@/lib/entri-form";
 import { angkaRingkas } from "@/lib/alokasi-format";
@@ -66,9 +66,9 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
+    control,
   } = useForm<EntriFormValues>({
     resolver: zodResolver(entriFormSchema),
     defaultValues: {
@@ -83,7 +83,7 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
     },
   });
 
-  const pilihan = watch("pilihan");
+  const pilihan = useWatch({ control, name: "pilihan" });
   const adhoc = pilihan === ADHOC;
   const opsi = alokasi.find((a) => a.penugasanId === pilihan);
   const satuan = ubah ? ubah.satuan : adhoc ? "" : (opsi?.satuan ?? "");

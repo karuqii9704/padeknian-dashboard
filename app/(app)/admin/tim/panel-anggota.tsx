@@ -39,8 +39,10 @@ export function PanelAnggota({
 }) {
   const [periodePilihan, setPeriodeId] = useState((periodes.find((x) => x.status === "AKTIF") ?? periodes[0])?.id ?? "");
   const periodeId = periodeIdTetap ?? periodePilihan;
-  const [anggota, setAnggota] = useState<AnggotaBaris[]>([]);
-  const [memuat, setMemuat] = useState(false);
+  // Anggota disimpan bersama periodenya: berganti periode = "memuat" sampai data periode itu tiba.
+  const [muatan, setMuatan] = useState<{ periodeId: string; anggota: AnggotaBaris[] } | null>(null);
+  const memuat = !!periodeId && muatan?.periodeId !== periodeId;
+  const anggota = useMemo(() => (muatan?.periodeId === periodeId ? muatan.anggota : []), [muatan, periodeId]);
   const [pilih, setPilih] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -48,14 +50,18 @@ export function PanelAnggota({
   const periode = periodes.find((p) => p.id === periodeId);
   const dikunci = periode?.status === "DIKUNCI";
 
-  const muat = useCallback(async () => {
-    if (!periodeId) return setAnggota([]);
-    setMemuat(true);
-    const r = await api(`/api/tim/${tim.id}/anggota?periodeId=${periodeId}`);
-    setMemuat(false);
-    if (!r.ok) return setError(r.body.pesan ?? "Gagal memuat anggota.");
-    setError(null);
-    setAnggota(r.body.anggota);
+  const muat = useCallback(() => {
+    if (!periodeId) return;
+    const pid = periodeId;
+    void api(`/api/tim/${tim.id}/anggota?periodeId=${pid}`).then((r) => {
+      if (!r.ok) {
+        setError(r.body.pesan ?? "Gagal memuat anggota.");
+        setMuatan({ periodeId: pid, anggota: [] });
+        return;
+      }
+      setError(null);
+      setMuatan({ periodeId: pid, anggota: r.body.anggota });
+    });
   }, [tim.id, periodeId]);
 
   useEffect(() => {
@@ -93,7 +99,7 @@ export function PanelAnggota({
       {dikunci && <p className="mb-3 text-sm text-ink-muted">Periode ini sudah dikunci; keanggotaan hanya dapat dilihat.</p>}
       <div className="mb-3" aria-busy={memuat}>
         <DaftarAnggota
-          anggota={memuat && anggota.length === 0 ? [] : anggota}
+          anggota={anggota}
           penggunaId={penggunaId}
           kosong={memuat ? "Memuat anggota…" : undefined}
           aksi={(a) =>

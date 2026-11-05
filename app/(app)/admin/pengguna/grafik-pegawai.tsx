@@ -32,7 +32,9 @@ export function DonatStatusVerifikasi({ data }: { data: AnalitikPegawai }) {
     );
   }
   const r = 15.915; // keliling = 100
-  let offset = 25;
+  // Offset tiap segmen dihitung di muka (tanpa memutasi variabel saat render): 25 = mulai dari arah jam 12.
+  const segmen = data.sebaranStatus.map((s) => ({ s, p: (s.jumlah / total) * 100 }));
+  const offsets = segmen.map((_, i) => 25 - segmen.slice(0, i).reduce((a, x) => a + x.p, 0));
   return (
     <div className="flex flex-wrap items-center justify-center gap-6">
       <svg
@@ -50,9 +52,7 @@ export function DonatStatusVerifikasi({ data }: { data: AnalitikPegawai }) {
           strokeWidth="5"
           className="stroke-track-strong"
         />
-        {data.sebaranStatus.map((s) => {
-          const p = (s.jumlah / total) * 100;
-          const el = (
+        {segmen.map(({ s, p }, i) => (
             <circle
               key={s.status}
               cx="21"
@@ -62,12 +62,9 @@ export function DonatStatusVerifikasi({ data }: { data: AnalitikPegawai }) {
               stroke={WARNA_STATUS[s.status] ?? "var(--color-track-strong)"}
               strokeWidth="5"
               strokeDasharray={`${p} ${100 - p}`}
-              strokeDashoffset={offset}
+              strokeDashoffset={offsets[i]}
             />
-          );
-          offset -= p;
-          return el;
-        })}
+        ))}
         <text
           x="21"
           y="20"

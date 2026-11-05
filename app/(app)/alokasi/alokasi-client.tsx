@@ -270,9 +270,10 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
         )}
       </dialog>
 
-      {bisaTambah && tim && periode && (
+      {/* Dipasang hanya saat dibuka: setiap pembukaan mulai dari state bersih tanpa reset di efek. */}
+      {bisaTambah && tim && periode && salinOpen && (
         <SalinDialog
-          open={salinOpen}
+          open
           timId={tim.id}
           periodeTujuanId={periode.id}
           rentang={{ mulai: periode.tanggalMulai.slice(0, 10), selesai: periode.tanggalSelesai.slice(0, 10) }}
