@@ -208,3 +208,12 @@ export async function ubahAnggota(
   });
   return { ok: true as const };
 }
+
+/** Calon anggota tim: seluruh pegawai/ketua tim aktif (tanpa batas halaman), urut nama. */
+export function calonAnggota() {
+  return db.user.findMany({
+    where: { isActive: true, role: { in: ["PEGAWAI", "KETUA_TIM"] } },
+    select: { id: true, nama: true, nip: true, role: true },
+    orderBy: { nama: "asc" },
+  });
+}

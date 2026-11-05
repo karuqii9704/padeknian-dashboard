@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { wajibLapor } from "@/lib/wajib-lapor";
 import { hariKerjaPeriode } from "@/lib/hari-kerja";
 import { persenAtauNull } from "@/lib/progres";
 
@@ -120,7 +121,7 @@ export function hitungInsight(
   }
 
   // 3. Pegawai belum mengisi laporan sama sekali -> risiko rekap kosong.
-  const belum = baris.filter((b) => b.jumlahEntri === 0 && b.hariKerjaBerlalu > 0);
+  const belum = baris.filter((b) => wajibLapor(b) && b.jumlahEntri === 0 && b.hariKerjaBerlalu > 0);
   if (belum.length > 0) {
     hasil.push({
       tingkat: belum.length >= 3 ? "galat" : "peringatan",
@@ -134,7 +135,7 @@ export function hitungInsight(
   }
 
   // 4. Kelengkapan rendah (< 50% hari kerja terisi).
-  const rendah = baris.filter((b) => b.persenHariTerisi !== null && b.persenHariTerisi < 50 && b.jumlahEntri > 0);
+  const rendah = baris.filter((b) => wajibLapor(b) && b.persenHariTerisi !== null && b.persenHariTerisi < 50 && b.jumlahEntri > 0);
   if (rendah.length > 0) {
     hasil.push({
       tingkat: "peringatan",

@@ -33,6 +33,7 @@ export function RekapClient({ role, awal }: { role: string; awal: { periodes: Pe
   const [memulai, setMemulai] = useState(false);
   const [terbuka, setTerbuka] = useState<string | null>(null);
   const [riwayat, setRiwayat] = useState<Versi[] | null>(null);
+  const [cari, setCari] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const bisaGenerate = role === "ADMIN" || role === "PIMPINAN";
 
@@ -97,6 +98,8 @@ export function RekapClient({ role, awal }: { role: string; awal: { periodes: Pe
   }
 
   const berjalan = data?.sedangBerjalan ?? false;
+  const q = cari.trim().toLowerCase();
+  const baris = (data?.data ?? []).filter((r) => !q || r.nama.toLowerCase().includes(q) || r.nip.includes(q) || r.tim.some((t) => t.toLowerCase().includes(q)));
   const selesai = data?.data.filter((d) => d.rekap?.status === "SELESAI").length ?? 0;
   const total = data?.data.length ?? 0;
 
@@ -147,6 +150,12 @@ export function RekapClient({ role, awal }: { role: string; awal: { periodes: Pe
         </div>
       )}
 
+      {data && data.data.length > 1 && (
+        <div className="flex justify-end">
+          <label className="sr-only" htmlFor="f-cari-rekap">Cari pegawai, NIP, atau tim</label>
+          <input id="f-cari-rekap" type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama, NIP, atau tim…" className="field w-64 max-w-full text-sm" />
+        </div>
+      )}
       {data && (
         <div className="overflow-x-auto rounded border">
           <table className="w-full min-w-[560px] text-left text-sm">
@@ -160,7 +169,7 @@ export function RekapClient({ role, awal }: { role: string; awal: { periodes: Pe
               </tr>
             </thead>
             <tbody>
-              {data.data.map((r) => {
+              {baris.map((r) => {
                 const st = r.rekap ? STATUS[r.rekap.status] : null;
                 return (
                   <Fragment key={r.userId}>
@@ -232,6 +241,13 @@ export function RekapClient({ role, awal }: { role: string; awal: { periodes: Pe
                   </Fragment>
                 );
               })}
+              {data.data.length > 0 && baris.length === 0 && (
+                <tr>
+                  <td colSpan={5}>
+                    <EmptyState kecil judul={`Tidak ada pegawai yang cocok dengan "${cari.trim()}".`} />
+                  </td>
+                </tr>
+              )}
               {data.data.length === 0 && (
                 <tr>
                   <td colSpan={5}>

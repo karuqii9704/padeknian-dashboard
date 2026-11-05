@@ -64,6 +64,13 @@ npx tsx scripts/seed-pengguna-dummy.ts --nonaktifkan --ya                    # n
 
 Skrip menolak database bernama `*e2e*`, melewati NIP yang sudah ada (idempoten), dan tidak mengubah periode yang DIKUNCI atau mengganti periode aktif lain. Keanggotaan tim berlaku per periode: tambahkan anggota untuk periode aktif agar ketua melihat event dan catatan mereka.
 
+## Tim Saya, Audit Log, dan fitur per peran
+
+- `/tim-saya` (Pegawai dan Ketua Tim): tim yang diikuti pada periode terpilih beserta anggotanya. Ketua tim ditandai label "Ketua tim" dan warna kuning; akun sendiri ditandai "Anda". Untuk tim yang dipimpinnya, ketua dapat menambah/mengeluarkan anggota periode yang belum dikunci (otorisasi tetap di `POST /api/tim/:id/anggota`).
+- `/admin/audit-log` dan `GET /api/audit-log?aksi=&q=&dari=&sampai=&page=` (Admin): jejak login, perubahan akun/peran, reset password, verifikasi, alokasi, kunci periode, dan unduhan arsip; tanggal dibaca dalam WIB.
+- Tabel "Ringkasan per pegawai" di dashboard dapat dicari dan diurutkan, dan tampil bertahap per 50 baris; halaman Rekap dapat dicari per nama/NIP/tim.
+- Insight "belum mengisi" dan "di bawah 50%" di Informasi Pegawai hanya menghitung akun aktif berperan Pegawai/Ketua Tim (Admin dan Pimpinan tidak wajib mencatat).
+
 ## Dashboard & profil pegawai
 
 - `/dashboard` (Ketua Tim, Pimpinan): KPI, tren pengisian harian, sebaran status verifikasi, kepatuhan per tim, peta kepatuhan (pegawai × hari kerja), dan ringkasan per pegawai. Data awal dirender di server.

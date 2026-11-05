@@ -1,6 +1,7 @@
 "use client";
 
 import type { AnalitikPegawai, BarisPegawai } from "@/lib/pegawai-insight";
+import { wajibLapor } from "@/lib/wajib-lapor";
 
 /*
  * Grafik pendukung halaman "Informasi Pegawai". Tanpa pustaka eksternal (SVG + CSS) supaya
@@ -289,7 +290,7 @@ export function TrenHarianPegawai({ data }: { data: AnalitikPegawai }) {
  *  Persen dihitung terhadap hari kerja yang sudah BERLALU (periode berjalan) atau
  *  seluruh hari kerja (periode selesai) — disesuaikan di server (lib/pegawai-insight). */
 export function KelengkapanPegawai({ baris }: { baris: BarisPegawai[] }) {
-  const punya = baris.filter((b) => b.hariKerjaBerlalu > 0);
+  const punya = baris.filter((b) => wajibLapor(b) && b.hariKerjaBerlalu > 0);
   if (punya.length === 0) {
     return <p className="py-10 text-center text-sm text-muted-foreground">Belum ada hari kerja berjalan pada periode ini.</p>;
   }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { AnalitikPegawai } from "@/lib/pegawai-insight";
+import { wajibLapor } from "@/lib/wajib-lapor";
 import { Alert, PageHeader } from "../../../ui/primitives";
 import {
   BatangPeran,
@@ -87,7 +88,7 @@ export function InformasiPegawai({ data }: { data: AnalitikPegawai }) {
   const r = data.ringkasan;
   const totalEntri = data.baris.reduce((a, b) => a + b.jumlahEntri, 0);
   const totalBukti = data.baris.reduce((a, b) => a + b.totalBukti, 0);
-  const belumIsi = data.baris.filter((b) => b.jumlahEntri === 0 && b.hariKerjaBerlalu > 0).length;
+  const belumIsi = data.baris.filter((b) => wajibLapor(b) && b.jumlahEntri === 0 && b.hariKerjaBerlalu > 0).length;
 
   return (
     <section aria-labelledby="h-info-pegawai" className="space-y-5">

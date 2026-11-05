@@ -2,13 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { PageHeader } from "../../../ui/primitives";
+import { PanelAnggota } from "./panel-anggota";
 
 type Tim = { id: string; nama: string; tahun: number; isActive: boolean; ketua: { id: string; nama: string; nip: string } };
 type Periode = { id: string; tahun: number; bulan: number; status: "DRAFT" | "AKTIF" | "DIKUNCI" };
-type Anggota = { userId: string; nama: string; nip: string; peranDalamTim: "KETUA" | "ANGGOTA" };
 type User = { id: string; nama: string; nip: string; role: string };
 
-const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 const btn = "min-h-11 rounded border px-3 text-sm";
 
 async function api(url: string, init?: RequestInit) {
@@ -24,9 +23,6 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Tim | "baru" | null>(null);
   const [panel, setPanel] = useState<Tim | null>(null);
-  const [periodeId, setPeriodeId] = useState((awal.periodes.find((x) => x.status === "AKTIF") ?? awal.periodes[0])?.id ?? "");
-  const [anggota, setAnggota] = useState<Anggota[]>([]);
-  const [pilih, setPilih] = useState("");
   const dialog = useRef<HTMLDialogElement>(null);
 
   const loadTims = useCallback(async () => {
@@ -34,18 +30,6 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
     if (!r.ok) return setError(r.body.pesan ?? "Gagal memuat tim.");
     setTims(r.body.data);
   }, []);
-
-  const loadAnggota = useCallback(async () => {
-    if (!panel || !periodeId) return setAnggota([]);
-    const r = await api(`/api/tim/${panel.id}/anggota?periodeId=${periodeId}`);
-    if (!r.ok) return setError(r.body.pesan ?? "Gagal memuat anggota.");
-    setError(null);
-    setAnggota(r.body.anggota);
-  }, [panel, periodeId]);
-
-  useEffect(() => {
-    loadAnggota();
-  }, [loadAnggota]);
 
   useEffect(() => {
     if (editing) dialog.current?.showModal();
@@ -66,17 +50,7 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
     loadTims();
   }
 
-  async function ubahAnggota(body: { tambah?: string[]; hapus?: string[] }) {
-    if (!panel) return;
-    const r = await api(`/api/tim/${panel.id}/anggota`, { method: "POST", body: JSON.stringify({ periodeId, ...body }) });
-    if (!r.ok) return setError(r.body.pesan ?? "Gagal mengubah anggota.");
-    setError(null);
-    setPilih("");
-    loadAnggota();
-  }
-
   const edit = editing && editing !== "baru" ? editing : null;
-  const sudah = new Set(anggota.map((a) => a.userId));
 
   return (
     <main className="mx-auto max-w-6xl space-y-6 px-4 py-6 sm:px-6">
@@ -107,53 +81,7 @@ export function TimClient({ awal }: { awal: { tims: Tim[]; ketuaOpsi: User[]; pe
         </tbody>
       </table></div>
 
-      {panel && (
-        <section className="rounded border p-4">
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <h2 className="font-semibold">Anggota: {panel.nama}</h2>
-            <select value={periodeId} onChange={(e) => setPeriodeId(e.target.value)} className="min-h-11 rounded border px-2" aria-label="Periode">
-              {periodes.map((p) => <option key={p.id} value={p.id}>{BULAN[p.bulan - 1]} {p.tahun} ({p.status})</option>)}
-            </select>
-            <button type="button" onClick={() => setPanel(null)} className={`${btn} ml-auto`}>Tutup</button>
-          </div>
-          <ul className="mb-3 divide-y text-sm">
-            {anggota.map((a) => (
-              <li key={a.userId} className="flex items-center justify-between gap-3 py-2">
-                <span className="min-w-0">
-                  <span className="break-words">{a.nama}</span>{" "}
-                  <span className="text-ink-muted">({a.nip})</span>{" "}
-                  {a.peranDalamTim === "KETUA" && (
-                    <span className="ml-1 inline-flex items-center rounded bg-brand-50 px-1.5 py-0.5 text-xs font-medium text-brand-700 dark:bg-[#0a1a33] dark:text-brand-200">
-                      Ketua tim
-                    </span>
-                  )}
-                </span>
-                {a.peranDalamTim !== "KETUA" && (
-                  <button
-                    type="button"
-                    onClick={() => ubahAnggota({ hapus: [a.userId] })}
-                    className={`${btn} shrink-0`}
-                    aria-label={`Hapus ${a.nama} dari anggota tim`}
-                  >
-                    Hapus
-                  </button>
-                )}
-              </li>
-            ))}
-            {anggota.length === 0 && <li className="py-2 text-ink-muted">Belum ada anggota pada periode ini.</li>}
-          </ul>
-          <div className="flex flex-col gap-2 sm:flex-row">
-            <label className="flex min-w-0 flex-1 flex-col gap-1 text-sm">
-              <span className="sr-only">Pilih pegawai untuk ditambahkan sebagai anggota</span>
-              <select value={pilih} onChange={(e) => setPilih(e.target.value)} className="min-h-11 w-full rounded border px-2" aria-label="Tambah anggota">
-                <option value="">Pilih pegawai…</option>
-                {pegawai.filter((u) => !sudah.has(u.id) && u.id !== panel.ketua.id).map((u) => <option key={u.id} value={u.id}>{u.nama} ({u.nip})</option>)}
-              </select>
-            </label>
-            <button type="button" disabled={!pilih || !periodeId} onClick={() => ubahAnggota({ tambah: [pilih] })} className="btn btn-primary shrink-0 disabled:opacity-50">Tambah</button>
-          </div>
-        </section>
-      )}
+      {panel && <PanelAnggota key={panel.id} tim={panel} periodes={periodes} calon={pegawai} onTutup={() => setPanel(null)} />}
 
       <dialog ref={dialog} aria-label="Form tim kerja" onClose={() => setEditing(null)} className="m-auto w-full max-w-md rounded p-5">
         {editing && (
