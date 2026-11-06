@@ -1,10 +1,10 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { contohPng } from "../lib/testing/mini-zip";
 import { USERS } from "./support/data";
 import { anggotaTim, buatAlokasi, catat, periodeAktif, sebagai, timMilik } from "./support/api";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 
@@ -125,11 +125,13 @@ test("filter tim/pegawai/periode; pagar akses lintas tim", async ({ browser }) =
   expect((await pim.request.get(`/api/dashboard/pegawai?periodeId=${lalu.id}&userId=${rinaId}`)).status()).toBe(404);
   await pim.tutup();
 
-  for (const nip of [USERS.yul.nip, USERS.admin.nip]) {
-    const u = await sebagai(browser, nip);
-    expect((await u.request.get("/api/dashboard/pegawai")).status(), nip).toBe(403);
-    await u.tutup();
-  }
+  const yulSesi = await sebagai(browser, USERS.yul.nip);
+  expect((await yulSesi.request.get("/api/dashboard/pegawai")).status(), "pegawai").toBe(403);
+  await yulSesi.tutup();
+  // Admin ikut memantau seluruh tim (sama seperti pimpinan).
+  const adminSesi = await sebagai(browser, USERS.admin.nip);
+  expect((await adminSesi.request.get("/api/dashboard/pegawai")).status(), "admin").toBe(200);
+  await adminSesi.tutup();
 });
 
 test("drill-down: entri harian pegawai lengkap dengan bukti & riwayat; hanya yang berwenang", async ({ browser }) => {

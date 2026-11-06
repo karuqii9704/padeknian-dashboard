@@ -26,17 +26,17 @@ export function NotifikasiBell() {
   const [galat, setGalat] = useState<string | null>(null);
   const wadah = useRef<HTMLDivElement>(null);
 
-  const muat = useCallback(async () => {
-    try {
-      const res = await fetch("/api/notifikasi?pageSize=10");
-      if (!res.ok) return;
-      const body = await res.json();
-      setBelumDibaca(body.belumDibaca);
-      setDaftar(body.data);
-      setGalat(null);
-    } catch {
-      setGalat("Gagal memuat notifikasi.");
-    }
+  // State hanya diubah di callback promise (bukan sinkron di badan efek).
+  const muat = useCallback(() => {
+    void fetch("/api/notifikasi?pageSize=10")
+      .then(async (res) => {
+        if (!res.ok) return;
+        const body = await res.json();
+        setBelumDibaca(body.belumDibaca);
+        setDaftar(body.data);
+        setGalat(null);
+      })
+      .catch(() => setGalat("Gagal memuat notifikasi."));
   }, []);
 
   useEffect(() => {

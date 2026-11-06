@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 type Ctx = { params: Promise<{ id: string }> };
 
 export const GET = handle(async (req: Request, ctx: Ctx) => {
-  const user = await requireRole("KETUA_TIM", "PIMPINAN");
+  const user = await requireRole("KETUA_TIM", "PIMPINAN", "ADMIN");
   const id = parseParam((await ctx.params).id, uuidSchema, "Pegawai tidak ditemukan.");
   const parsed = dashboardQuery.safeParse(Object.fromEntries(new URL(req.url).searchParams));
   if (!parsed.success) return NextResponse.json({ pesan: "Parameter tidak valid." }, { status: 400 });

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { notFound, redirect } from "next/navigation";
+import { forbidden, notFound, redirect } from "next/navigation";
 import { angkaRingkas } from "@/lib/alokasi-format";
 import { SEL } from "@/lib/dashboard-analitik";
 import { db } from "@/lib/db";
@@ -13,7 +13,7 @@ import { IndikatorBukti } from "../../../bukti/indikator-bukti";
 import { StatusBadge } from "../../../status-badge";
 import { IkonKiri } from "../../../../ui/icons";
 import { inisial } from "../../../../ui/inisial";
-import { EmptyState, Halaman, PageHeader } from "../../../../ui/primitives";
+import { EmptyState, Halaman } from "../../../../ui/primitives";
 import { PilihPeriode } from "./pilih-periode";
 
 export const dynamic = "force-dynamic";
@@ -39,15 +39,11 @@ export default async function ProfilPegawaiPage({ params, searchParams }: { para
   const [{ id }, sp] = await Promise.all([params, searchParams]);
   let me;
   try {
-    me = await requireRole("KETUA_TIM", "PIMPINAN");
+    me = await requireRole("KETUA_TIM", "PIMPINAN", "ADMIN");
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) redirect("/login");
     if (e instanceof HttpError && e.status === 403 && e.message.includes("mengganti password")) redirect("/ganti-password");
-    return (
-      <Halaman lebar="max-w-xl">
-        <PageHeader judul="Akses ditolak" keterangan="Profil pegawai untuk Ketua Tim dan Pimpinan." />
-      </Halaman>
-    );
+    forbidden(); // HTTP 403 + app/(app)/forbidden.tsx
   }
   if (!uuidSchema.safeParse(id).success) notFound();
   const periodeId = uuidSchema.safeParse(sp.periodeId).success ? sp.periodeId : undefined;

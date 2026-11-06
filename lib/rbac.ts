@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import type { Role } from "@prisma/client";
 import { auth } from "@/auth";
 import { db } from "@/lib/db";
+import { sesiDicabut } from "@/lib/session-policy";
 
 export class HttpError extends Error {
   constructor(
@@ -32,10 +33,13 @@ export function isOwner(user: Pick<SessionUser, "id">, ownerId: string) {
 export const penggunaSesi = cache(async () => {
   const session = await auth();
   if (!session?.user) return undefined; // tanpa sesi (berbeda dari null = akun tidak ditemukan)
-  return db.user.findUnique({
+  const u = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, nip: true, nama: true, role: true, isActive: true, mustChangePassword: true },
+    select: { id: true, nip: true, nama: true, role: true, isActive: true, mustChangePassword: true, sesiBerlakuSejak: true },
   });
+  // Password diganti/di-reset setelah sesi ini login: perlakukan seperti tanpa sesi (wajib login ulang).
+  if (u && sesiDicabut(session.user.authAt, u.sesiBerlakuSejak)) return undefined;
+  return u;
 });
 
 /** Sesi valid + akun masih aktif (cek DB, sehingga nonaktif langsung berlaku). */

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { BuktiPicker } from "../bukti/bukti-picker";
 import { DaftarBukti, type BuktiView } from "../bukti/daftar-bukti";
@@ -46,10 +46,10 @@ export function EventForm({ awal, hariIni, onSaved, onCancel }: Props) {
   const {
     register,
     handleSubmit,
-    watch,
     getValues,
     setValue,
     formState: { errors, isSubmitting },
+    control,
   } = useForm<BuatEventInput>({
     resolver: zodResolver(buatEventSchema),
     defaultValues: {
@@ -62,7 +62,7 @@ export function EventForm({ awal, hariIni, onSaved, onCancel }: Props) {
       uraianHasil: awal?.uraianHasil ?? "",
     },
   });
-  const mulai = watch("tanggalMulai");
+  const mulai = useWatch({ control, name: "tanggalMulai" });
 
   async function hapusLampiran(b: BuktiView) {
     if (!confirm(`Hapus lampiran "${b.namaAsli}"?`)) return;
@@ -163,7 +163,7 @@ export function EventForm({ awal, hariIni, onSaved, onCancel }: Props) {
 
         <label className={lbl}>
           Uraian hasil
-          <textarea {...register("uraianHasil")} rows={4} className={area} aria-invalid={!!errors.uraianHasil} placeholder="Hasil, kesepakatan, atau tindak lanjut" />
+          <textarea {...register("uraianHasil")} maxLength={5000} rows={4} className={area} aria-invalid={!!errors.uraianHasil} placeholder="Hasil, kesepakatan, atau tindak lanjut" />
           {errors.uraianHasil && <span className={err}>{errors.uraianHasil.message}</span>}
         </label>
       </fieldset>

@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -25,6 +24,8 @@ model User {
   isActive           Boolean   @default(true) @map("is_active")
   mustChangePassword Boolean   @default(false) @map("must_change_password")
   lastLoginAt        DateTime? @map("last_login_at") @db.Timestamptz
+  /// Sesi (JWT) yang login sebelum waktu ini ditolak; diisi saat password diganti/di-reset.
+  sesiBerlakuSejak   DateTime? @map("sesi_berlaku_sejak") @db.Timestamptz
   createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamptz
   updatedAt          DateTime  @updatedAt @map("updated_at") @db.Timestamptz
 
@@ -70,9 +71,12 @@ model AuditLog {
 model LoginAttempt {
   id         BigInt   @id @default(autoincrement())
   identifier String   @db.VarChar(160)
+  /// IP klien (dari proxy tepercaya); kunci akun berlaku per pasangan akun+IP.
+  ipAddress  String?  @map("ip_address") @db.VarChar(64)
   createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
 
   @@index([identifier, createdAt])
+  @@index([ipAddress, createdAt])
   @@map("LoginAttempt")
 }
 

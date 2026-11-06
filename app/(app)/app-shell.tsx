@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOutIcon, MoonIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, SunIcon } from "lucide-react";
+import { LogOutIcon, MoonIcon, PanelLeftCloseIcon, PanelLeftOpenIcon, ScrollTextIcon, SunIcon } from "lucide-react";
 import { Lambang } from "../brand";
 import { useTema } from "../theme";
 import {
@@ -61,12 +61,22 @@ function menu(role: string, revisi: number, verifikasi: number): Grup[] {
   const alokasi: Item = { href: "/alokasi", label: "Alokasi", ikon: IkonAlokasi };
   const dashboard: Item = { href: "/dashboard", label: "Dashboard", ikon: IkonDashboard };
   const rekap: Item = { href: "/rekap", label: "Rekap", ikon: IkonRekap };
+  const timSaya: Item = { href: "/tim-saya", label: "Tim Saya", ikon: IkonTim };
+  const rekapSaya: Item = { href: "/rekap-saya", label: "Rekap Saya", ikon: IkonRekap };
 
-  if (role === "PEGAWAI") return [{ judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event, alokasi] }];
+  if (role === "PEGAWAI") return [{ judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event, alokasi, timSaya, rekapSaya] }];
   if (role === "KETUA_TIM") {
     return [
-      { judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event] },
-      { judul: "Tim", item: [{ href: "/verifikasi", label: "Verifikasi", ikon: IkonVerifikasi, badge: verifikasi, warna: "emas" }, dashboard, alokasi] },
+      { judul: "Pekerjaan saya", item: [beranda, hariIni, kalender, rev, event, rekapSaya] },
+      {
+        judul: "Tim",
+        item: [
+          { href: "/verifikasi", label: "Verifikasi", ikon: IkonVerifikasi, badge: verifikasi, warna: "emas" },
+          dashboard,
+          alokasi,
+          timSaya,
+        ],
+      },
       { judul: "Laporan", item: [rekap] },
     ];
   }
@@ -81,7 +91,9 @@ function menu(role: string, revisi: number, verifikasi: number): Grup[] {
           { href: "/admin/kegiatan", label: "Kegiatan", ikon: IkonKegiatan },
         ],
       },
+      { judul: "Pemantauan", item: [dashboard] },
       { judul: "Laporan", item: [rekap, alokasi] },
+      { judul: "Keamanan", item: [{ href: "/admin/audit-log", label: "Audit Log", ikon: (p) => <ScrollTextIcon {...p} /> }] },
     ];
   }
   return [{ judul: "Pemantauan", item: [dashboard, alokasi] }, { judul: "Laporan", item: [rekap] }];
@@ -302,6 +314,9 @@ export function AppShell({ nama, role, revisi, verifikasi, children }: { nama: s
                   <p className="text-xs text-muted-foreground">{ROLE_LABEL[role]}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/bantuan">Bantuan</Link>
+                </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link href="/ganti-password">Ganti password</Link>
                 </DropdownMenuItem>

@@ -3,11 +3,15 @@ import { GeistSans } from "geist/font/sans";
 import { GeistMono } from "geist/font/mono";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider, skripTema } from "./theme";
+import { DaftarSW } from "./daftar-sw";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Dashboard Pekerjaan Harian – BPS Kerinci",
   description: "Pencatatan pekerjaan harian dan rekap SKP pegawai BPS Kabupaten Kerinci",
+  applicationName: "Padeknian",
+  appleWebApp: { capable: true, title: "Padeknian", statusBarStyle: "default" },
+  icons: { apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport: Viewport = {
@@ -33,6 +37,7 @@ export default function RootLayout({
       <body className="antialiased">
         <ThemeProvider>
           <TooltipProvider>{children}</TooltipProvider>
+          <DaftarSW />
         </ThemeProvider>
       </body>
     </html>

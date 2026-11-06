@@ -1,10 +1,10 @@
 import { expect, test, type APIRequestContext, type Browser } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { recalculateProgresAlokasi } from "../lib/progres-alokasi";
 import { USERS } from "./support/data";
 import { loginUI } from "./support/auth";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 
 async function api(request: APIRequestContext, method: "post" | "patch" | "delete" | "get", url: string, data?: unknown) {

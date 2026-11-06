@@ -259,7 +259,7 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
             <h2 className="text-lg font-semibold">Batalkan alokasi</h2>
             <p className="text-sm">&ldquo;{batal.judul}&rdquo; akan ditandai dibatalkan. Entri yang sudah ada tetap tersimpan.</p>
             <label className="flex flex-col gap-1 text-sm">Alasan pembatalan
-              <textarea value={alasan} onChange={(e) => setAlasan(e.target.value)} rows={3} className="field py-2" />
+              <textarea value={alasan} onChange={(e) => setAlasan(e.target.value)} maxLength={1000} rows={3} className="field py-2" />
             </label>
             {batalError && <p role="alert" className="text-xs text-red-700">{batalError}</p>}
             <div className="flex justify-end gap-2">
@@ -270,9 +270,10 @@ export function AlokasiClient({ role, awal }: { meId: string; role: string; awal
         )}
       </dialog>
 
-      {bisaTambah && tim && periode && (
+      {/* Dipasang hanya saat dibuka: setiap pembukaan mulai dari state bersih tanpa reset di efek. */}
+      {bisaTambah && tim && periode && salinOpen && (
         <SalinDialog
-          open={salinOpen}
+          open
           timId={tim.id}
           periodeTujuanId={periode.id}
           rentang={{ mulai: periode.tanggalMulai.slice(0, 10), selesai: periode.tanggalSelesai.slice(0, 10) }}

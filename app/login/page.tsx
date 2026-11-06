@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { usePenyimpananLokal } from "@/hooks/use-penyimpanan-lokal";
 import { useRouter } from "next/navigation";
 import { AuthShell } from "../auth-shell";
 import { PasswordField } from "../password-field";
@@ -13,19 +14,15 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const idRef = useRef<HTMLInputElement>(null);
-  const [ingat, setIngat] = useState(false);
+  const [tersimpan, simpanIdentitas] = usePenyimpananLokal(KUNCI_INGAT);
+  // Bawaan "ingat saya" mengikuti ada/tidaknya identitas tersimpan sampai pengguna mengubahnya.
+  const [ingatPilihan, setIngat] = useState<boolean | null>(null);
+  const ingat = ingatPilihan ?? !!tersimpan;
 
   useEffect(() => {
-    try {
-      const tersimpan = localStorage.getItem(KUNCI_INGAT);
-      if (tersimpan && idRef.current && !idRef.current.value) {
-        idRef.current.value = tersimpan;
-        setIngat(true);
-      }
-    } catch {
-      /* penyimpanan lokal tidak tersedia: abaikan */
-    }
-  }, []);
+    // Isi kolom identitas dari perangkat (sinkronisasi DOM saja; kolom tetap tak terkendali).
+    if (tersimpan && idRef.current && !idRef.current.value) idRef.current.value = tersimpan;
+  }, [tersimpan]);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -39,12 +36,7 @@ export default function LoginPage() {
     });
     const body = await res.json().catch(() => ({}));
     setLoading(false);
-    try {
-      if (res.ok && ingat) localStorage.setItem(KUNCI_INGAT, String(f.get("identifier") ?? ""));
-      else if (res.ok) localStorage.removeItem(KUNCI_INGAT);
-    } catch {
-      /* abaikan */
-    }
+    if (res.ok) simpanIdentitas(ingat ? String(f.get("identifier") ?? "") : null);
     if (!res.ok) {
       setError(body.pesan ?? "Login gagal. Coba lagi.");
       return;

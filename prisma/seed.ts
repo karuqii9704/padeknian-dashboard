@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import bcrypt from "bcryptjs";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 
 // Hanya libur nasional bertanggal tetap. Libur yang tanggalnya berubah tiap tahun
 // (Idul Fitri, Idul Adha, Nyepi, Waisak, dll.) wajib diinput Admin dari SKB resmi.

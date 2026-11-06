@@ -1,11 +1,11 @@
 import { expect, test, type APIRequestContext } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { contohPng } from "../lib/testing/mini-zip";
 import { E2E_PASSWORD, NIP_GAGAL, USERS } from "./support/data";
 import bcrypt from "bcryptjs";
 import { anggotaTim, buatAlokasi, catat, periodeAktif, sebagai, timMilik } from "./support/api";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 

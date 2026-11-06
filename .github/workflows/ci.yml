@@ -11,6 +11,7 @@ jobs:
     env:
       DATABASE_URL: postgresql://padeknian:padeknian@127.0.0.1:5432/padeknian_e2e
       NEXTAUTH_SECRET: ci-secret-ci-secret-ci-secret-ci-secret
+      CRON_SECRET: ci-cron-secret-ci-cron-secret
     services:
       postgres:
         image: postgres:16-alpine

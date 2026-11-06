@@ -23,11 +23,12 @@ const volumeEntri = z
   .max(9_999_999_999.99, "Volume terlalu besar.")
   .refine((v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, "Volume maksimal 2 angka desimal.");
 
-const deskripsi = z.string().trim().min(1, "Deskripsi capaian wajib diisi.");
+const deskripsi = z.string().trim().min(1, "Deskripsi capaian wajib diisi.").max(5000, "Deskripsi capaian maksimal 5000 karakter.");
 const satuan = z.string().trim().min(1, "Satuan wajib diisi.").max(30, "Satuan maksimal 30 karakter.");
 const kendala = z
   .string()
   .trim()
+  .max(2000, "Kendala maksimal 2000 karakter.")
   .transform((v) => (v === "" ? null : v))
   .nullish();
 

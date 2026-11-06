@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { angkaRingkas } from "@/lib/alokasi-format";
 import type { DashboardLengkap } from "@/lib/dashboard-lengkap";
 import { labelTanggal } from "@/lib/tanggal-id";
@@ -10,7 +10,9 @@ import { IndikatorBukti } from "../bukti/indikator-bukti";
 import { StatusBadge } from "../status-badge";
 import { IkonKanan, IkonUnduh } from "../../ui/icons";
 import { Alert, EmptyState, PageHeader } from "../../ui/primitives";
-import { DonatStatus, HeatmapKepatuhan, KepatuhanTim, Legenda, TrenHarian } from "./grafik";
+import { DonatStatus, HeatmapKepatuhan, KepatuhanTim, Legenda } from "./grafik";
+import { PemantauanHarian } from "../pemantauan-harian";
+import { KecepatanVerifikasiPanel } from "./kecepatan-verifikasi";
 
 type Opsi = { periode: { id: string; tahun: number; bulan: number; status: string }[]; tim: { id: string; nama: string }[] };
 type BarisPegawai = DashboardLengkap["tabel"]["data"][number];
@@ -34,6 +36,13 @@ const BULAN = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "
 const STATUS_PERIODE: Record<string, string> = { AKTIF: "aktif", DRAFT: "draf", DIKUNCI: "dikunci" };
 const AKSI_LABEL: Record<string, string> = { SETUJUI: "Disetujui", MINTA_REVISI: "Diminta revisi", TOLAK: "Ditolak" };
 const desimal = (n: number) => String(n).replace(".", ",");
+const LANGKAH_TABEL = 50;
+type Urutan = "nama" | "hari-terendah" | "menunggu-terbanyak";
+const URUTAN: Record<Urutan, (a: BarisPegawai, b: BarisPegawai) => number> = {
+  nama: (a, b) => a.nama.localeCompare(b.nama, "id"),
+  "hari-terendah": (a, b) => (a.persenHariTerisi ?? -1) - (b.persenHariTerisi ?? -1) || a.nama.localeCompare(b.nama, "id"),
+  "menunggu-terbanyak": (a, b) => b.entriMenunggu - a.entriMenunggu || a.nama.localeCompare(b.nama, "id"),
+};
 
 async function getJson(url: string) {
   const res = await fetch(url);
@@ -87,6 +96,9 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
   const [mengekspor, setMengekspor] = useState(false);
   const [infoEkspor, setInfoEkspor] = useState<string | null>(null);
   const pertama = useRef(true);
+  const [cari, setCari] = useState("");
+  const [urut, setUrut] = useState<Urutan>("nama");
+  const [batas, setBatas] = useState(LANGKAH_TABEL);
 
   const query = (denganPegawai: boolean) => {
     const q = new URLSearchParams();
@@ -157,9 +169,15 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
 
   const k = data?.ringkasan.kpi;
   const tabel = data?.tabel;
+  // Tabel per pegawai: saring nama/tim, urutkan, lalu tampilkan bertahap agar 100+ pegawai tidak memanjangkan halaman.
+  const barisTabel = useMemo(() => {
+    const q = cari.trim().toLowerCase();
+    const cocok = (tabel?.data ?? []).filter((r) => !q || r.nama.toLowerCase().includes(q) || r.tim.some((t) => t.toLowerCase().includes(q)));
+    return [...cocok].sort(URUTAN[urut]);
+  }, [tabel, cari, urut]);
+  useEffect(() => setBatas(LANGKAH_TABEL), [tabel, cari, urut]);
   const analitik = data?.analitik;
   const periode = data?.ringkasan.periode;
-  const totalPegawaiHeatmap = analitik?.heatmap.length ?? 0;
   const belumMengisiHariIni = k ? Math.max(0, k.pegawaiAktif - k.pegawaiMengisiHariIni) : 0;
 
   return (
@@ -246,8 +264,8 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
         {analitik && periode && (
           <>
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
-              <Panel judul="Tren pengisian harian" ket="Jumlah entri per hari kerja yang sudah berjalan, menurut status verifikasi." aksi={<Legenda />}>
-                <TrenHarian tren={analitik.tren} totalPegawai={totalPegawaiHeatmap} />
+              <Panel judul="Tren pengisian harian" ket="Pilih yang ingin dipantau per hari kerja yang sudah berjalan; tampilkan sebagai batang atau garis.">
+                <PemantauanHarian hari={analitik.harian} cakupan="anggota aktif tim pada cakupan ini" kunciSimpan="padeknian.pemantauan-dashboard" />
               </Panel>
               <Panel judul="Status verifikasi" ket="Seluruh entri pada periode ini.">
                 <DonatStatus status={analitik.status} />
@@ -279,13 +297,43 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
           </>
         )}
 
+        {data?.kecepatan && (
+          <Panel
+            judul="Kecepatan verifikasi"
+            ket={role === "KETUA_TIM" ? "Seberapa cepat catatan anggota tim Anda diverifikasi." : "Seberapa cepat tiap ketua tim memverifikasi catatan anggotanya."}
+            aksi={
+              role === "KETUA_TIM" && data.kecepatan.ringkas.menunggu > 0 ? (
+                <Link href="/verifikasi" className="btn btn-secondary">
+                  Buka antrean <IkonKanan className="h-4 w-4" />
+                </Link>
+              ) : undefined
+            }
+          >
+            <KecepatanVerifikasiPanel data={data.kecepatan} tampilkanKetua={role !== "KETUA_TIM"} />
+          </Panel>
+        )}
+
         {tabel && (
           <section aria-labelledby="h-pegawai" className="space-y-2">
-            <div>
-              <h2 id="h-pegawai" className="text-[15px] font-semibold">Ringkasan per pegawai</h2>
-              <p className="text-xs text-ink-muted">
-                Hari terisi dihitung terhadap {tabel.hariKerja.berlalu} hari kerja yang sudah berjalan (dari {tabel.hariKerja.periode} hari kerja periode ini).
-              </p>
+            <div className="flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <h2 id="h-pegawai" className="text-[15px] font-semibold">Ringkasan per pegawai</h2>
+                <p className="text-xs text-ink-muted">
+                  Hari terisi dihitung terhadap {tabel.hariKerja.berlalu} hari kerja yang sudah berjalan (dari {tabel.hariKerja.periode} hari kerja periode ini).
+                </p>
+              </div>
+              {tabel.data.length > 1 && (
+                <div className="flex flex-wrap gap-2">
+                  <label className="sr-only" htmlFor="f-cari-pegawai">Cari pegawai atau tim</label>
+                  <input id="f-cari-pegawai" type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama atau tim…" className="field w-56 text-sm" />
+                  <label className="sr-only" htmlFor="f-urut-pegawai">Urutkan</label>
+                  <select id="f-urut-pegawai" value={urut} onChange={(e) => setUrut(e.target.value as Urutan)} className="field text-sm">
+                    <option value="nama">Urut: nama</option>
+                    <option value="hari-terendah">Urut: hari terisi terendah</option>
+                    <option value="menunggu-terbanyak">Urut: belum diverifikasi terbanyak</option>
+                  </select>
+                </div>
+              )}
             </div>
             <div className="overflow-x-auto rounded border">
               <table className="w-full min-w-[720px] text-left text-sm">
@@ -301,7 +349,7 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-line">
-                  {tabel.data.map((r) => (
+                  {barisTabel.slice(0, batas).map((r) => (
                     <tr key={r.userId} data-pegawai={r.userId}>
                       <th scope="row" className="px-3 py-2 font-normal">
                         <button type="button" onClick={() => bukaRincian(r.userId)} aria-label={`Lihat rincian ${r.nama}`} className="min-h-11 text-left font-medium text-brand-800 underline decoration-brand-200 underline-offset-4 hover:decoration-brand-600">
@@ -345,16 +393,35 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
                       </td>
                     </tr>
                   ))}
+                  {tabel.data.length > 0 && barisTabel.length === 0 && (
+                    <tr>
+                      <td colSpan={7}>
+                        <EmptyState kecil judul={`Tidak ada pegawai yang cocok dengan "${cari.trim()}".`} />
+                      </td>
+                    </tr>
+                  )}
                   {tabel.data.length === 0 && (
                     <tr>
                       <td colSpan={7}>
-                        <EmptyState kecil judul="Tidak ada pegawai pada cakupan ini." keterangan="Admin menambahkan anggota tim per periode di menu Tim." />
+                        <EmptyState
+                          kecil
+                          judul="Tidak ada pegawai pada cakupan ini."
+                          keterangan={role === "KETUA_TIM" ? <>Tambahkan anggota untuk periode ini di <Link href="/tim-saya" className="underline">Tim Saya</Link>.</> : "Admin menambahkan anggota tim per periode di menu Tim."}
+                        />
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
+            {barisTabel.length > batas && (
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-ink-muted">
+                <span>Menampilkan {batas} dari {barisTabel.length} pegawai.</span>
+                <button type="button" onClick={() => setBatas((b) => b + LANGKAH_TABEL)} className="btn btn-secondary">
+                  Tampilkan {Math.min(LANGKAH_TABEL, barisTabel.length - batas)} lagi
+                </button>
+              </div>
+            )}
           </section>
         )}
       </div>

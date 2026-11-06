@@ -1,10 +1,10 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { recalculateProgresAlokasi } from "../lib/progres-alokasi";
 import { FAKE_TODAY, USERS } from "./support/data";
 import { E2E_PASSWORD } from "./support/data";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 
 // Alur B dari sudut pandang pegawai di HP: viewport 360px.

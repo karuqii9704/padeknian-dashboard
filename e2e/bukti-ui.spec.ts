@@ -1,9 +1,9 @@
 import { expect, test, type Page } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { contohDocx, contohExe, contohPdf } from "../lib/testing/mini-zip";
 import { E2E_PASSWORD, USERS } from "./support/data";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 
 test.use({ viewport: { width: 360, height: 740 }, hasTouch: true });

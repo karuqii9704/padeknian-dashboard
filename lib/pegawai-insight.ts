@@ -1,4 +1,7 @@
 import { db } from "@/lib/db";
+import { wajibLapor } from "@/lib/wajib-lapor";
+import { hariIni } from "@/lib/clock";
+import { hitungKepatuhanHarian, type HariKepatuhan } from "@/lib/kepatuhan-harian";
 import { hariKerjaPeriode } from "@/lib/hari-kerja";
 import { persenAtauNull } from "@/lib/progres";
 
@@ -54,9 +57,8 @@ export type AnalitikPegawai = {
   baris: BarisPegawai[];
   insight: InsightPegawai[];
   sebaranStatus: { status: string; label: string; jumlah: number }[];
-  sebaranPeran: { role: string; label: string; jumlah: number }[];
-  topAktif: { userId: string; nama: string; nilai: number; satuan: string }[];
-  barisHari: { tanggal: string; jumlah: number; pegawai: number }[];
+  /** Per hari kerja yang sudah berjalan: berapa pegawai wajib lapor yang mengisi. */
+  kepatuhanHarian: HariKepatuhan[];
   periode: { id: string; tahun: number; bulan: number; status: string } | null;
   hariKerja: { total: number; berlalu: number };
 };
@@ -120,7 +122,7 @@ export function hitungInsight(
   }
 
   // 3. Pegawai belum mengisi laporan sama sekali -> risiko rekap kosong.
-  const belum = baris.filter((b) => b.jumlahEntri === 0 && b.hariKerjaBerlalu > 0);
+  const belum = baris.filter((b) => wajibLapor(b) && b.jumlahEntri === 0 && b.hariKerjaBerlalu > 0);
   if (belum.length > 0) {
     hasil.push({
       tingkat: belum.length >= 3 ? "galat" : "peringatan",
@@ -134,7 +136,7 @@ export function hitungInsight(
   }
 
   // 4. Kelengkapan rendah (< 50% hari kerja terisi).
-  const rendah = baris.filter((b) => b.persenHariTerisi !== null && b.persenHariTerisi < 50 && b.jumlahEntri > 0);
+  const rendah = baris.filter((b) => wajibLapor(b) && b.persenHariTerisi !== null && b.persenHariTerisi < 50 && b.jumlahEntri > 0);
   if (rendah.length > 0) {
     hasil.push({
       tingkat: "peringatan",
@@ -231,6 +233,8 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
       orderBy: [{ nama: "asc" }],
     }),
     db.anggotaTim.findMany({
+      // Tim pada periode yang ditampilkan saja (keanggotaan per periode; tanpa ini nama tim berulang).
+      where: periode ? { periodeId: periode.id } : {},
       select: { userId: true, tim: { select: { nama: true, isActive: true } } },
     }),
   ]);
@@ -239,7 +243,8 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
   const timPerUser = new Map<string, string[]>();
   for (const a of timAnggota) {
     if (!a.tim.isActive) continue;
-    timPerUser.set(a.userId, [...(timPerUser.get(a.userId) ?? []), a.tim.nama]);
+    const ada = timPerUser.get(a.userId) ?? [];
+    if (!ada.includes(a.tim.nama)) timPerUser.set(a.userId, [...ada, a.tim.nama]);
   }
 
   // Ringkasan akun.
@@ -287,7 +292,7 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
     hariTerakhir: null,
   }));
   let sebaranStatus: { status: string; label: string; jumlah: number }[] = [];
-  let barisHari: { tanggal: string; jumlah: number; pegawai: number }[] = [];
+  let kepatuhanHarian: HariKepatuhan[] = [];
 
   if (periode) {
     const [hk, statusAgg, buktiAgg, hariAgg] = await Promise.all([
@@ -304,11 +309,12 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
       }),
       db.pekerjaanHarian.findMany({
         where: { periodeId: periode.id },
-        select: { userId: true, tanggal: true, statusVerifikasi: true },
+        select: { id: true, userId: true, tanggal: true, statusVerifikasi: true },
       }),
     ]);
 
     hariKerja = { total: hk.semua, berlalu: hk.berlalu };
+    const sekarang = hariIni();
     const hariKerjaSet = new Set(hk.daftar);
 
     // Jumlah entri per pegawai.
@@ -318,7 +324,6 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
     const revisi = new Map<string, number>();
     const hariTerisi = new Map<string, Set<string>>();
     const hariTerakhir = new Map<string, string>();
-    const perHari = new Map<string, { jumlah: number; pegawai: Set<string> }>();
 
     for (const e of hariAgg) {
       jumlahEntri.set(e.userId, (jumlahEntri.get(e.userId) ?? 0) + 1);
@@ -327,25 +332,18 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
       else if (e.statusVerifikasi === "DISETUJUI") disetujui.set(e.userId, (disetujui.get(e.userId) ?? 0) + 1);
       else revisi.set(e.userId, (revisi.get(e.userId) ?? 0) + 1);
 
-      if (hariKerjaSet.has(tgl)) {
+      // Hanya hari kerja yang sudah berjalan: penyebutnya juga hari kerja berlalu (persen tidak > 100%).
+      if (hariKerjaSet.has(tgl) && tgl <= sekarang) {
         hariTerisi.set(e.userId, (hariTerisi.get(e.userId) ?? new Set()).add(tgl));
         const prev = hariTerakhir.get(e.userId);
         if (!prev || tgl > prev) hariTerakhir.set(e.userId, tgl);
       }
-      const hari = perHari.get(tgl) ?? { jumlah: 0, pegawai: new Set<string>() };
-      hari.jumlah += 1;
-      hari.pegawai.add(e.userId);
-      perHari.set(tgl, hari);
     }
 
     // Jumlah bukti per pegawai (butuh join ke pekerjaan).
     const buktiPerEntri = new Map(buktiAgg.map((b) => [b.pekerjaanHarianId, b._count._all]));
-    const entriBukti = await db.pekerjaanHarian.findMany({
-      where: { periodeId: periode.id },
-      select: { id: true, userId: true },
-    });
     const buktiPerUser = new Map<string, number>();
-    for (const e of entriBukti) {
+    for (const e of hariAgg) {
       const n = buktiPerEntri.get(e.id) ?? 0;
       if (n > 0) buktiPerUser.set(e.userId, (buktiPerUser.get(e.userId) ?? 0) + n);
     }
@@ -366,28 +364,26 @@ export async function ambilAnalitikPegawai(): Promise<AnalitikPegawai> {
       .map((s) => ({ status: s.statusVerifikasi, label: LABEL_STATUS[s.statusVerifikasi] ?? s.statusVerifikasi, jumlah: s._count._all }))
       .sort((a, b) => b.jumlah - a.jumlah);
 
-    barisHari = [...perHari.entries()]
-      .map(([tanggal, v]) => ({ tanggal, jumlah: v.jumlah, pegawai: v.pegawai.size }))
-      .sort((a, b) => a.tanggal.localeCompare(b.tanggal));
+    const wajibIds = new Set(baris.filter(wajibLapor).map((b) => b.userId));
+    kepatuhanHarian = hitungKepatuhanHarian(
+      hk.daftar,
+      sekarang,
+      hariAgg.map((e) => ({
+        userId: e.userId,
+        tanggal: e.tanggal.toISOString().slice(0, 10),
+        statusVerifikasi: e.statusVerifikasi,
+        adaBukti: (buktiPerEntri.get(e.id) ?? 0) > 0,
+      })),
+      wajibIds,
+    );
   }
-
-  // Pegawai paling aktif (entri + bukti) untuk grafik pegawai paling aktif.
-  const topAktif = [...baris]
-    .filter((b) => b.jumlahEntri > 0)
-    .sort((a, b) => b.jumlahEntri - a.jumlahEntri || b.totalBukti - a.totalBukti)
-    .slice(0, 8)
-    .map((b) => ({ userId: b.userId, nama: b.nama, nilai: b.jumlahEntri, satuan: "entri" }));
-
-  const sebaranPeran = ringkasan.perPeran.map((p) => ({ role: p.role, label: p.label, jumlah: p.jumlah }));
 
   return {
     ringkasan,
     baris,
     insight: hitungInsight(ringkasan, baris, sebaranStatus),
     sebaranStatus,
-    sebaranPeran,
-    topAktif,
-    barisHari,
+    kepatuhanHarian,
     periode: periode
       ? { id: periode.id, tahun: periode.tahun, bulan: periode.bulan, status: periode.status }
       : null,

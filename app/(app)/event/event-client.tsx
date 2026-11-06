@@ -53,10 +53,6 @@ export function EventClient({ awal, hariIni, ketua, bukaForm }: { awal: Daftar; 
     else dialog.current?.close();
   }, [form]);
 
-  useEffect(() => {
-    if (tab === "tim" && !daftar.tim) void muat("tim");
-  }, [tab, daftar.tim, muat]);
-
   async function hapus(e: EventItem) {
     if (!confirm(`Hapus event "${e.judul}" beserta lampirannya?`)) return;
     const res = await fetch(`/api/event/${e.id}`, { method: "DELETE" });
@@ -92,6 +88,7 @@ export function EventClient({ awal, hariIni, ketua, bukaForm }: { awal: Daftar; 
               onClick={() => {
                 setTab(t);
                 setInfo(null);
+                if (t === "tim" && !daftar.tim) void muat("tim"); // muat saat pertama kali dibuka
               }}
               className={`btn ${tab === t ? "btn-primary" : "btn-secondary"}`}
             >

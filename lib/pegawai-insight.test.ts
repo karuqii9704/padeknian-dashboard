@@ -77,6 +77,21 @@ describe("hitungInsight", () => {
     expect(belum!.judul).toContain("1 pegawai");
   });
 
+  it("admin, pimpinan, dan akun nonaktif tidak dihitung 'belum mengisi' maupun 'di bawah 50%'", () => {
+    const rows = [
+      baris({ userId: "a", nama: "Admin", role: "ADMIN" }),
+      baris({ userId: "p", nama: "Pimpinan", role: "PIMPINAN", jumlahEntri: 1, persenHariTerisi: 10 }),
+      baris({ userId: "n", nama: "Nonaktif", isActive: false }),
+      baris({ userId: "k", nama: "Ketua", role: "KETUA_TIM" }),
+    ];
+    const i = hitungInsight(ringkasanDasar, rows, kosong);
+    const belum = i.find((x) => /belum mengisi laporan/i.test(x.judul));
+    expect(belum!.judul).toContain("1 pegawai");
+    expect(belum!.keterangan).toContain("Ketua");
+    expect(belum!.keterangan).not.toMatch(/Admin|Pimpinan|Nonaktif/);
+    expect(i.some((x) => /di bawah 50%/i.test(x.judul))).toBe(false);
+  });
+
   it("mendeteksi kelengkapan pengisian di bawah 50%", () => {
     const i = hitungInsight(
       ringkasanDasar,

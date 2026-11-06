@@ -40,7 +40,7 @@ type Data = {
 const PRIORITAS_LABEL: Record<string, string> = { RENDAH: "Rendah", SEDANG: "Sedang", TINGGI: "Tinggi" };
 const STATUS_LABEL: Record<string, string> = { BELUM_MULAI: "Belum mulai", PROSES: "Proses", SELESAI: "Selesai" };
 
-export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm?: boolean }) {
+export function HariIniClient({ awal, bukaForm = false, tanggalAwal }: { awal: Data; bukaForm?: boolean; tanggalAwal?: string }) {
   const [data, setData] = useState<Data | null>(awal);
   const [error, setError] = useState<string | null>(null);
   const [info, setInfo] = useState<string | null>(null);
@@ -206,6 +206,7 @@ export function HariIniClient({ awal, bukaForm = false }: { awal: Data; bukaForm
             tanggalOpsi={data.tanggalBolehDicatat}
             hariIni={data.hariIni}
             pilihanAwal={form.mode === "baru" ? form.pilihan : undefined}
+            tanggalAwal={form.mode === "baru" ? tanggalAwal : undefined}
             awal={form.mode === "ubah" ? form.awal : undefined}
             onSaved={() => {
               setForm(null);

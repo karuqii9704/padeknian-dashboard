@@ -3,9 +3,9 @@
  * Script baca-saja: tidak mengubah data. NIP ditampilkan karena dipakai untuk login uji.
  *   npx tsx scripts/cek-user-aktif.ts
  */
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 
-const db = new PrismaClient();
+const db = buatPrisma();
 
 async function main() {
   const users = await db.user.findMany({

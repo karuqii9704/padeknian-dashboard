@@ -1,5 +1,5 @@
 import { execSync, spawn, type ChildProcess } from "node:child_process";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import bcrypt from "bcryptjs";
 import { E2E_PASSWORD, FAKE_TODAY, LIBUR_UJI, NIP_GAGAL, TIM2_NAMA, TIM_NAMA, USERS } from "./support/data";
 
@@ -20,7 +20,7 @@ function matikan(p: ChildProcess) {
 /** Jalankan worker pg-boss (proses terpisah) dan tunggu sampai siap. */
 async function jalankanWorker() {
   const worker = spawn(process.execPath, ["node_modules/tsx/dist/cli.mjs", "worker/index.ts"], {
-    env: { ...process.env, REKAP_GAGALKAN_NIP: NIP_GAGAL },
+    env: { ...process.env, REKAP_GAGALKAN_NIP: NIP_GAGAL, PENGINGAT_NONAKTIF: "1" },
     stdio: ["ignore", "pipe", "pipe"],
   });
   let log = "";
@@ -59,7 +59,7 @@ export default async function globalSetup() {
   }
 
   // Kosongkan schema (hanya database *e2e*, dijaga di atas) lalu terapkan semua migrasi.
-  const admin = new PrismaClient();
+  const admin = buatPrisma();
   try {
     await admin.$executeRawUnsafe("DROP SCHEMA public CASCADE");
     await admin.$executeRawUnsafe("CREATE SCHEMA public");
@@ -69,7 +69,7 @@ export default async function globalSetup() {
   }
   execSync("node node_modules/prisma/build/index.js migrate deploy", { stdio: "ignore", env: process.env });
 
-  const prisma = new PrismaClient();
+  const prisma = buatPrisma();
   try {
     const hash = await bcrypt.hash(E2E_PASSWORD, 4); // cost rendah hanya untuk kecepatan uji
     const users: Record<string, string> = {};

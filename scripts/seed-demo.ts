@@ -1,10 +1,10 @@
 // Data demo untuk review manual (BUKAN produksi). Idempotent: dilewati bila Tim demo sudah ada.
 //   npx tsx scripts/seed-demo.ts
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import bcrypt from "bcryptjs";
 import { recalculateSemua } from "../lib/progres-alokasi";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 export const PASSWORD_DEMO = "Demo-12345";
 const TIM = "Tim Statistik Produksi (Demo)";
 

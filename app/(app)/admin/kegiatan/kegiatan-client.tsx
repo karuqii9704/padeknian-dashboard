@@ -112,7 +112,7 @@ export function KegiatanClient({ awal }: { awal: Kegiatan[] }) {
               <input name="kode" maxLength={40} defaultValue={edit?.kode ?? ""} className={field} />
             </label>
             <label className="flex flex-col gap-1 text-sm">Uraian
-              <textarea name="uraian" required defaultValue={edit?.uraian} rows={3} className="rounded border px-3 py-2" />
+              <textarea name="uraian" required maxLength={1000} defaultValue={edit?.uraian} rows={3} className="rounded border px-3 py-2" />
             </label>
             <label className="flex flex-col gap-1 text-sm">Satuan default (opsional)
               <input name="satuanDefault" maxLength={30} defaultValue={edit?.satuanDefault ?? ""} className={field} />

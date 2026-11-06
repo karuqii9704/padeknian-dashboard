@@ -1,9 +1,9 @@
 import { expect, test, type APIRequestContext, type Browser } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { LIBUR_UJI, USERS } from "./support/data";
 import { loginUI } from "./support/auth";
 
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 
 let penugasanYul = "";

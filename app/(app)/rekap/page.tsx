@@ -1,8 +1,8 @@
-import { redirect } from "next/navigation";
+import { forbidden, redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { daftarRekap } from "@/lib/rekap";
 import { HttpError, requireRole } from "@/lib/rbac";
-import { Halaman, PageHeader } from "../../ui/primitives";
+
 import { RekapClient } from "./rekap-client";
 
 export const dynamic = "force-dynamic";
@@ -14,11 +14,7 @@ export default async function RekapPage() {
   } catch (e) {
     if (e instanceof HttpError && e.status === 401) redirect("/login");
     if (e instanceof HttpError && e.status === 403 && e.message.includes("mengganti password")) redirect("/ganti-password");
-    return (
-      <Halaman lebar="max-w-xl">
-        <PageHeader judul="Akses ditolak" keterangan="Rekap untuk Admin, Pimpinan, dan Ketua Tim." />
-      </Halaman>
-    );
+    forbidden(); // HTTP 403 + app/(app)/forbidden.tsx
   }
   // Periode + daftar rekap periode terpilih dirender di server (sebelumnya dua fetch berurutan di browser).
   const periodes = await db.periode.findMany({ orderBy: [{ tahun: "desc" }, { bulan: "desc" }] });

@@ -22,6 +22,7 @@ export const authConfig = {
         token.id = user.id;
         token.nip = (user as { nip: string }).nip;
         token.role = (user as { role: NonNullable<typeof token.role> }).role;
+        token.authAt = now;
       } else if (isIdleExpired(token.lastActivity, now)) {
         return null; // idle > 60 menit: sesi dibatalkan
       }
@@ -32,6 +33,7 @@ export const authConfig = {
       session.user.id = token.id as string;
       session.user.nip = token.nip as string;
       session.user.role = token.role as NonNullable<typeof token.role>;
+      session.user.authAt = token.authAt;
       return session;
     },
   },

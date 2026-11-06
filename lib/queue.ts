@@ -3,6 +3,9 @@ import { logger } from "@/lib/logger";
 
 export const QUEUE_REKAP = "rekap-generate";
 export const QUEUE_REKAP_XLSX = "rekap-xlsx";
+export const QUEUE_PENGINGAT = "pengingat-harian";
+/** 08.00 WIB, Senin–Jumat (pengingat sendiri melewati hari libur). */
+export const JADWAL_PENGINGAT = "0 8 * * 1-5";
 export type JobRekap = { rekapId: string };
 export type JobXlsx = { batchId: string };
 
@@ -32,6 +35,7 @@ export async function siapkanAntrean(boss: PgBoss) {
   await boss.start();
   await boss.createQueue(QUEUE_REKAP, OPSI_ANTREAN_REKAP);
   await boss.createQueue(QUEUE_REKAP_XLSX, OPSI_ANTREAN_XLSX);
+  await boss.createQueue(QUEUE_PENGINGAT, { retryLimit: 1, expireInSeconds: 10 * 60, deleteAfterSeconds: 7 * 24 * 3600 });
 }
 
 // Sisi web hanya mengirim job (pemrosesan dilakukan proses worker terpisah).

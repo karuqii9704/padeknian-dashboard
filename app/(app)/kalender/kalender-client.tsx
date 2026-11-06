@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { angkaRingkas } from "@/lib/alokasi-format";
 import { labelTanggal } from "@/lib/tanggal-id";
 import { BuktiEntri } from "../bukti/indikator-bukti";
@@ -57,8 +58,15 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
   const [kal, setKal] = useState<Kal | null>(awal.kal);
   const periodes = awal.periodes;
   const [konteks, setKonteks] = useState<Konteks | null>(awal.konteks);
-  const [dipilih, setDipilih] = useState<string | null>(null);
-  const [entri, setEntri] = useState<Entri[]>([]);
+  // Tautan dari notifikasi: /kalender?tanggal=YYYY-MM-DD langsung membuka detail hari tersebut.
+  const sp = useSearchParams();
+  const [dipilih, setDipilih] = useState<string | null>(() => {
+    const t = sp.get("tanggal");
+    return t && /^\d{4}-\d{2}-\d{2}$/.test(t) ? t : null;
+  });
+  // Catatan disimpan bersama tanggalnya; tanggal lain (atau belum dimuat) dianggap kosong.
+  const [muatan, setMuatan] = useState<{ tanggal: string; data: Entri[] } | null>(null);
+  const entri = muatan && muatan.tanggal === dipilih ? muatan.data : [];
   const [error, setError] = useState<string | null>(awal.kal ? null : "Belum ada periode.");
   const [form, setForm] = useState<{ mode: "baru"; tanggal: string } | { mode: "ubah"; awal: EntriAwal } | null>(null);
   const dialog = useRef<HTMLDialogElement>(null);
@@ -71,16 +79,12 @@ export function KalenderClient({ awal }: { awal: { kal: Kal | null; periodes: Pe
     if (c.ok) setKonteks({ hariIni: c.body.hariIni, tanggalBolehDicatat: c.body.tanggalBolehDicatat, alokasi: c.body.alokasi });
   }, []);
 
-  useEffect(() => {
-    // Tautan dari notifikasi: /kalender?tanggal=YYYY-MM-DD membuka detail hari tersebut.
-    const t = new URLSearchParams(window.location.search).get("tanggal");
-    if (t && /^\d{4}-\d{2}-\d{2}$/.test(t)) setDipilih(t);
-  }, []);
-
-  const loadEntri = useCallback(async () => {
-    if (!dipilih || !kal) return setEntri([]);
-    const r = await getJson(`/api/pekerjaan-harian?userId=${kal.userId}&tanggalDari=${dipilih}&tanggalSampai=${dipilih}`);
-    setEntri(r.ok ? r.body.data : []);
+  const loadEntri = useCallback(() => {
+    if (!dipilih || !kal) return;
+    const tanggal = dipilih;
+    void getJson(`/api/pekerjaan-harian?userId=${kal.userId}&tanggalDari=${tanggal}&tanggalSampai=${tanggal}`).then((r) =>
+      setMuatan({ tanggal, data: r.ok ? r.body.data : [] }),
+    );
   }, [dipilih, kal]);
 
   useEffect(() => {

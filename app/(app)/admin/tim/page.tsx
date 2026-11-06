@@ -1,25 +1,25 @@
 import { db } from "@/lib/db";
-import { daftarTim } from "@/lib/tim";
+import { calonAnggota, daftarTim } from "@/lib/tim";
 import { daftarPengguna, listQuerySchema } from "@/lib/users";
-import { AksesDitolak, gerbangAdmin } from "../gerbang";
+import { gerbangAdmin } from "../gerbang";
 import { TimClient } from "./tim-client";
 
 export const dynamic = "force-dynamic";
 
 export default async function TimPage() {
-  if (!(await gerbangAdmin())) return <AksesDitolak />;
+  await gerbangAdmin();
   // Lima permintaan yang sebelumnya dikirim berurutan dari browser kini berjalan paralel di server.
-  const [tims, ketua, aktif, periodes] = await Promise.all([
+  const [tims, ketua, calon, periodes] = await Promise.all([
     daftarTim(),
     daftarPengguna(listQuerySchema.parse({ role: "KETUA_TIM", aktif: "true", pageSize: "100" })),
-    daftarPengguna(listQuerySchema.parse({ aktif: "true", pageSize: "100" })),
+    calonAnggota(), // tanpa batas halaman: pegawai ke-101 dst. tetap bisa ditambahkan
     db.periode.findMany({ orderBy: [{ tahun: "desc" }, { bulan: "desc" }] }),
   ]);
   const awal = JSON.parse(
     JSON.stringify({
       tims,
       ketuaOpsi: ketua.data,
-      pegawai: aktif.data.filter((u) => u.role === "PEGAWAI" || u.role === "KETUA_TIM"),
+      pegawai: calon,
       periodes,
     }),
   );

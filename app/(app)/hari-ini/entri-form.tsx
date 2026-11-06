@@ -5,7 +5,7 @@ import { BuktiPicker } from "../bukti/bukti-picker";
 import { DaftarBukti, type BuktiView } from "../bukti/daftar-bukti";
 import { useAntreanBukti } from "../bukti/use-antrean-bukti";
 import { kompresGambar, periksaFileLokal } from "@/lib/bukti-klien";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ADHOC, entriFormSchema, keBodyBaru, keBodyUbah, type EntriFormValues } from "@/lib/entri-form";
 import { angkaRingkas } from "@/lib/alokasi-format";
@@ -66,9 +66,9 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
   const {
     register,
     handleSubmit,
-    watch,
     setValue,
     formState: { errors, isSubmitting },
+    control,
   } = useForm<EntriFormValues>({
     resolver: zodResolver(entriFormSchema),
     defaultValues: {
@@ -83,7 +83,7 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
     },
   });
 
-  const pilihan = watch("pilihan");
+  const pilihan = useWatch({ control, name: "pilihan" });
   const adhoc = pilihan === ADHOC;
   const opsi = alokasi.find((a) => a.penugasanId === pilihan);
   const satuan = ubah ? ubah.satuan : adhoc ? "" : (opsi?.satuan ?? "");
@@ -244,7 +244,7 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
 
       <label className={lbl}>
         Deskripsi capaian
-        <textarea {...register("deskripsiCapaian")} rows={3} className={area} aria-invalid={!!errors.deskripsiCapaian} />
+        <textarea {...register("deskripsiCapaian")} maxLength={5000} rows={3} className={area} aria-invalid={!!errors.deskripsiCapaian} />
         {errors.deskripsiCapaian && <span className={err}>{errors.deskripsiCapaian.message}</span>}
       </label>
 
@@ -266,7 +266,7 @@ export function EntriForm({ mode, alokasi, tanggalOpsi, hariIni, pilihanAwal, ta
 
       <label className={lbl}>
         <span>Kendala <span className="font-normal text-ink-muted">(opsional)</span></span>
-        <textarea {...register("kendala")} rows={2} className={area} />
+        <textarea {...register("kendala")} maxLength={2000} rows={2} className={area} />
       </label>
 
       </fieldset>

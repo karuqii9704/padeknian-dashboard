@@ -2,9 +2,9 @@
  * Verifikasi data analitik pegawai yang dipakai halaman "Informasi Pegawai".
  * Script baca-saja: memastikan insight & grafik terisi data nyata dari Neon.
  */
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 
-const db = new PrismaClient();
+const db = buatPrisma();
 
 async function main() {
   const periode = await db.periode.findFirst({ where: { status: "AKTIF" }, orderBy: [{ tahun: "desc" }, { bulan: "desc" }] });

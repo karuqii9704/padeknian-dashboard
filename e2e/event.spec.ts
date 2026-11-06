@@ -1,10 +1,10 @@
 import { expect, test } from "@playwright/test";
-import { PrismaClient } from "@prisma/client";
+import { buatPrisma } from "../lib/prisma-klien";
 import { USERS } from "./support/data";
 import { sebagai } from "./support/api";
 
 // Hari ini (E2E) = Rabu 2026-10-14. Periode: Oktober AKTIF, September DRAFT, Agustus DIKUNCI.
-const prisma = new PrismaClient();
+const prisma = buatPrisma();
 test.afterAll(() => prisma.$disconnect());
 test.describe.configure({ mode: "serial" });
 
