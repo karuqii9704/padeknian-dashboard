@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useFieldArray, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { alokasiFormSchema, keBodyApi, type AlokasiFormValues } from "@/lib/alokasi-form";
@@ -39,7 +39,11 @@ const field = "field";
 const err = "text-xs text-red-700";
 
 export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId, periodeId, rentang, anggota, kegiatan, onSaved, onCancel }: Props) {
-  const [serverError, setServerError] = useState<string | null>(null);
+  // Pesan error terikat pada tim+periode saat dibuat; ganti konteks otomatis menyembunyikannya (tanpa efek).
+  const kunciKonteks = `${timId}|${periodeId}`;
+  const [errorState, setErrorState] = useState<{ kunci: string; pesan: string } | null>(null);
+  const serverError = errorState?.kunci === kunciKonteks ? errorState.pesan : null;
+  const setServerError = (pesan: string | null) => setErrorState(pesan ? { kunci: kunciKonteks, pesan } : null);
   const {
     register,
     control,
@@ -65,10 +69,6 @@ export function AlokasiForm({ awal, judulForm = "Tambah alokasi", onSkip, timId,
   const { fields } = useFieldArray({ control, name: "penerima" });
   const penerima = useWatch({ control, name: "penerima" });
   const targetUmum = useWatch({ control, name: "targetVolume" });
-
-  useEffect(() => {
-    setServerError(null);
-  }, [timId, periodeId]);
 
   async function onSubmit(values: AlokasiFormValues) {
     setServerError(null);
