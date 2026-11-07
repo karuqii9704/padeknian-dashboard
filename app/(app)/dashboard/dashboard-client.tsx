@@ -125,6 +125,7 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
         }
         setError(null);
         setData(body);
+        setBatas(LANGKAH_TABEL);
         if (!userId) setOpsiPegawai(body.tabel.data.map((x: BarisPegawai) => ({ userId: x.userId, nama: x.nama })));
       })
       .catch(() => undefined)
@@ -175,7 +176,6 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
     const cocok = (tabel?.data ?? []).filter((r) => !q || r.nama.toLowerCase().includes(q) || r.tim.some((t) => t.toLowerCase().includes(q)));
     return [...cocok].sort(URUTAN[urut]);
   }, [tabel, cari, urut]);
-  useEffect(() => setBatas(LANGKAH_TABEL), [tabel, cari, urut]);
   const analitik = data?.analitik;
   const periode = data?.ringkasan.periode;
   const belumMengisiHariIni = k ? Math.max(0, k.pegawaiAktif - k.pegawaiMengisiHariIni) : 0;
@@ -325,9 +325,9 @@ export function DashboardClient({ role, opsi, awal }: { role: string; opsi: Opsi
               {tabel.data.length > 1 && (
                 <div className="flex flex-wrap gap-2">
                   <label className="sr-only" htmlFor="f-cari-pegawai">Cari pegawai atau tim</label>
-                  <input id="f-cari-pegawai" type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama atau tim…" className="field w-56 text-sm" />
+                  <input id="f-cari-pegawai" type="search" value={cari} onChange={(e) => { setCari(e.target.value); setBatas(LANGKAH_TABEL); }} placeholder="Cari nama atau tim…" className="field w-56 text-sm" />
                   <label className="sr-only" htmlFor="f-urut-pegawai">Urutkan</label>
-                  <select id="f-urut-pegawai" value={urut} onChange={(e) => setUrut(e.target.value as Urutan)} className="field text-sm">
+                  <select id="f-urut-pegawai" value={urut} onChange={(e) => { setUrut(e.target.value as Urutan); setBatas(LANGKAH_TABEL); }} className="field text-sm">
                     <option value="nama">Urut: nama</option>
                     <option value="hari-terendah">Urut: hari terisi terendah</option>
                     <option value="menunggu-terbanyak">Urut: belum diverifikasi terbanyak</option>
